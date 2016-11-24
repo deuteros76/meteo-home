@@ -11,26 +11,23 @@
 
 #include <ArduinoJson.h> 
 #include <FS.h> 
-
-//MQTT  server
-//#define mqtt_server "192.168.1.5"
-#define mqtt_user "your_username"
-#define mqtt_password "your_password"
-
-char mqtt_server[40] = "192.168.1.5";
-char mqtt_port[6] = "8080";
-char blynk_token[34] = "YOUR_BLYNK_TOKEN";
-
-//MQTT subscriptions
-#define temperature_topic "balcony/temperature"
-#define humidity_topic "balcony/humidity"
-#define heatindex_topic "balcony/heatindex"
-#define pressure_topic "balcony/pressure"
-#define device_temperature_topic "balcony/status/temperature"
-
 //Temperature sensor settings
 #define DHTPIN 2 // what digital pin we're connected to
 #define DHTTYPE DHT22 // DHT 22  (AM2302), AM2321
+
+//MQTT  server
+char mqtt_server[15] = "192.168.1.5";
+char mqtt_port[6] = "8080";
+char mqtt_user[30] = "your_username";
+char mqtt_password[30] = "YOUR_BLYNK_TOKEN";
+
+//MQTT subscriptions
+char dht_temperature_topic[40] = "room/temperature";
+char dht_humidity_topic[40] = "room/humidity";
+char dht_heatindex_topic[40] = "room/heatindex";
+char bmp_pressure_topic[40] = "room/pressure";
+char bmp_temperature_topic[40] = "room/device/temperature";
+
 
 //Deep sleep
 #define DEEP_SLEEP_TIME 5 //time in seconds
@@ -66,14 +63,23 @@ void setup() {
 }
 
 void setup_wifi(){
-  WiFiManagerParameter custom_mqtt_server("server", "mqtt server", mqtt_server, 40);
+  WiFiManagerParameter custom_server_group("<p>MQTT Sercer settings</p>");
+  WiFiManagerParameter custom_mqtt_server("server", "mqtt server", mqtt_server, 15);
   WiFiManagerParameter custom_mqtt_port("port", "mqtt port", mqtt_port, 6);
-  WiFiManagerParameter custom_blynk_token("blynk", "blynk token", blynk_token, 32);
+  WiFiManagerParameter custom_mqtt_password("password", "mqtt password", mqtt_password, 30);
+  WiFiManagerParameter custom_mqtt_username("username", "user name", mqtt_user, 30);
+  
+  WiFiManagerParameter custom_topics_group("<p>MQTT topics</p>");
+  WiFiManagerParameter custom_dht_temperature_topic("temperature","temperature",dht_temperature_topic,40);
+  WiFiManagerParameter custom_dht_humidity_topic("humidity","humidity",dht_humidity_topic,40);
+  WiFiManagerParameter custom_dht_heatindex_topic("heatindex","heatindex",dht_heatindex_topic,40);
+  WiFiManagerParameter custom_bmp_pressure_topic("pressure","pressure",bmp_pressure_topic,40);
+  WiFiManagerParameter custom_bmp_temperature_topic("temperature2","temperature2",bmp_temperature_topic,40);
   
   WiFiManager wifiManager;
 
   //reset settings - for testing
-  //wifiManager.resetSettings();
+  wifiManager.resetSettings();
 
   int portalTimeout;
   if (configFileExists){
@@ -83,10 +89,18 @@ void setup_wifi(){
   }
   
   wifiManager.setTimeout(portalTimeout);
-
+  wifiManager.addParameter(&custom_server_group);
   wifiManager.addParameter(&custom_mqtt_server);
   wifiManager.addParameter(&custom_mqtt_port);
-  wifiManager.addParameter(&custom_blynk_token);
+  wifiManager.addParameter(&custom_mqtt_username);
+  wifiManager.addParameter(&custom_mqtt_password);
+  
+  wifiManager.addParameter(&custom_topics_group);
+  wifiManager.addParameter(&custom_dht_temperature_topic);
+  wifiManager.addParameter(&custom_dht_humidity_topic);
+  wifiManager.addParameter(&custom_dht_heatindex_topic);
+  wifiManager.addParameter(&custom_bmp_pressure_topic);
+  wifiManager.addParameter(&custom_bmp_temperature_topic);
 
   if(!wifiManager.autoConnect()) {
     Serial.println("failed to connect and hit timeout");
@@ -190,12 +204,12 @@ void loop() {
   client.loop();
 /*
   ReadTemperatureAndHumidityValue();
-  client.publish(temperature_topic, String(temperature).c_str(), true);
-  client.publish(humidity_topic, String(humidity).c_str(), true);
-  client.publish(heatindex_topic, String(heatindex).c_str(), true);
+  client.publish(dht_temperature_topic, String(temperature).c_str(), true);
+  client.publish(dht_humidity_topic, String(humidity).c_str(), true);
+  client.publish(dht_heatindex_topic, String(heatindex).c_str(), true);
   readPressure();
-  client.publish(pressure_topic, String(pressure).c_str(), true); 
-  client.publish(device_temperature_topic, String(device_temperature).c_str(), true); 
+  client.publish(bmp_pressure_topic, String(pressure).c_str(), true); 
+  client.publish(bmp_temperature_topic, String(device_temperature).c_str(), true); 
  */ 
   Serial.print("Elapsed time for this iterration:");
   Serial.println((millis()-total_time)/1000);
