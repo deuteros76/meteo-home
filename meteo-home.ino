@@ -19,7 +19,7 @@
 char mqtt_server[15] = "192.168.1.5";
 char mqtt_port[6] = "8080";
 char mqtt_user[30] = "your_username";
-char mqtt_password[30] = "YOUR_BLYNK_TOKEN";
+char mqtt_password[30] = "YOUR_PASSWORD";
 
 //MQTT subscriptions
 char dht_temperature_topic[40] = "room/temperature";
@@ -30,7 +30,7 @@ char bmp_temperature_topic[40] = "room/device/temperature";
 
 
 //Deep sleep
-#define DEEP_SLEEP_TIME 5 //time in seconds
+#define DEEP_SLEEP_TIME 60 //time in seconds
 
 //Timeout connection wifi or mqtt server
 #define CONNECTION_TIMEOUT 200000 //Timeout for connections. The idea is to prevent for continuous/infinit conection tries if the remote device is done. This would cause battery drain
@@ -45,6 +45,15 @@ float pressure = 0;
 
 bool configFileExists = false;
 
+//flag for saving data
+bool shouldSaveConfig = false;
+
+//callback notifying us of the need to save config
+void saveConfigCallback () {
+  Serial.println("Should save config");
+  shouldSaveConfig = true;
+}
+
 Adafruit_BMP085 bmp; // Bmp sensor variable
 
 WiFiClient espClient;
@@ -52,7 +61,7 @@ PubSubClient client(espClient);
 
 void setup() {
   Serial.begin(115200);
-  setupFS();
+  setup_config_data();
   setup_wifi();
   client.setServer(mqtt_server, 1883); 
 
@@ -60,6 +69,51 @@ void setup() {
   dht.begin();
   //BMP180 sensor fro pressure
   bmp.begin();
+}
+
+void setup_config_data(){
+  //read configuration from FS json
+  Serial.println("mounting FS...");
+
+  if (SPIFFS.begin()) {
+    Serial.println("mounted file system");
+    if (SPIFFS.exists("/config.json")) {
+      //file exists, reading and loading
+      Serial.println("reading config file");
+      File configFile = SPIFFS.open("/config.json", "r");
+      if (configFile) {
+        Serial.println("opened config file");
+        size_t size = configFile.size();
+        // Allocate a buffer to store contents of the file.
+        std::unique_ptr<char[]> buf(new char[size]);
+
+        configFile.readBytes(buf.get(), size);
+        DynamicJsonBuffer jsonBuffer;
+        JsonObject& json = jsonBuffer.parseObject(buf.get());
+        json.printTo(Serial);
+        if (json.success()) {
+          configFileExists=true;
+          Serial.println("\nparsed json");
+
+          strcpy(mqtt_server, json["mqtt_server"]);
+          strcpy(mqtt_port, json["mqtt_port"]);
+          strcpy(mqtt_user, json["mqtt_user"]);
+          strcpy(mqtt_password, json["mqtt_password"]);
+
+          strcpy(dht_temperature_topic, json["dht_temperature_topic"]);
+          strcpy(dht_humidity_topic, json["dht_humidity_topic"]);
+          strcpy(dht_heatindex_topic, json["dht_heatindex_topic"]);
+          strcpy(bmp_pressure_topic, json["bmp_pressure_topic"]);
+          strcpy(bmp_temperature_topic, json["bmp_temperature_topic"]);
+
+        } else {
+          Serial.println("failed to load json config");
+        }
+      }
+    }
+  } else {
+    Serial.println("failed to mount FS");
+}
 }
 
 void setup_wifi(){
@@ -78,8 +132,11 @@ void setup_wifi(){
   
   WiFiManager wifiManager;
 
+  //set config save notify callback
+  wifiManager.setSaveConfigCallback(saveConfigCallback);
+
   //reset settings - for testing
-  wifiManager.resetSettings();
+  //wifiManager.resetSettings();
 
   int portalTimeout;
   if (configFileExists){
@@ -89,6 +146,7 @@ void setup_wifi(){
   }
   
   wifiManager.setTimeout(portalTimeout);
+  
   wifiManager.addParameter(&custom_server_group);
   wifiManager.addParameter(&custom_mqtt_server);
   wifiManager.addParameter(&custom_mqtt_port);
@@ -102,50 +160,56 @@ void setup_wifi(){
   wifiManager.addParameter(&custom_bmp_pressure_topic);
   wifiManager.addParameter(&custom_bmp_temperature_topic);
 
-  if(!wifiManager.autoConnect()) {
+  if(!wifiManager.autoConnect("Meteo-home")) {
     Serial.println("failed to connect and hit timeout");
 
     ESP.deepSleep(DEEP_SLEEP_TIME * 1000000);
   } 
- 
-}
-
-void setupFS(){
   
-  if (SPIFFS.begin()) {
-    Serial.println("mounted file system");
-    if (SPIFFS.exists("/config.json")) {
-      //file exists, reading and loading
-      Serial.println("reading config file");
-      File configFile = SPIFFS.open("/config.json", "r");
-      if (configFile) {
-        configFileExists = true;
-        Serial.println("opened config file");
-        size_t size = configFile.size();
-        // Allocate a buffer to store contents of the file.
-        std::unique_ptr<char[]> buf(new char[size]);
+  //if you get here you have connected to the WiFi
+  Serial.println("connected...yeey :)");
+    
+  //read updated parameters
+  strcpy(mqtt_server, custom_mqtt_server.getValue());
+  strcpy(mqtt_port, custom_mqtt_port.getValue());
+  strcpy(mqtt_user, custom_mqtt_username.getValue());
+  strcpy(mqtt_password, custom_mqtt_password.getValue());
 
-        configFile.readBytes(buf.get(), size);
-        DynamicJsonBuffer jsonBuffer;
-        JsonObject& json = jsonBuffer.parseObject(buf.get());
-        json.printTo(Serial);
-        if (json.success()) {
-          Serial.println("\nparsed json");
+  
+  strcpy(dht_temperature_topic,custom_dht_temperature_topic.getValue());
+  strcpy(dht_humidity_topic,custom_dht_humidity_topic.getValue());
+  strcpy(dht_heatindex_topic,custom_dht_heatindex_topic.getValue());
+  strcpy(bmp_pressure_topic,custom_bmp_pressure_topic.getValue());
+  strcpy(bmp_temperature_topic,custom_bmp_temperature_topic.getValue());
 
-          //strcpy(mqtt_server, json["mqtt_server"]);
-          //strcpy(mqtt_port, json["mqtt_port"]);
-          //strcpy(blynk_token, json["blynk_token"]);
+  //save the custom parameters to FS
+  if (shouldSaveConfig) {
+    Serial.println("saving config");
+    DynamicJsonBuffer jsonBuffer;
+    JsonObject& json = jsonBuffer.createObject();
+    json["mqtt_server"] = mqtt_server;
+    json["mqtt_port"] = mqtt_port;
+    json["mqtt_user"] = mqtt_user;
+    json["mqtt_password"] = mqtt_password;
 
-        } else {
-          Serial.println("failed to load json config");
-        }
-      }
-    }else{
-          Serial.println("failed to open json config file");      
+    
+    json["dht_temperature_topic"] = dht_temperature_topic;
+    json["dht_humidity_topic"] = dht_humidity_topic;
+    json["dht_heatindex_topic"] = dht_heatindex_topic;
+    json["bmp_pressure_topic"] = bmp_pressure_topic;
+    json["bmp_temperature_topic"] = bmp_temperature_topic;
+
+    File configFile = SPIFFS.open("/config.json", "w");
+    if (!configFile) {
+      Serial.println("failed to open config file for writing");
     }
-  } else {
-    Serial.println("failed to mount FS");
-}
+
+    json.printTo(Serial);
+    json.printTo(configFile);
+    configFile.close();
+    //end save
+  }
+ 
 }
 
 void reconnect() {
@@ -202,7 +266,7 @@ void loop() {
     reconnect();
   }
   client.loop();
-/*
+
   ReadTemperatureAndHumidityValue();
   client.publish(dht_temperature_topic, String(temperature).c_str(), true);
   client.publish(dht_humidity_topic, String(humidity).c_str(), true);
@@ -210,7 +274,7 @@ void loop() {
   readPressure();
   client.publish(bmp_pressure_topic, String(pressure).c_str(), true); 
   client.publish(bmp_temperature_topic, String(device_temperature).c_str(), true); 
- */ 
+ 
   Serial.print("Elapsed time for this iterration:");
   Serial.println((millis()-total_time)/1000);
   Serial.println("Going to sleep");
