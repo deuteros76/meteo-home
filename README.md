@@ -1,5 +1,5 @@
 # meteo-home
-MeteoHome is yet another weather station project using a NodeMCU ESP8266 devboard with a DHT22 and BMPP180 sensors. The particularity in this case is the configuration usin a web captive portal and the use of MQTT to send the information to a home server. Additionally the machine that gathers all the data 
+MeteoHome is yet another weather station project using a NodeMCU ESP8266 devboard with DHT22 and BMPP180 sensors. The particularity in this case is the configuration using a captive web portal and the use of MQTT to send the information to a server. Additionally the machine that gathers all the data 
 runs Home Assistant which is the responsible of showing the current status of the sensors and historical graphs
 
 ##Features
@@ -26,8 +26,5 @@ runs Home Assistant which is the responsible of showing the current status of th
 ##Configuring a meteo-home device
 After uploading the sketch and the first execution the device will run as an Access Point. Check the available networks for you computer and connect "with meteo-home". After that, point your browser to http://192.168.4.1 and the captive portal will be displayed. Choose the first option ("Configure WiFi") and select your home WiFi network from the list of detected APs. 
 
-![ESP8266 WiFi Captive Portal Homepage](http://i.imgur.com/YPvW9eql.png) 
-
 Write your WiFi password and fill all the fields related to your MQTT server.
 
-![ESP8266 WiFi Captive Portal Configuration](http://i.imgur.com/oicWJ4gl.png)
