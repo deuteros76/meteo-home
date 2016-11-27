@@ -15,6 +15,10 @@ runs Home Assistant which is the responsible of showing the current status of th
 - [Optional] A computer running Home Assistant
 
 ##Hardware components
+- NodeMCU 0.9/1.0
+- DHT22 sensor
+- BMPP180 sensor
+- Wires, tools...
 
 ##Configuring a meteo-home device
 After uploading the sketch and the first execution the device will run as an Access Point. Check the available networks for you computer and connect "with meteo-home". After that, point your browser to http://192.168.4.1 and the captive portal will be displayed. Choose the first option ("Configure WiFi") and select your home WiFi network from the list of detected APs. Write your WiFi password and fill all the fields related to your MQTT server.
