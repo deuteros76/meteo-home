@@ -34,4 +34,4 @@ Choose the first option ("Configure WiFi") and select your home WiFi network fro
 
 Write your WiFi password and fill all the fields related to your MQTT server.
 
-![Settings](pics/parameter settings.JPG) 
+![Settings](pics/parameter-settings.png) 
