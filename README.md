@@ -20,7 +20,7 @@ runs Home Assistant which is the responsible of showing the current status of th
 - BMPP180 sensor
 - Wires, tools...
 
-![Bread board](pics/meteo-home_bb.png) 
+![Breadboard](pics/meteo-home_bb.png) 
 
 ##Configuring a meteo-home device
 After uploading the sketch and the first execution the device will run as an Access Point. Check the available networks for you computer and connect "with meteo-home". After that, point your browser to http://192.168.4.1 and the captive portal will be displayed. 
@@ -36,6 +36,6 @@ Write your WiFi password and fill all the fields related to your MQTT server.
 ![Settings](pics/parameter-settings.png) 
 
 ##My prototype
-After testing it in the bread board I moved everytinh to a perfboard
+After testing it in the breadboard I moved everything to a perfboard
 
 ![My own device](pics/prototype.JPG) 
