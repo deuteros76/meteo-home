@@ -1,0 +1,109 @@
+omeassistant:
+  # Name of the location where Home Assistant is running
+  name: Home
+  # Impacts weather/sunrise data
+  elevation: 50
+  # C for Celsius, F for Fahrenheit
+  temperature_unit: C
+  # 'metric' for the metric system, 'imperial' for the imperial system
+  unit_system: metric
+  # Pick yours from here: http://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+  time_zone: Europe/Madrid
+
+# Show links to resources in log and frontend
+#introduction:
+
+group:
+  default_view:
+    view: yes
+    entities:
+      - sensor.room_temperature
+      - sensor.yr_symbol
+      - sensor.room_humidity
+      - sensor.room_heatindex
+      - sensor.pressure
+      - sensor.device_internal_temp
+
+# Enables the frontend
+frontend:
+
+http:
+  # Uncomment this to add a password (recommended!)
+  api_password: YOUR_PASSWORD_HERE
+
+# Checks for available updates
+updater:
+
+# Discover some devices automatically
+discovery:
+
+# Allows you to issue voice commands from the frontend in enabled browsers
+conversation:
+
+# Enables support for tracking state changes over time.
+history:
+
+# View all events in a logbook
+logbook:
+
+# Weather Prediction
+sensor:
+  platform: yr
+
+
+
+#MQTT configuration
+mqtt:
+  broker: 127.0.0.1
+  port: 1883
+  client_id: home-assistant-1
+  keepalive: 60
+  #username: USERNAME
+  #password: PASSWORD
+  #certificate: /home/paulus/dev/addtrustexternalcaroot.crt
+  protocol: 3.1
+
+
+sensor 3:
+  platform: mqtt
+  name: "Room temperature"
+  state_topic: "room/temperature"
+  qos: 0
+  unit_of_measurement: "C"
+
+sensor humidity:
+  platform: mqtt
+  name: "Room humidity"
+  state_topic: "room/humidity"
+  qos: 0
+  unit_of_measurement: "%"
+
+sensor heatindex:
+  platform: mqtt
+  name: "Room heatindex"
+  state_topic: "room/heatindex"
+  qos: 0
+  unit_of_measurement: "C"
+
+
+sensor pressure:
+  platform: mqtt
+  name: "Pressure"
+  state_topic: "room/pressure"
+  qos: 0
+  unit_of_measurement: "Bar"
+
+sensor deviceInternalTemp:
+  platform: mqtt
+  name: "Device internal temp"
+  state_topic: "room/device/temperature"
+  qos: 0
+  unit_of_measurement: "C"
+
+
+
+
+
+
+
+
