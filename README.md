@@ -41,9 +41,10 @@ After testing it in the breadboard I moved everything to a perfboard
 ![My own device](pics/prototype.JPG) 
 
 ##Using MeteoHome with Home Assistant
-I use Home Assistant to collect all the data and display the information. The software runs in a miniPC (a SolidRun CuBox-i) which is a small home IoT server and also has the Mosquitto mqtt broker. The device sends the sensors data to the mqtt broker and Home Assistant reads it and stores everything in a SqLite data base.
+I use Home Assistant to collect all the data and display the information. The software runs in a miniPC (a SolidRun CuBox-i) which is a small home IoT server and also has the Mosquitto mqtt broker. The device sends the sensors data to the mqtt broker and Home Assistant reads it and stores everything in a SqLite data base. 
+In addition to that Home Assistant has a frontend application that shows the current status of all your sensors and historical graphs of a selected day.
 
 ![Data history](pics/home-assistant-history.png) 
 
-In addition to that Home Assistant has a frontend application that shows the current status of all your sensors and historical graphs of a selected day.
+If you want to try it, a sample configuration [file](configuration.yaml) for Home Assistant is included in this repository. 
 
