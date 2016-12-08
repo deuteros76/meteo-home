@@ -38,7 +38,7 @@ void setup() {
   manager.setup_config_data();
   manager.setup_wifi();
   //Setup mqtt
-  client.setServer(manager.mqtt_server, 1883); 
+  client.setServer(manager.mqttServer().c_str(), 1883); 
   //DHT sensor for humidity and temperature
   dht.begin();
   //BMP180 sensor fro pressure
@@ -99,12 +99,12 @@ void loop() {
   client.loop();
 
   readDHT22();
-  client.publish(manager.dht_temperature_topic, String(temperature).c_str(), true);
-  client.publish(manager.dht_humidity_topic, String(humidity).c_str(), true);
-  client.publish(manager.dht_heatindex_topic, String(heatindex).c_str(), true);
+  client.publish(manager.dhtTemperatureTopic().c_str(), String(temperature).c_str(), true);
+  client.publish(manager.dhtHumidityTopic().c_str(), String(humidity).c_str(), true);
+  client.publish(manager.dhtHeatindexTopic().c_str(), String(heatindex).c_str(), true);
   readBMP180();
-  client.publish(manager.bmp_pressure_topic, String(pressure).c_str(), true); 
-  client.publish(manager.bmp_temperature_topic, String(device_temperature).c_str(), true); 
+  client.publish(manager.bmpPressureTopic().c_str(), String(pressure).c_str(), true); 
+  client.publish(manager.bmpTemperatureTopic().c_str(), String(device_temperature).c_str(), true); 
 
   Serial.println("Going to sleep");
   ESP.deepSleep(DEEP_SLEEP_TIME * 1000000);

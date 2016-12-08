@@ -10,6 +10,9 @@
 //Deep sleep
 #define DEEP_SLEEP_TIME 60 //time in seconds
 
+#define ARDUINOJSON_ENABLE_STD_STREAM
+
+using namespace std;
 
 extern bool shouldSaveConfig;//flag for saving data
 
@@ -20,25 +23,35 @@ public:
   void setup_config_data();
   void setup_wifi();
 
-
   bool configFileExists;
 
   //callback notifying us of the need to save config
   static void saveConfigCallback () { Serial.println("Should save config"); shouldSaveConfig = true;}
 
+  string mqttServer(){return mqtt_server;}
+  string mqttPort(){return mqtt_port;}
+  string mqttUser(){return mqtt_user;}
+  string mqttPassword(){return mqtt_password;}
 
+  string dhtTemperatureTopic(){return dht_temperature_topic;}
+  string dhtHumidityTopic(){return dht_humidity_topic;}
+  string dhtHeatindexTopic(){return dht_heatindex_topic;}
+  string bmpPressureTopic(){return bmp_pressure_topic;}
+  string bmpTemperatureTopic(){return bmp_temperature_topic;}
+
+private:
   //MQTT  server
-  char mqtt_server[15];
-  char mqtt_port[6] ;
-  char mqtt_user[30];
-  char mqtt_password[30];
+  string mqtt_server;
+  string mqtt_port ;
+  string mqtt_user;
+  string mqtt_password;
 
   //MQTT subscriptions
-  char dht_temperature_topic[40];
-  char dht_humidity_topic[40];
-  char dht_heatindex_topic[40];
-  char bmp_pressure_topic[40];
-  char bmp_temperature_topic[40];
+  string dht_temperature_topic;
+  string dht_humidity_topic;
+  string dht_heatindex_topic;
+  string bmp_pressure_topic;
+  string bmp_temperature_topic;
 
   
 };

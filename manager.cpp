@@ -3,18 +3,17 @@
 bool shouldSaveConfig=false;
 
 Manager::Manager(){ 
-  strcpy(mqtt_server, "192.168.1.5");
-  strcpy(mqtt_port, "8080");
-  strcpy(mqtt_user, "your_username");
-  strcpy(mqtt_password, "YOUR_PASSWORD");
+  mqtt_server = "192.168.1.5";
+  mqtt_port = "8080";
+  mqtt_user = "your_username";
+  mqtt_password = "YOUR_PASSWORD";
 
   //MQTT subscriptions
-  strcpy(dht_temperature_topic, "room/temperature");
-  strcpy(dht_humidity_topic, "room/humidity");
-  strcpy(dht_heatindex_topic, "room/heatindex");
-  strcpy(bmp_pressure_topic, "room/pressure");
-  strcpy(bmp_temperature_topic, "room/device/temperature");
-
+  dht_temperature_topic = "room/temperature";
+  dht_humidity_topic = "room/humidity";
+  dht_heatindex_topic = "room/heatindex";
+  bmp_pressure_topic = "room/pressure";
+  bmp_temperature_topic = "room/device/temperature";
   
   //flag for saving data
   shouldSaveConfig = false;
@@ -45,16 +44,16 @@ void Manager::setup_config_data(){
           configFileExists=true;
           Serial.println("\nparsed json");
 
-          strcpy(mqtt_server, json["mqtt_server"]);
-          strcpy(mqtt_port, json["mqtt_port"]);
-          strcpy(mqtt_user, json["mqtt_user"]);
-          strcpy(mqtt_password, json["mqtt_password"]);
+          mqtt_server = (const char *)json["mqtt_server"];
+          mqtt_port = (const char *)json["mqtt_port"];
+          mqtt_user = (const char *)json["mqtt_user"];
+          mqtt_password = (const char *)json["mqtt_password"];
 
-          strcpy(dht_temperature_topic, json["dht_temperature_topic"]);
-          strcpy(dht_humidity_topic, json["dht_humidity_topic"]);
-          strcpy(dht_heatindex_topic, json["dht_heatindex_topic"]);
-          strcpy(bmp_pressure_topic, json["bmp_pressure_topic"]);
-          strcpy(bmp_temperature_topic, json["bmp_temperature_topic"]);
+          dht_temperature_topic = (const char *)json["dht_temperature_topic"];
+          dht_humidity_topic = (const char *)json["dht_humidity_topic"];
+          dht_heatindex_topic = (const char *)json["dht_heatindex_topic"];
+          bmp_pressure_topic = (const char *)json["bmp_pressure_topic"];
+          bmp_temperature_topic=(const char *)json["bmp_temperature_topic"];
 
         } else {
           Serial.println("failed to load json config");
@@ -69,17 +68,17 @@ void Manager::setup_config_data(){
 
 void Manager::setup_wifi(){
   WiFiManagerParameter custom_server_group("<p>MQTT Sercer settings</p>");
-  WiFiManagerParameter custom_mqtt_server("server", "mqtt server", mqtt_server, 15);
-  WiFiManagerParameter custom_mqtt_port("port", "mqtt port", mqtt_port, 6);
-  WiFiManagerParameter custom_mqtt_password("password", "mqtt password", mqtt_password, 30);
-  WiFiManagerParameter custom_mqtt_username("username", "user name", mqtt_user, 30);
+  WiFiManagerParameter custom_mqtt_server("server", "mqtt server", mqtt_server.c_str(), 15);
+  WiFiManagerParameter custom_mqtt_port("port", "mqtt port", mqtt_port.c_str(), 6);
+  WiFiManagerParameter custom_mqtt_password("password", "mqtt password", mqtt_password.c_str(), 30);
+  WiFiManagerParameter custom_mqtt_username("username", "user name", mqtt_user.c_str(), 30);
   
   WiFiManagerParameter custom_topics_group("<p>MQTT topics</p>");
-  WiFiManagerParameter custom_dht_temperature_topic("temperature","temperature",dht_temperature_topic,40);
-  WiFiManagerParameter custom_dht_humidity_topic("humidity","humidity",dht_humidity_topic,40);
-  WiFiManagerParameter custom_dht_heatindex_topic("heatindex","heatindex",dht_heatindex_topic,40);
-  WiFiManagerParameter custom_bmp_pressure_topic("pressure","pressure",bmp_pressure_topic,40);
-  WiFiManagerParameter custom_bmp_temperature_topic("temperature2","temperature2",bmp_temperature_topic,40);
+  WiFiManagerParameter custom_dht_temperature_topic("temperature","temperature",dht_temperature_topic.c_str(),40);
+  WiFiManagerParameter custom_dht_humidity_topic("humidity","humidity",dht_humidity_topic.c_str(),40);
+  WiFiManagerParameter custom_dht_heatindex_topic("heatindex","heatindex",dht_heatindex_topic.c_str(),40);
+  WiFiManagerParameter custom_bmp_pressure_topic("pressure","pressure",bmp_pressure_topic.c_str(),40);
+  WiFiManagerParameter custom_bmp_temperature_topic("temperature2","temperature2",bmp_temperature_topic.c_str(),40);
   
   WiFiManager wifiManager;
 
@@ -122,34 +121,34 @@ void Manager::setup_wifi(){
   Serial.println("connected...yeey :)");
     
   //read updated parameters
-  strcpy(mqtt_server, custom_mqtt_server.getValue());
-  strcpy(mqtt_port, custom_mqtt_port.getValue());
-  strcpy(mqtt_user, custom_mqtt_username.getValue());
-  strcpy(mqtt_password, custom_mqtt_password.getValue());
+  mqtt_server=custom_mqtt_server.getValue();
+  mqtt_port= custom_mqtt_port.getValue();
+  mqtt_user= custom_mqtt_username.getValue();
+  mqtt_password=custom_mqtt_password.getValue();
 
   
-  strcpy(dht_temperature_topic,custom_dht_temperature_topic.getValue());
-  strcpy(dht_humidity_topic,custom_dht_humidity_topic.getValue());
-  strcpy(dht_heatindex_topic,custom_dht_heatindex_topic.getValue());
-  strcpy(bmp_pressure_topic,custom_bmp_pressure_topic.getValue());
-  strcpy(bmp_temperature_topic,custom_bmp_temperature_topic.getValue());
+  dht_temperature_topic=custom_dht_temperature_topic.getValue();
+  dht_humidity_topic=custom_dht_humidity_topic.getValue();
+  dht_heatindex_topic=custom_dht_heatindex_topic.getValue();
+  bmp_pressure_topic=custom_bmp_pressure_topic.getValue();
+  bmp_temperature_topic=custom_bmp_temperature_topic.getValue();
 
   //save the custom parameters to FS
   if (shouldSaveConfig) {
     Serial.println("saving config");
     DynamicJsonBuffer jsonBuffer;
     JsonObject& json = jsonBuffer.createObject();
-    json["mqtt_server"] = mqtt_server;
-    json["mqtt_port"] = mqtt_port;
-    json["mqtt_user"] = mqtt_user;
-    json["mqtt_password"] = mqtt_password;
+    json["mqtt_server"] = mqtt_server.c_str();
+    json["mqtt_port"] = mqtt_port.c_str();
+    json["mqtt_user"] = mqtt_user.c_str();
+    json["mqtt_password"] = mqtt_password.c_str();
 
     
-    json["dht_temperature_topic"] = dht_temperature_topic;
-    json["dht_humidity_topic"] = dht_humidity_topic;
-    json["dht_heatindex_topic"] = dht_heatindex_topic;
-    json["bmp_pressure_topic"] = bmp_pressure_topic;
-    json["bmp_temperature_topic"] = bmp_temperature_topic;
+    json["dht_temperature_topic"] = dht_temperature_topic.c_str();
+    json["dht_humidity_topic"] = dht_humidity_topic.c_str();
+    json["dht_heatindex_topic"] = dht_heatindex_topic.c_str();
+    json["bmp_pressure_topic"] = bmp_pressure_topic.c_str();
+    json["bmp_temperature_topic"] = bmp_temperature_topic.c_str();
 
     File configFile = SPIFFS.open("/config.json", "w");
     if (!configFile) {
