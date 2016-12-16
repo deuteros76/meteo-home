@@ -35,11 +35,6 @@ Write your WiFi password and fill all the fields related to your MQTT server.
 
 ![Settings](pics/parameter-settings.png) 
 
-##My prototype
-After testing it in the breadboard I moved everything to a perfboard
-
-![My own device](pics/prototype.JPG) 
-
 ##Using MeteoHome with Home Assistant
 I use Home Assistant to collect all the data and display the information. The software runs in a miniPC (a SolidRun CuBox-i) which is a small home IoT server and also has the Mosquitto mqtt broker. The device sends the sensors data to the mqtt broker and Home Assistant reads it and stores everything in a SqLite data base. 
 In addition to that Home Assistant has a frontend application that shows the current status of all your sensors and historical graphs of a selected day.
@@ -48,3 +43,11 @@ In addition to that Home Assistant has a frontend application that shows the cur
 
 If you want to try it, a sample configuration [file](configuration.yaml) for Home Assistant is included in this repository. 
 
+##Protoypes
+The easiest way to try the code is to use a breadboard. The picture below is a NodeMCU 1.0 with all the wires connected as shown in the Fritzing drawing
+
+![Breadboard](pics/breadboard.jpg) 
+
+After testing it in the breadboard I moved everything to a perfboard. Here you can see a NodeMCU 0.9 which in the first perfboard prototype 
+
+![My own device](pics/prototype.JPG) 
