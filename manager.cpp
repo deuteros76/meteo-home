@@ -88,14 +88,12 @@ void Manager::setup_wifi(){
   //reset settings - for testing
   //wifiManager.resetSettings();
 
-  int portalTimeout;
   if (configFileExists){
-    portalTimeout=300;//20;
+   wifiManager.setConnectTimeout(20);
+    wifiManager.setTimeout(30);
   }else {
-    portalTimeout=300;    
+    wifiManager.setTimeout(300);
   }
-  
-  wifiManager.setTimeout(portalTimeout);
   
   wifiManager.addParameter(&custom_server_group);
   wifiManager.addParameter(&custom_mqtt_server);
@@ -110,15 +108,17 @@ void Manager::setup_wifi(){
   wifiManager.addParameter(&custom_bmp_pressure_topic);
   wifiManager.addParameter(&custom_bmp_temperature_topic);
 
+  long wifiTimeStart = millis();
   if(!wifiManager.autoConnect("Meteo-home")) {
     Serial.println("failed to connect and hit timeout");
-    delay(60000);
+    delay(1000);
     Serial.println("Going to sleep");
     ESP.deepSleep(DEEP_SLEEP_TIME * 1000000);
   } 
   
   //if you get here you have connected to the WiFi
-  Serial.println("connected...yeey :)");
+  Serial.print("connected...yeey :)");
+  Serial.println((millis()-wifiTimeStart)/1000);
     
   //read updated parameters
   mqtt_server=custom_mqtt_server.getValue();
