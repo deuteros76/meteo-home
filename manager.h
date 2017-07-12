@@ -1,6 +1,7 @@
 #ifndef _MANAGER_
 #define _MANAGER_
 #include <DNSServer.h>
+#include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
 #include "WiFiManager.h"      
 
@@ -28,7 +29,7 @@ public:
   //callback notifying us of the need to save config
   static void saveConfigCallback () { Serial.println("Should save config"); shouldSaveConfig = true;}
 
-  string mqttServer(){return mqtt_server;}
+  String mqttServer(){return mqtt_server;}
   string mqttPort(){return mqtt_port;}
   string mqttUser(){return mqtt_user;}
   string mqttPassword(){return mqtt_password;}
@@ -41,7 +42,7 @@ public:
 
 private:
   //MQTT  server
-  string mqtt_server;
+  String mqtt_server;
   string mqtt_port ;
   string mqtt_user;
   string mqtt_password;
