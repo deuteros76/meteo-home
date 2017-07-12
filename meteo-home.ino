@@ -48,7 +48,7 @@ void setup() {
   String server = "192.168.1.5";
   IPAddress addr;
   addr.fromString(manager.mqttServer());
-  client.setServer(addr, 1883); 
+  client.setServer(addr, atoi(manager.mqttPort().c_str())); 
   Serial.println("Configured!!");
 }
 
