@@ -4,7 +4,7 @@ bool shouldSaveConfig=false;
 
 Manager::Manager(){ 
   mqtt_server = "192.168.1.5";
-  mqtt_port = "8080";
+  mqtt_port = "1883";
   mqtt_user = "your_username";
   mqtt_password = "YOUR_PASSWORD";
 
@@ -107,6 +107,7 @@ void Manager::setup_wifi(){
   wifiManager.addParameter(&custom_dht_heatindex_topic);
   wifiManager.addParameter(&custom_bmp_pressure_topic);
   wifiManager.addParameter(&custom_bmp_temperature_topic);
+
 
   long wifiTimeStart = millis();
   if(!wifiManager.autoConnect("Meteo-home")) {
