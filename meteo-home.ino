@@ -10,7 +10,7 @@
 #define DHTTYPE DHT22 // DHT 22  (AM2302), AM2321
 
 //Timeout connection for wifi or mqtt server
-#define CONNECTION_TIMEOUT 200000 //Timeout for connections. The idea is to prevent for continuous conection tries. This would cause battery drain
+#define CONNECTION_TIMEOUT 20000 //Timeout for connections. The idea is to prevent for continuous conection tries. This would cause battery drain
 
 DHT dht(DHTPIN, DHTTYPE); // Initializes the DHT sensor.
 Adafruit_BMP085 bmp; // Bmp sensor object
@@ -26,9 +26,12 @@ float humidity = 0;
 float heatindex = 0;
 float pressure = 0;
 
+long t_elapsed;
+
 
 void setup() {
   //Serial port speed
+  t_elapsed = millis();
   Serial.begin(115200);
   //Prevention of deep sleep failures
   pinMode(0, INPUT_PULLUP);
@@ -37,13 +40,16 @@ void setup() {
   //Read setting and launch configuration portal if required
   manager.setup_config_data();
   manager.setup_wifi();
-  //Setup mqtt
-  client.setServer(manager.mqttServer().c_str(), 1883); 
   //DHT sensor for humidity and temperature
   dht.begin();
   //BMP180 sensor fro pressure
   bmp.begin();
-  Serial.print("Configured!!");
+  //Setup mqtt
+  String server = "192.168.1.5";
+  IPAddress addr;
+  addr.fromString(manager.mqttServer());
+  client.setServer(addr, 1883); 
+  Serial.println("Configured!!");
 }
 
 
@@ -91,7 +97,7 @@ int readBMP180(){
   Serial.println(device_temperature);
 }
 
-void loop() {
+void loop() {  
   Serial.print("Starting...");
   if (!client.connected()) {
     reconnect();
@@ -106,7 +112,8 @@ void loop() {
   client.publish(manager.bmpPressureTopic().c_str(), String(pressure).c_str(), true); 
   client.publish(manager.bmpTemperatureTopic().c_str(), String(device_temperature).c_str(), true); 
 
-  Serial.println("Going to sleep");
+  Serial.print("Going to sleep after ");
+  Serial.println((millis()-t_elapsed)/1000);
   ESP.deepSleep(DEEP_SLEEP_TIME * 1000000);
 }
 
