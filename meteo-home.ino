@@ -34,9 +34,9 @@ void setup() {
   t_elapsed = millis();
   Serial.begin(115200);
   //Prevention of deep sleep failures
-  pinMode(0, INPUT_PULLUP);
-  pinMode(2, INPUT_PULLUP);
-  pinMode(15, LOW);
+  //pinMode(0, INPUT_PULLUP);
+  //pinMode(2, INPUT_PULLUP);
+  //pinMode(15, LOW);
   //Read setting and launch configuration portal if required
   manager.setup_config_data();
   manager.setup_wifi();
@@ -45,7 +45,6 @@ void setup() {
   //BMP180 sensor fro pressure
   bmp.begin();
   //Setup mqtt
-  String server = "192.168.1.5";
   IPAddress addr;
   addr.fromString(manager.mqttServer());
   client.setServer(addr, atoi(manager.mqttPort().c_str())); 
