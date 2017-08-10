@@ -12,6 +12,7 @@
 //Timeout connection for wifi or mqtt server
 #define CONNECTION_TIMEOUT 20000 //Timeout for connections. The idea is to prevent for continuous conection tries. This would cause battery drain
 
+bool bmpSensorReady;
 DHT dht(DHTPIN, DHTTYPE); // Initializes the DHT sensor.
 Adafruit_BMP085 bmp; // Bmp sensor object
 Manager manager;  //Portal and wific connection manager
@@ -42,8 +43,8 @@ void setup() {
   manager.setup_wifi();
   //DHT sensor for humidity and temperature
   dht.begin();
-  //BMP180 sensor fro pressure
-  bmp.begin();
+  //BMP180 sensor for pressure
+  bmpSensorReady=bmp.begin();
   //Setup mqtt
   IPAddress addr;
   addr.fromString(manager.mqttServer());
@@ -88,12 +89,14 @@ float readDHT22(){
  */
 int readBMP180(){  
   //bmp180
-  device_temperature = bmp.readTemperature(); 
-  pressure = bmp.readPressure()/100.0; //Dividing by 100 we get The pressure in Bars
-  Serial.print("Pressure is ");
-  Serial.println(pressure);
-  Serial.print("Internal temp is ");
-  Serial.println(device_temperature);
+  if (bmpSensorReady){
+    device_temperature = bmp.readTemperature(); 
+    pressure = bmp.readPressure()/100.0; //Dividing by 100 we get The pressure in Bars
+    Serial.print("Pressure is ");
+    Serial.println(pressure);
+    Serial.print("Internal temp is ");
+    Serial.println(device_temperature);
+  }
 }
 
 void loop() {  
