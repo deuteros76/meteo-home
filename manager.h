@@ -10,6 +10,7 @@
 
 //Deep sleep
 #define DEEP_SLEEP_TIME 60 //time in seconds
+#define WIFI_CONNECTION_TIMEOUT 20000 //Timeout for WIFI connections. The idea is to prevent for continuous conection tries. This would cause battery drain
 
 #define ARDUINOJSON_ENABLE_STD_STREAM
 
@@ -29,7 +30,11 @@ public:
   //callback notifying us of the need to save config
   static void saveConfigCallback () { Serial.println("Should save config"); shouldSaveConfig = true;}
 
-  String mqttServer(){return mqtt_server;}
+  String networkIp(){return network_ip;}
+  string networkMask(){return network_mask;}
+  string networkGateway(){return network_gateway;}
+
+    String mqttServer(){return mqtt_server;}
   string mqttPort(){return mqtt_port;}
   string mqttUser(){return mqtt_user;}
   string mqttPassword(){return mqtt_password;}
@@ -41,6 +46,11 @@ public:
   string bmpTemperatureTopic(){return bmp_temperature_topic;}
 
 private:
+  //MQTT  server
+  String network_ip;
+  string network_mask ;
+  string network_gateway;
+  
   //MQTT  server
   String mqtt_server;
   string mqtt_port ;

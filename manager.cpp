@@ -1,8 +1,17 @@
 #include "manager.h"
+#include <string>
 
+/*
+template class std::basic_string<char>;
+*/
 bool shouldSaveConfig=false;
 
 Manager::Manager(){ 
+  
+  network_ip = "192.168.1.105";
+  network_mask = "255.255.255.0";
+  network_gateway = "192.168.1.1";
+  
   mqtt_server = "192.168.1.5";
   mqtt_port = "1883";
   mqtt_user = "your_username";
@@ -44,6 +53,10 @@ void Manager::setup_config_data(){
           configFileExists=true;
           Serial.println("\nparsed json");
 
+          network_ip = (const char *)json["network_ip"];
+          network_mask = (const char *)json["network_mask"];
+          network_gateway = (const char *)json["network_gateway"];
+
           mqtt_server = (const char *)json["mqtt_server"];
           mqtt_port = (const char *)json["mqtt_port"];
           mqtt_user = (const char *)json["mqtt_user"];
@@ -59,6 +72,8 @@ void Manager::setup_config_data(){
           Serial.println("failed to load json config");
         }
       }
+    }else{
+      shouldSaveConfig=true;
     }
   } else {
     Serial.println("failed to mount FS");
@@ -67,6 +82,11 @@ void Manager::setup_config_data(){
 
 
 void Manager::setup_wifi(){
+  WiFiManagerParameter custom_network_group("<p>Network settings</p>");
+  WiFiManagerParameter custom_network_ip("IP", "IP", network_ip.c_str(), 15);
+  WiFiManagerParameter custom_network_mask("mask", "mask", network_mask.c_str(), 15);
+  WiFiManagerParameter custom_network_gateway("gateway", "gateway", network_gateway.c_str(), 15);
+  
   WiFiManagerParameter custom_server_group("<p>MQTT Sercer settings</p>");
   WiFiManagerParameter custom_mqtt_server("server", "mqtt server", mqtt_server.c_str(), 15);
   WiFiManagerParameter custom_mqtt_port("port", "mqtt port", mqtt_port.c_str(), 6);
@@ -88,13 +108,12 @@ void Manager::setup_wifi(){
   //reset settings - for testing
   //wifiManager.resetSettings();
 
-  if (configFileExists){
-   wifiManager.setConnectTimeout(20);
-    wifiManager.setTimeout(30);
-  }else {
-    wifiManager.setTimeout(300);
-  }
-  
+
+  wifiManager.addParameter(&custom_network_group);
+  wifiManager.addParameter(&custom_network_ip);
+  wifiManager.addParameter(&custom_network_mask);
+  wifiManager.addParameter(&custom_network_gateway);
+ 
   wifiManager.addParameter(&custom_server_group);
   wifiManager.addParameter(&custom_mqtt_server);
   wifiManager.addParameter(&custom_mqtt_port);
@@ -110,40 +129,72 @@ void Manager::setup_wifi(){
 
 
   long wifiTimeStart = millis();
-  if(!wifiManager.autoConnect("Meteo-home")) {
-    Serial.println("failed to connect and hit timeout");
-    delay(1000);
-    Serial.println("Going to sleep");
-    ESP.deepSleep(DEEP_SLEEP_TIME * 1000000);
-  } 
+
+  if (configFileExists){
+  
+    //read updated parameters
+    network_ip=custom_network_ip.getValue();
+    network_mask= custom_network_mask.getValue();
+    network_gateway= custom_network_gateway.getValue();
+    
+    mqtt_server=custom_mqtt_server.getValue();
+    mqtt_port= custom_mqtt_port.getValue();
+    mqtt_user= custom_mqtt_username.getValue();
+    mqtt_password=custom_mqtt_password.getValue();
+    
+    dht_temperature_topic=custom_dht_temperature_topic.getValue();
+    dht_humidity_topic=custom_dht_humidity_topic.getValue();
+    dht_heatindex_topic=custom_dht_heatindex_topic.getValue();
+    bmp_pressure_topic=custom_bmp_pressure_topic.getValue();
+    bmp_temperature_topic=custom_bmp_temperature_topic.getValue();
+    
+    IPAddress ip,gateway,mask;
+    ip.fromString(network_ip);
+    gateway.fromString(network_gateway.c_str());
+    mask.fromString(network_mask.c_str());
+    
+    WiFi.config(ip, gateway,mask);
+    WiFi.mode(WIFI_STA);
+    WiFi.begin(WiFi.SSID().c_str(), WiFi.psk().c_str());
+    
+    while (WiFi.status() != WL_CONNECTED && (millis() - wifiTimeStart < WIFI_CONNECTION_TIMEOUT)) {
+      delay(500);
+      Serial.print(".");
+    }
+    if (WiFi.status() != WL_CONNECTED){
+      Serial.println("\nIt was unable to connect to the WiFi network. Going to sleep");
+      ESP.deepSleep(DEEP_SLEEP_TIME * 1000000);      
+    }
+    
+    Serial.println("");
+    Serial.println("WiFi connected");  
+    Serial.println("Network configuration: ");
+    Serial.println(WiFi.localIP());
+    Serial.println(WiFi.gatewayIP());
+    Serial.println(WiFi.subnetMask());
+  }else {
+        wifiManager.setTimeout(300);
+        wifiManager.startConfigPortal("Meteo-home");
+  }
   
   //if you get here you have connected to the WiFi
   Serial.print("connected...yeey :)");
   Serial.println((millis()-wifiTimeStart)/1000);
     
-  //read updated parameters
-  mqtt_server=custom_mqtt_server.getValue();
-  mqtt_port= custom_mqtt_port.getValue();
-  mqtt_user= custom_mqtt_username.getValue();
-  mqtt_password=custom_mqtt_password.getValue();
-
-  
-  dht_temperature_topic=custom_dht_temperature_topic.getValue();
-  dht_humidity_topic=custom_dht_humidity_topic.getValue();
-  dht_heatindex_topic=custom_dht_heatindex_topic.getValue();
-  bmp_pressure_topic=custom_bmp_pressure_topic.getValue();
-  bmp_temperature_topic=custom_bmp_temperature_topic.getValue();
-
   //save the custom parameters to FS
   if (shouldSaveConfig) {
     Serial.println("saving config");
     DynamicJsonBuffer jsonBuffer;
     JsonObject& json = jsonBuffer.createObject();
+
+    json["network_ip"] = network_ip.c_str();
+    json["network_mask"] = network_mask.c_str();
+    json["network_gateway"] = network_gateway.c_str();
+    
     json["mqtt_server"] = mqtt_server.c_str();
     json["mqtt_port"] = mqtt_port.c_str();
     json["mqtt_user"] = mqtt_user.c_str();
     json["mqtt_password"] = mqtt_password.c_str();
-
     
     json["dht_temperature_topic"] = dht_temperature_topic.c_str();
     json["dht_humidity_topic"] = dht_humidity_topic.c_str();
