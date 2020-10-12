@@ -99,6 +99,8 @@ sensor deviceInternalTemp:
   state_topic: "room/device/temperature"
   qos: 0
   unit_of_measurement: "C"
+  
+
 
 
 

@@ -12,7 +12,7 @@ Manager::Manager(){
   network_mask = "255.255.255.0";
   network_gateway = "192.168.1.1";
   
-  mqtt_server = "192.168.1.5";
+  mqtt_server = "192.168.1.2";
   mqtt_port = "1883";
   mqtt_user = "your_username";
   mqtt_password = "YOUR_PASSWORD";
@@ -35,6 +35,7 @@ void Manager::setup_config_data(){
 
   if (SPIFFS.begin()) {
     Serial.println("mounted file system");
+    //SPIFFS.remove("/config.json");
     if (SPIFFS.exists("/config.json")) {
       //file exists, reading and loading
       Serial.println("reading config file");
@@ -52,6 +53,8 @@ void Manager::setup_config_data(){
         if (json.success()) {
           configFileExists=true;
           Serial.println("\nparsed json");
+          
+          json.printTo(Serial);
 
           network_ip = (const char *)json["network_ip"];
           network_mask = (const char *)json["network_mask"];
@@ -104,6 +107,7 @@ void Manager::setup_wifi(){
 
   //set config save notify callback
   wifiManager.setSaveConfigCallback(&Manager::saveConfigCallback);
+  wifiManager.setBreakAfterConfig(true); //https://github.com/tzapu/WiFiManager/issues/992 IF YOU NEED TO SAVE PARAMETERS EVEN ON WIFI FAIL OR EMPTY, you must set setBreakAfterConfig to true, or else saveConfigCallback will not be called.
 
   //reset settings - for testing
   //wifiManager.resetSettings();
@@ -131,7 +135,6 @@ void Manager::setup_wifi(){
   long wifiTimeStart = millis();
 
   if (configFileExists){
-  
     //read updated parameters
     network_ip=custom_network_ip.getValue();
     network_mask= custom_network_mask.getValue();
@@ -149,13 +152,18 @@ void Manager::setup_wifi(){
     bmp_temperature_topic=custom_bmp_temperature_topic.getValue();
     
     IPAddress ip,gateway,mask;
-    ip.fromString(network_ip);
+    Serial.println(network_ip);
+    Serial.println(network_gateway.c_str());
+    Serial.println(network_mask.c_str());
+    ip.fromString(network_ip.c_str());
     gateway.fromString(network_gateway.c_str());
     mask.fromString(network_mask.c_str());
     
     WiFi.config(ip, gateway,mask);
     WiFi.mode(WIFI_STA);
     WiFi.begin(WiFi.SSID().c_str(), WiFi.psk().c_str());
+    Serial.println(WiFi.SSID().c_str());
+    Serial.println( WiFi.psk().c_str());
     
     while (WiFi.status() != WL_CONNECTED && (millis() - wifiTimeStart < WIFI_CONNECTION_TIMEOUT)) {
       delay(500);
@@ -187,20 +195,22 @@ void Manager::setup_wifi(){
     DynamicJsonBuffer jsonBuffer;
     JsonObject& json = jsonBuffer.createObject();
 
-    json["network_ip"] = network_ip.c_str();
-    json["network_mask"] = network_mask.c_str();
-    json["network_gateway"] = network_gateway.c_str();
+    json["network_ip"] = custom_network_ip.getValue();
+    json["network_mask"] = custom_network_mask.getValue();
+    json["network_gateway"] = custom_network_gateway.getValue();
     
-    json["mqtt_server"] = mqtt_server.c_str();
-    json["mqtt_port"] = mqtt_port.c_str();
-    json["mqtt_user"] = mqtt_user.c_str();
-    json["mqtt_password"] = mqtt_password.c_str();
+    json["mqtt_server"] = custom_mqtt_server.getValue();
+    json["mqtt_port"] = custom_mqtt_port.getValue();
+    json["mqtt_user"] = custom_mqtt_username.getValue();
+    json["mqtt_password"] = custom_mqtt_password.getValue();
     
-    json["dht_temperature_topic"] = dht_temperature_topic.c_str();
-    json["dht_humidity_topic"] = dht_humidity_topic.c_str();
-    json["dht_heatindex_topic"] = dht_heatindex_topic.c_str();
-    json["bmp_pressure_topic"] = bmp_pressure_topic.c_str();
-    json["bmp_temperature_topic"] = bmp_temperature_topic.c_str();
+    json["dht_temperature_topic"] = custom_dht_temperature_topic.getValue();
+    Serial.println(custom_dht_temperature_topic.getValue());
+    Serial.println("=================");
+    json["dht_humidity_topic"] = custom_dht_humidity_topic.getValue();
+    json["dht_heatindex_topic"] = custom_dht_heatindex_topic.getValue();
+    json["bmp_pressure_topic"] = custom_bmp_pressure_topic.getValue();
+    json["bmp_temperature_topic"] = custom_bmp_temperature_topic.getValue();
 
     File configFile = SPIFFS.open("/config.json", "w");
     if (!configFile) {

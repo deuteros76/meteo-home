@@ -64,7 +64,8 @@ void reconnect() {
     } else {
       Serial.print("failed, rc=");
       Serial.print(client.state());
-      Serial.println(" trying again in 5 seconds");
+      Serial.println(" trying again in 5 seconds");      
+      Serial.print(manager.mqttServer());
       // Wait 5 seconds before retrying
       delay(5000);
     }
@@ -108,14 +109,28 @@ void loop() {
 
   readDHT22();
   client.publish(manager.dhtTemperatureTopic().c_str(), String(temperature).c_str(), true);
+  Serial.print(String(manager.dhtTemperatureTopic().c_str()));
+  Serial.println(String(temperature).c_str());
+  delay(50);
   client.publish(manager.dhtHumidityTopic().c_str(), String(humidity).c_str(), true);
+  Serial.print(String(manager.dhtHumidityTopic().c_str()));
+  Serial.println(String(humidity).c_str());
+  delay(50);
   client.publish(manager.dhtHeatindexTopic().c_str(), String(heatindex).c_str(), true);
+  Serial.print(String(manager.dhtHeatindexTopic().c_str()));
+  Serial.println(String(heatindex).c_str());
+  delay(50);
   readBMP180();
   client.publish(manager.bmpPressureTopic().c_str(), String(pressure).c_str(), true); 
+  Serial.print(String(manager.bmpPressureTopic().c_str()));
+  Serial.println(String(pressure).c_str());
+  delay(50);
   client.publish(manager.bmpTemperatureTopic().c_str(), String(device_temperature).c_str(), true); 
+  Serial.print(String(manager.bmpTemperatureTopic().c_str()));
+  Serial.println(String(device_temperature).c_str());
+  delay(50);
 
   Serial.print("Going to sleep after ");
   Serial.println((millis()-t_elapsed)/1000);
   ESP.deepSleep(DEEP_SLEEP_TIME * 1000000);
 }
-
