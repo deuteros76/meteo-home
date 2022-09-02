@@ -164,10 +164,26 @@ void Manager::setup_wifi(){
     WiFi.begin(WiFi.SSID().c_str(), WiFi.psk().c_str());
     Serial.println(WiFi.SSID().c_str());
     Serial.println( WiFi.psk().c_str());
+    Serial.println( WiFi.macAddress());
     
-    while (WiFi.status() != WL_CONNECTED && (millis() - wifiTimeStart < WIFI_CONNECTION_TIMEOUT)) {
-      delay(500);
-      Serial.print(".");
+     WiFi.mode(WIFI_STA);
+     while (WiFi.status() != WL_CONNECTED){
+      wifiTimeStart = millis();
+      if (strlen(WiFi.psk().c_str())==0){
+        WiFi.begin(WiFi.SSID().c_str());
+        Serial.printf("\nConnecting to an open network (%s).\n",WiFi.SSID().c_str());  
+      }
+      else {
+        WiFi.begin(WiFi.SSID().c_str(), WiFi.psk().c_str());
+        Serial.printf("\nConnecting to an encrypted network (%s).\n",WiFi.SSID().c_str());  
+      }
+      
+      while (WiFi.status() != WL_CONNECTED && (millis() - wifiTimeStart < WIFI_CONNECTION_TIMEOUT)) {
+        delay(500);
+        Serial.print(".");
+      }
+      
+      Serial.println("\nUnable to connect to the WiFi network. Trying again.");   
     }
     if (WiFi.status() != WL_CONNECTED){
       Serial.println("\nIt was unable to connect to the WiFi network. Going to sleep");
