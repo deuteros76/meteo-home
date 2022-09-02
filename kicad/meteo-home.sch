@@ -14,7 +14,7 @@ Comment3 ""
 Comment4 ""
 $EndDescr
 $Comp
-L meteo-home-rescue:LED D1
+L meteo-home-rescue:LED-meteo-home-rescue-co2-detector-rescue D1
 U 1 1 5F7E20CE
 P 3500 1800
 F 0 "D1" H 3500 1900 50  0000 C CNN
@@ -25,7 +25,7 @@ F 3 "" H 3500 1800 50  0001 C CNN
 	0    -1   -1   0   
 $EndComp
 $Comp
-L meteo-home-rescue:R R3
+L meteo-home-rescue:R-meteo-home-rescue-co2-detector-rescue R3
 U 1 1 5F7E33D8
 P 4000 2200
 F 0 "R3" V 4080 2200 50  0000 C CNN
@@ -94,7 +94,7 @@ Connection ~ 5050 3800
 Wire Wire Line
 	5050 3800 5250 3800
 $Comp
-L meteo-home-rescue:R R4
+L meteo-home-rescue:R-meteo-home-rescue-co2-detector-rescue R4
 U 1 1 5F7E3096
 P 5050 3600
 F 0 "R4" H 5130 3600 50  0000 C CNN
@@ -105,7 +105,7 @@ F 3 "" H 5050 3600 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L meteo-home-rescue:DHT22_Temperature_Humidity-sensors TH1
+L meteo-home-rescue:DHT22_Temperature_Humidity-sensors-meteo-home-rescue-co2-detector-rescue TH1
 U 1 1 5F79E2BA
 P 5600 3600
 F 0 "TH1" H 5600 4650 60  0000 C CNN
@@ -122,7 +122,7 @@ Wire Wire Line
 Wire Wire Line
 	5600 3450 5250 3450
 $Comp
-L meteo-home-rescue:SGP30 U2
+L meteo-home-rescue:SGP30-meteo-home-rescue-co2-detector-rescue U2
 U 1 1 5F84C63D
 P 6100 2750
 F 0 "U2" V 6042 2878 60  0000 L CNN
@@ -132,8 +132,6 @@ F 3 "" H 6100 2750 60  0001 C CNN
 	1    6100 2750
 	0    1    1    0   
 $EndComp
-Wire Wire Line
-	5300 2800 5600 2800
 Wire Wire Line
 	3300 2450 5600 2450
 Wire Wire Line
@@ -148,7 +146,7 @@ Wire Wire Line
 	5400 1450 5400 2000
 Connection ~ 5400 2000
 $Comp
-L meteo-home-rescue:LED D2
+L meteo-home-rescue:LED-meteo-home-rescue-co2-detector-rescue D2
 U 1 1 5F7E21B5
 P 3750 1800
 F 0 "D2" H 3750 1900 50  0000 C CNN
@@ -166,7 +164,7 @@ Wire Wire Line
 Wire Wire Line
 	4000 1650 4000 1450
 $Comp
-L meteo-home-rescue:LED D3
+L meteo-home-rescue:LED-meteo-home-rescue-co2-detector-rescue D3
 U 1 1 5F7E21E7
 P 4000 1800
 F 0 "D3" H 4000 1900 50  0000 C CNN
@@ -181,7 +179,7 @@ Wire Wire Line
 Wire Wire Line
 	3750 2050 3750 1950
 $Comp
-L meteo-home-rescue:R R1
+L meteo-home-rescue:R-meteo-home-rescue-co2-detector-rescue R1
 U 1 1 5F7E333C
 P 3500 2200
 F 0 "R1" V 3580 2200 50  0000 C CNN
@@ -196,7 +194,7 @@ Wire Wire Line
 Wire Wire Line
 	3500 2050 3500 1950
 $Comp
-L meteo-home-rescue:R R2
+L meteo-home-rescue:R-meteo-home-rescue-co2-detector-rescue R2
 U 1 1 5F822937
 P 3750 2200
 F 0 "R2" V 3830 2200 50  0000 C CNN
@@ -213,7 +211,7 @@ Wire Wire Line
 Wire Wire Line
 	4900 3300 5400 3300
 $Comp
-L meteo-home-rescue:WeMos_D1_mini-wemos_mini U1
+L meteo-home-rescue:WeMos_D1_mini-wemos_mini-meteo-home-rescue-co2-detector-rescue U1
 U 1 1 5F79E0BA
 P 4400 3050
 F 0 "U1" H 4400 3550 60  0000 C CNN
@@ -232,9 +230,11 @@ GND
 Text Label 5150 3400 0    50   ~ 0
 5V
 Wire Wire Line
-	5300 3000 4900 3000
+	4900 2900 5600 2900
 Wire Wire Line
-	5300 2800 5300 3000
+	5600 2800 5350 2800
 Wire Wire Line
-	5600 2900 4900 2900
+	5350 2800 5350 3000
+Wire Wire Line
+	5350 3000 4900 3000
 $EndSCHEMATC
