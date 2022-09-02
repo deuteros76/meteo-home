@@ -39,10 +39,7 @@ NoConn ~ 4900 2700
 NoConn ~ 4900 2800
 NoConn ~ 4900 3100
 NoConn ~ 4900 3200
-NoConn ~ 5600 3650
-NoConn ~ 3900 2900
 NoConn ~ 3900 2800
-NoConn ~ 3900 2700
 Wire Wire Line
 	3300 3400 3300 2450
 Connection ~ 5400 3300
@@ -103,17 +100,6 @@ F 2 "Resistors_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal" V 4980 3600
 F 3 "" H 5050 3600 50  0001 C CNN
 	1    5050 3600
 	1    0    0    -1  
-$EndComp
-$Comp
-L meteo-home-rescue:DHT22_Temperature_Humidity-sensors-meteo-home-rescue-co2-detector-rescue TH1
-U 1 1 5F79E2BA
-P 5600 3600
-F 0 "TH1" H 5600 4650 60  0000 C CNN
-F 1 "DHT22_Temperature_Humidity" H 5600 4550 60  0000 C CNN
-F 2 "Sensors:DHT22_Temperature_Humidity" H 5600 3600 60  0001 C CNN
-F 3 "" H 5600 3600 60  0000 C CNN
-	1    5600 3600
-	0    1    1    0   
 $EndComp
 Wire Wire Line
 	5400 3750 5600 3750
@@ -210,17 +196,6 @@ Wire Wire Line
 	5050 3400 4900 3400
 Wire Wire Line
 	4900 3300 5400 3300
-$Comp
-L meteo-home-rescue:WeMos_D1_mini-wemos_mini-meteo-home-rescue-co2-detector-rescue U1
-U 1 1 5F79E0BA
-P 4400 3050
-F 0 "U1" H 4400 3550 60  0000 C CNN
-F 1 "WeMos_D1_mini" H 4400 2550 60  0000 C CNN
-F 2 "wemos-d1-mini:wemos-d1-mini-with-pin-header" H 4950 2350 60  0001 C CNN
-F 3 "" H 4950 2350 60  0000 C CNN
-	1    4400 3050
-	1    0    0    -1  
-$EndComp
 Wire Wire Line
 	3300 3400 3900 3400
 Text Label 3300 2850 0    50   ~ 0
@@ -237,4 +212,33 @@ Wire Wire Line
 	5350 2800 5350 3000
 Wire Wire Line
 	5350 3000 4900 3000
+$Comp
+L meteo-home-rescue:WeMos_D1_mini-wemos_mini-meteo-home-rescue-co2-detector-rescue U1
+U 1 1 5F79E0BA
+P 4400 3050
+F 0 "U1" H 4400 3550 60  0000 C CNN
+F 1 "WeMos_D1_mini" H 4400 2550 60  0000 C CNN
+F 2 "wemos-d1-mini:wemos-d1-mini-with-pin-header" H 4950 2350 60  0001 C CNN
+F 3 "" H 4950 2350 60  0000 C CNN
+	1    4400 3050
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3900 2700 3800 2700
+Wire Wire Line
+	3800 2700 3800 2900
+Wire Wire Line
+	3800 2900 3900 2900
+$Comp
+L meteo-home-rescue:DHT22_Temperature_Humidity-sensors-meteo-home-rescue-co2-detector-rescue TH1
+U 1 1 5F79E2BA
+P 5600 3600
+F 0 "TH1" H 5600 4650 60  0000 C CNN
+F 1 "DHT22_Temperature_Humidity" H 5600 4550 60  0000 C CNN
+F 2 "Sensors:DHT22_Temperature_Humidity" H 5600 3600 60  0001 C CNN
+F 3 "" H 5600 3600 60  0000 C CNN
+	1    5600 3600
+	0    1    1    0   
+$EndComp
+NoConn ~ 5600 3650
 $EndSCHEMATC
