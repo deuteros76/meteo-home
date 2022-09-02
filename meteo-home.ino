@@ -1,13 +1,34 @@
+/*
+  Copyright 2022 meteo-home
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+*/
+
 #include <ESP8266WiFi.h>
 #include <Wire.h>
 #include <Adafruit_BMP085.h>
 #include <PubSubClient.h>
-#include "DHT.h"
+#include <DHT.h>
 #include "manager.h"
 
 //Temperature sensor settings
 #define DHTPIN 12 // what digital pin we're connected to
 #define DHTTYPE DHT22 // DHT 22  (AM2302), AM2321
+
+// LEDs pins
+#define GREEN_PIN 14
+#define YELLOW_PIN 13
+#define RED_PIN 15
 
 //Timeout connection for wifi or mqtt server
 #define CONNECTION_TIMEOUT 20000 //Timeout for connections. The idea is to prevent for continuous conection tries. This would cause battery drain
@@ -33,12 +54,18 @@ long t_elapsed;
 void setup() {
   //Serial port speed
   t_elapsed = millis();
-  Serial.begin(115200);
-  //Prevention of deep sleep failures
-  //pinMode(0, INPUT_PULLUP);
-  //pinMode(2, INPUT_PULLUP);
-  //pinMode(15, LOW);
-  //Read setting and launch configuration portal if required
+  Serial.begin(9600);
+
+  // Configuration of LED pins
+  pinMode(GREEN_PIN, OUTPUT);
+  pinMode(YELLOW_PIN, OUTPUT);
+  pinMode(RED_PIN, OUTPUT);
+
+  digitalWrite(RED_PIN, HIGH);
+  digitalWrite(YELLOW_PIN, HIGH);
+  digitalWrite(GREEN_PIN, HIGH);
+
+  // WiFi setup
   manager.setup_config_data();
   manager.setup_wifi();
   //DHT sensor for humidity and temperature

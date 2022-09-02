@@ -1,3 +1,19 @@
+/*
+Copyright 2022 meteo-home
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 #ifndef _MANAGER_
 #define _MANAGER_
 #include <DNSServer.h>
@@ -30,41 +46,58 @@ public:
   //callback notifying us of the need to save config
   static void saveConfigCallback () { Serial.println("Should save config"); shouldSaveConfig = true;}
 
+  //Make the device discoverable
+  String getDiscoveryMsg(String topic, String unit);
+
   String networkIp(){return network_ip;}
-  string networkMask(){return network_mask;}
-  string networkGateway(){return network_gateway;}
+  String networkMask(){return network_mask;}
+  String networkGateway(){return network_gateway;}
 
-    String mqttServer(){return mqtt_server;}
-  string mqttPort(){return mqtt_port;}
-  string mqttUser(){return mqtt_user;}
-  string mqttPassword(){return mqtt_password;}
+  String mqttServer(){return mqtt_server;}
+  String mqttPort(){return mqtt_port;}
+  String mqttUser(){return mqtt_user;}
+  String mqttPassword(){return mqtt_password;}
 
-  string dhtTemperatureTopic(){return dht_temperature_topic;}
-  string dhtHumidityTopic(){return dht_humidity_topic;}
-  string dhtHeatindexTopic(){return dht_heatindex_topic;}
-  string bmpPressureTopic(){return bmp_pressure_topic;}
-  string bmpTemperatureTopic(){return bmp_temperature_topic;}
+  String dhtTemperatureTopic(){return dht_temperature_topic;}
+  String dhtHumidityTopic(){return dht_humidity_topic;}
+  String dhtHeatindexTopic(){return dht_heatindex_topic;}  
+  String bmpPressureTopic(){return bmp_pressure_topic;}
+  String bmpTemperatureTopic(){return bmp_temperature_topic;}
+  
+  String dhtTemperatureDiscoveryTopic(){return dht_temperature_discovery_topic;}
+  String dhtHumidityDiscoveryTopic(){return dht_humidity_discovery_topic;}
+  String dhtHeatindexDiscoveryTopic(){return dht_heatindex_discovery_topic;}
+  String bmpPressureDiscoveryTopic(){return sgp_co2_discovery_topic;}
+  String bmpTemperatureDiscoveryTopic(){return sgp_tvoc_discovery_topic;}
 
 private:
   //MQTT  server
   String network_ip;
-  string network_mask ;
-  string network_gateway;
+  String network_mask ;
+  String network_gateway;
   
   //MQTT  server
   String mqtt_server;
-  string mqtt_port ;
-  string mqtt_user;
-  string mqtt_password;
+  String mqtt_port ;
+  String mqtt_user;
+  String mqtt_password;
 
   //MQTT subscriptions
-  string dht_temperature_topic;
-  string dht_humidity_topic;
-  string dht_heatindex_topic;
-  string bmp_pressure_topic;
-  string bmp_temperature_topic;
-
+  String dht_temperature_topic;
+  String dht_humidity_topic;
+  String dht_heatindex_topic;
+  String bmp_pressure_topic;
+  String bmp_temperature_topic;
   
+  //MQTT discovery topics
+  String dht_temperature_discovery_topic;
+  String dht_humidity_discovery_topic;
+  String dht_heatindex_discovery_topic;
+  String sgp_co2_discovery_topic;
+  String sgp_tvoc_discovery_topic;
+
+  String sgp_co2_topic;
+  String sgp_tvoc_topic;  
 };
 
 #endif
