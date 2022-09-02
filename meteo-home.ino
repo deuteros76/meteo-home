@@ -99,7 +99,7 @@ void reconnect() {
   }
 }
 
-float readDHT22(){  
+void readDHT22(){  
   //read dht22 value
   temperature = dht.readTemperature();    
   humidity = dht.readHumidity();
@@ -115,7 +115,7 @@ float readDHT22(){
 /** 
  *  Reads the pressure unsing the BMP180 but also the temperature which is used as the interenal device temperature reference
  */
-int readBMP180(){  
+void readBMP180(){  
   //bmp180
   if (bmpSensorReady){
     device_temperature = bmp.readTemperature(); 
@@ -135,27 +135,35 @@ void loop() {
   client.loop();
 
   readDHT22();
-  client.publish(manager.dhtTemperatureTopic().c_str(), String(temperature).c_str(), true);
-  Serial.print(String(manager.dhtTemperatureTopic().c_str()));
-  Serial.println(String(temperature).c_str());
-  delay(50);
-  client.publish(manager.dhtHumidityTopic().c_str(), String(humidity).c_str(), true);
-  Serial.print(String(manager.dhtHumidityTopic().c_str()));
-  Serial.println(String(humidity).c_str());
-  delay(50);
-  client.publish(manager.dhtHeatindexTopic().c_str(), String(heatindex).c_str(), true);
-  Serial.print(String(manager.dhtHeatindexTopic().c_str()));
-  Serial.println(String(heatindex).c_str());
-  delay(50);
+  if (isnan(temperature) || isnan(humidity)){
+    Serial.print("Error reading DHT22 values");    
+  }else {
+    client.publish(manager.dhtTemperatureTopic().c_str(), String(temperature).c_str(), true);
+    Serial.print(String(manager.dhtTemperatureTopic().c_str()));
+    Serial.println(String(temperature).c_str());
+    delay(50);
+    client.publish(manager.dhtHumidityTopic().c_str(), String(humidity).c_str(), true);
+    Serial.print(String(manager.dhtHumidityTopic().c_str()));
+    Serial.println(String(humidity).c_str());
+    delay(50);
+    client.publish(manager.dhtHeatindexTopic().c_str(), String(heatindex).c_str(), true);
+    Serial.print(String(manager.dhtHeatindexTopic().c_str()));
+    Serial.println(String(heatindex).c_str());
+    delay(50);
+  }
   readBMP180();
-  client.publish(manager.bmpPressureTopic().c_str(), String(pressure).c_str(), true); 
-  Serial.print(String(manager.bmpPressureTopic().c_str()));
-  Serial.println(String(pressure).c_str());
-  delay(50);
-  client.publish(manager.bmpTemperatureTopic().c_str(), String(device_temperature).c_str(), true); 
-  Serial.print(String(manager.bmpTemperatureTopic().c_str()));
-  Serial.println(String(device_temperature).c_str());
-  delay(50);
+  if (isnan(pressure) || isnan(device_temperature)){
+    Serial.print("Error reading DHT22 values");    
+  }else {
+    client.publish(manager.bmpPressureTopic().c_str(), String(pressure).c_str(), true); 
+    Serial.print(String(manager.bmpPressureTopic().c_str()));
+    Serial.println(String(pressure).c_str());
+    delay(50);
+    client.publish(manager.bmpTemperatureTopic().c_str(), String(device_temperature).c_str(), true); 
+    Serial.print(String(manager.bmpTemperatureTopic().c_str()));
+    Serial.println(String(device_temperature).c_str());
+    delay(50);
+  }
 
   Serial.print("Going to sleep after ");
   Serial.println((millis()-t_elapsed)/1000);
