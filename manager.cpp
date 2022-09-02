@@ -175,10 +175,12 @@ void Manager::setup_wifi(){
     ip.fromString(network_ip.c_str());
     gateway.fromString(network_gateway.c_str());
     mask.fromString(network_mask.c_str());
-    
-    WiFi.mode(WIFI_STA);
+
+    String hostname = "Meteo-home_";
+    hostname.concat(WiFi.macAddress());
     WiFi.config(ip, gateway,mask);
-    WiFi.hostname("Meteo-home");
+    WiFi.hostname(hostname.c_str());
+    WiFi.mode(WIFI_STA);
     while (WiFi.status() != WL_CONNECTED){
       wifiTimeStart = millis();
       if (strlen(WiFi.psk().c_str())==0){
