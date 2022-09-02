@@ -178,7 +178,7 @@ void Manager::setup_wifi(){
     
     WiFi.mode(WIFI_STA);
     WiFi.config(ip, gateway,mask);
-    WiFi.hostname("CO2-Detector");
+    WiFi.hostname("Meteo-home");
     while (WiFi.status() != WL_CONNECTED){
       wifiTimeStart = millis();
       if (strlen(WiFi.psk().c_str())==0){
