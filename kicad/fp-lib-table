@@ -1,0 +1,4 @@
+(fp_lib_table
+  (lib (name Sensors)(type KiCad)(uri /home/guille/Documentos/kicad/kicad-lib-master/Sensors.pretty)(options "")(descr ""))
+  (lib (name nodemcu)(type KiCad)(uri /home/guille/Documentos/kicad/kicad-lib-master/nodemcu.pretty)(options "")(descr ""))
+)

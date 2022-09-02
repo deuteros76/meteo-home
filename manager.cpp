@@ -1,3 +1,19 @@
+/*
+Copyright 2022 meteo-home
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 #include "manager.h"
 #include <string>
 
@@ -8,11 +24,11 @@ bool shouldSaveConfig=false;
 
 Manager::Manager(){ 
   
-  network_ip = "192.168.1.105";
+  network_ip = "192.168.1.206";
   network_mask = "255.255.255.0";
   network_gateway = "192.168.1.1";
   
-  mqtt_server = "192.168.1.2";
+  mqtt_server = "192.168.1.100";
   mqtt_port = "1883";
   mqtt_user = "your_username";
   mqtt_password = "YOUR_PASSWORD";
@@ -47,14 +63,14 @@ void Manager::setup_config_data(){
         std::unique_ptr<char[]> buf(new char[size]);
 
         configFile.readBytes(buf.get(), size);
-        DynamicJsonBuffer jsonBuffer;
-        JsonObject& json = jsonBuffer.parseObject(buf.get());
-        json.printTo(Serial);
-        if (json.success()) {
+        DynamicJsonDocument json(1024);
+        deserializeJson(json,buf.get());
+        serializeJson(json, Serial);
+        if (!json.isNull()) {
           configFileExists=true;
-          Serial.println("\nparsed json");
+          Serial.println("\nparsed json:");
           
-          json.printTo(Serial);
+          serializeJson(json, Serial);
 
           network_ip = (const char *)json["network_ip"];
           network_mask = (const char *)json["network_mask"];
@@ -155,19 +171,33 @@ void Manager::setup_wifi(){
     Serial.println(network_ip);
     Serial.println(network_gateway.c_str());
     Serial.println(network_mask.c_str());
+    Serial.println(WiFi.macAddress());
     ip.fromString(network_ip.c_str());
     gateway.fromString(network_gateway.c_str());
     mask.fromString(network_mask.c_str());
-    
+
+    String hostname = "Meteo-home_";
+    hostname.concat(WiFi.macAddress());
     WiFi.config(ip, gateway,mask);
+    WiFi.hostname(hostname.c_str());
     WiFi.mode(WIFI_STA);
-    WiFi.begin(WiFi.SSID().c_str(), WiFi.psk().c_str());
-    Serial.println(WiFi.SSID().c_str());
-    Serial.println( WiFi.psk().c_str());
-    
-    while (WiFi.status() != WL_CONNECTED && (millis() - wifiTimeStart < WIFI_CONNECTION_TIMEOUT)) {
-      delay(500);
-      Serial.print(".");
+    while (WiFi.status() != WL_CONNECTED){
+      wifiTimeStart = millis();
+      if (strlen(WiFi.psk().c_str())==0){
+        WiFi.begin(WiFi.SSID().c_str());
+        Serial.printf("\nConnecting to an open network (%s).\n",WiFi.SSID().c_str());  
+      }
+      else {
+        WiFi.begin(WiFi.SSID().c_str(), WiFi.psk().c_str());
+        Serial.printf("\nConnecting to an encrypted network (%s).\n",WiFi.SSID().c_str());  
+      }
+      
+      while (WiFi.status() != WL_CONNECTED && (millis() - wifiTimeStart < WIFI_CONNECTION_TIMEOUT)) {
+        delay(500);
+        Serial.print(".");
+      }
+      
+      Serial.println("\nUnable to connect to the WiFi network. Trying again.");   
     }
     if (WiFi.status() != WL_CONNECTED){
       Serial.println("\nIt was unable to connect to the WiFi network. Going to sleep");
@@ -180,20 +210,19 @@ void Manager::setup_wifi(){
     Serial.println(WiFi.localIP());
     Serial.println(WiFi.gatewayIP());
     Serial.println(WiFi.subnetMask());
+    Serial.println(WiFi.hostname());
   }else {
         wifiManager.setTimeout(300);
         wifiManager.startConfigPortal("Meteo-home");
   }
   
   //if you get here you have connected to the WiFi
-  Serial.print("connected...yeey :)");
-  Serial.println((millis()-wifiTimeStart)/1000);
+  Serial.println("Connected!!)");
     
   //save the custom parameters to FS
   if (shouldSaveConfig) {
     Serial.println("saving config");
-    DynamicJsonBuffer jsonBuffer;
-    JsonObject& json = jsonBuffer.createObject();
+    DynamicJsonDocument json(1024);
 
     json["network_ip"] = custom_network_ip.getValue();
     json["network_mask"] = custom_network_mask.getValue();
@@ -217,10 +246,28 @@ void Manager::setup_wifi(){
       Serial.println("failed to open config file for writing");
     }
 
-    json.printTo(Serial);
-    json.printTo(configFile);
+    serializeJson(json, Serial);    
+    serializeJson(json, configFile);
     configFile.close();
     //end save
   }
  
 }
+
+String Manager::getDiscoveryMsg(String topic, String unit) {
+
+  DynamicJsonDocument doc(1024);
+  String buffer;
+
+  doc["name"] = topic;
+  doc["stat_t"]   = topic;
+  doc["unit_of_meas"] = unit;
+  doc["dev_cla"] = "temperature";
+  doc["frc_upd"] = true;
+  doc["uniq_id"] =  topic;
+
+  serializeJson(doc, buffer);
+
+  return buffer;
+}
+  
