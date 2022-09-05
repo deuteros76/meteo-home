@@ -32,6 +32,8 @@ Manager::Manager(){
   mqtt_port = "1883";
   mqtt_user = "your_username";
   mqtt_password = "YOUR_PASSWORD";
+  
+  use_sleep_mode = "true";
 
   //MQTT subscriptions
   dht_temperature_topic = "room/temperature";
@@ -80,6 +82,8 @@ void Manager::setup_config_data(){
           mqtt_port = (const char *)json["mqtt_port"];
           mqtt_user = (const char *)json["mqtt_user"];
           mqtt_password = (const char *)json["mqtt_password"];
+          
+          use_sleep_mode = (const char *)json["use_sleep_mode"];
 
           dht_temperature_topic = (const char *)json["dht_temperature_topic"];
           dht_humidity_topic = (const char *)json["dht_humidity_topic"];
@@ -112,6 +116,8 @@ void Manager::setup_wifi(){
   WiFiManagerParameter custom_mqtt_password("password", "mqtt password", mqtt_password.c_str(), 30);
   WiFiManagerParameter custom_mqtt_username("username", "user name", mqtt_user.c_str(), 30);
   
+  WiFiManagerParameter custom_use_sleep_mode("sleepmode", "sleep mode", use_sleep_mode.c_str(), 30);
+  
   WiFiManagerParameter custom_topics_group("<p>MQTT topics</p>");
   WiFiManagerParameter custom_dht_temperature_topic("temperature","temperature",dht_temperature_topic.c_str(),40);
   WiFiManagerParameter custom_dht_humidity_topic("humidity","humidity",dht_humidity_topic.c_str(),40);
@@ -140,6 +146,8 @@ void Manager::setup_wifi(){
   wifiManager.addParameter(&custom_mqtt_username);
   wifiManager.addParameter(&custom_mqtt_password);
   
+  wifiManager.addParameter(&custom_use_sleep_mode);
+  
   wifiManager.addParameter(&custom_topics_group);
   wifiManager.addParameter(&custom_dht_temperature_topic);
   wifiManager.addParameter(&custom_dht_humidity_topic);
@@ -160,6 +168,8 @@ void Manager::setup_wifi(){
     mqtt_port= custom_mqtt_port.getValue();
     mqtt_user= custom_mqtt_username.getValue();
     mqtt_password=custom_mqtt_password.getValue();
+    
+    use_sleep_mode=custom_use_sleep_mode.getValue();
     
     dht_temperature_topic=custom_dht_temperature_topic.getValue();
     dht_humidity_topic=custom_dht_humidity_topic.getValue();
@@ -232,6 +242,8 @@ void Manager::setup_wifi(){
     json["mqtt_port"] = custom_mqtt_port.getValue();
     json["mqtt_user"] = custom_mqtt_username.getValue();
     json["mqtt_password"] = custom_mqtt_password.getValue();
+    
+    json["use_sleep_mode"] = custom_use_sleep_mode.getValue();
     
     json["dht_temperature_topic"] = custom_dht_temperature_topic.getValue();
     Serial.println(custom_dht_temperature_topic.getValue());

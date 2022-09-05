@@ -57,6 +57,8 @@ public:
   String mqttPort(){return mqtt_port;}
   String mqttUser(){return mqtt_user;}
   String mqttPassword(){return mqtt_password;}
+  
+  String useSleepMode(){return use_sleep_mode;}
 
   String dhtTemperatureTopic(){return dht_temperature_topic;}
   String dhtHumidityTopic(){return dht_humidity_topic;}
@@ -81,6 +83,8 @@ private:
   String mqtt_port ;
   String mqtt_user;
   String mqtt_password;
+  
+  String use_sleep_mode;
 
   //MQTT subscriptions
   String dht_temperature_topic;

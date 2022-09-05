@@ -50,6 +50,7 @@ float pressure = 0;
 
 long t_elapsed;
 
+bool useSleepMode=false;
 
 void setup() {
   //Serial port speed
@@ -76,6 +77,10 @@ void setup() {
   IPAddress addr;
   addr.fromString(manager.mqttServer());
   client.setServer(addr, atoi(manager.mqttPort().c_str())); 
+  manager.useSleepMode().toLowerCase();
+  if (manager.useSleepMode().equals("true")){
+    useSleepMode = true;
+  }
   Serial.println("Configured!!");
 }
 
@@ -165,7 +170,11 @@ void loop() {
     delay(50);
   }
 
-  Serial.print("Going to sleep after ");
-  Serial.println((millis()-t_elapsed)/1000);
-  ESP.deepSleep(DEEP_SLEEP_TIME * 1000000);
+  if (useSleepMode){
+    Serial.print("Going to sleep after ");
+    Serial.println((millis()-t_elapsed)/1000);
+    ESP.deepSleep(DEEP_SLEEP_TIME * 1000000);
+  }else{
+    delay(DEEP_SLEEP_TIME * 1000);
+  }
 }
