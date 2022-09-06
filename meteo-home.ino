@@ -77,10 +77,43 @@ void setup() {
   IPAddress addr;
   addr.fromString(manager.mqttServer());
   client.setServer(addr, atoi(manager.mqttPort().c_str())); 
+
+  if (!client.connected()) {
+    reconnect();
+  }
+  client.loop();
+
+  char buf[256];
+  String message = manager.getDiscoveryMsg(manager.dhtTemperatureTopic(), "ºC");
+  message.toCharArray(buf, message.length() + 1);
+  if (client.beginPublish (manager.dhtTemperatureDiscoveryTopic().c_str(), message.length(), true)) {
+    Serial.println(message);
+    for (int i = 0; i <= message.length() + 1; i++) {
+      client.write(buf[i]);
+    }
+    client.endPublish();
+  } else {
+    Serial.println("Error sending humidity discovery message");
+  }
+
+  // Not sure why but I have to disconnect and connect again to make work the second publish
+  client.disconnect();
+  reconnect();
+  message = manager.getDiscoveryMsg(manager.dhtHumidityDiscoveryTopic(), "%");
+  message.toCharArray(buf, message.length() + 1);
+  if (client.beginPublish (manager.dhtHumidityDiscoveryTopic().c_str(), message.length(), true)) {
+    for (int i = 0; i <= message.length() + 1; i++) {
+      client.write(buf[i]);
+    }
+    client.endPublish();
+  } else {
+    Serial.println("Error sending humidity discovery message");
+  }
+
   manager.useSleepMode().toLowerCase();
   if (manager.useSleepMode().equals("true")){
     useSleepMode = true;
-  }
+  } 
   Serial.println("Configured!!");
 }
 

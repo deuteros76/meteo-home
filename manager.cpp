@@ -88,8 +88,14 @@ void Manager::setup_config_data(){
           dht_temperature_topic = (const char *)json["dht_temperature_topic"];
           dht_humidity_topic = (const char *)json["dht_humidity_topic"];
           dht_heatindex_topic = (const char *)json["dht_heatindex_topic"];
+          
           bmp_pressure_topic = (const char *)json["bmp_pressure_topic"];
           bmp_temperature_topic=(const char *)json["bmp_temperature_topic"];
+          
+          dht_temperature_discovery_topic = "homeassistant/sensor/"+ String(dht_temperature_topic) + "/config";
+          dht_humidity_discovery_topic = "homeassistant/sensor/"+ String(dht_humidity_topic) + "/config";
+          dht_heatindex_discovery_topic = "homeassistant/sensor/"+ String(dht_heatindex_topic) + "/config";
+         
 
         } else {
           Serial.println("failed to load json config");
@@ -174,6 +180,7 @@ void Manager::setup_wifi(){
     dht_temperature_topic=custom_dht_temperature_topic.getValue();
     dht_humidity_topic=custom_dht_humidity_topic.getValue();
     dht_heatindex_topic=custom_dht_heatindex_topic.getValue();
+    
     bmp_pressure_topic=custom_bmp_pressure_topic.getValue();
     bmp_temperature_topic=custom_bmp_temperature_topic.getValue();
     
@@ -270,8 +277,21 @@ String Manager::getDiscoveryMsg(String topic, String unit) {
 
   DynamicJsonDocument doc(1024);
   String buffer;
+  String name;
+  char *token;
 
-  doc["name"] = topic;
+  char charBuf[50];
+  topic.toCharArray(charBuf, 50);
+  
+  token = strtok (charBuf,"/");
+  while (token != NULL)
+  {
+    printf ("%s\n",token);
+    token = strtok (NULL, "/");
+    name.concat(token);
+  }
+
+  doc["name"] = name;
   doc["stat_t"]   = topic;
   doc["unit_of_meas"] = unit;
   doc["dev_cla"] = "temperature";
