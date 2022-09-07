@@ -294,7 +294,6 @@ String Manager::getDiscoveryMsg(String topic, String unit) {
   doc["name"] = name;
   doc["stat_t"]   = topic;
   doc["unit_of_meas"] = unit;
-  doc["dev_cla"] = "temperature";
   doc["frc_upd"] = true;
   doc["uniq_id"] =  topic;
 
