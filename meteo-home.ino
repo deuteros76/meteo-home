@@ -87,7 +87,6 @@ void setup() {
   String message = manager.getDiscoveryMsg(manager.dhtTemperatureTopic(), "ºC");
   message.toCharArray(buf, message.length() + 1);
   if (client.beginPublish (manager.dhtTemperatureDiscoveryTopic().c_str(), message.length(), true)) {
-    Serial.println(message);
     for (int i = 0; i <= message.length() + 1; i++) {
       client.write(buf[i]);
     }
@@ -99,7 +98,7 @@ void setup() {
   // Not sure why but I have to disconnect and connect again to make work the second publish
   client.disconnect();
   reconnect();
-  message = manager.getDiscoveryMsg(manager.dhtHumidityDiscoveryTopic(), "%");
+  message = manager.getDiscoveryMsg(manager.dhtHumidityTopic(), "%");
   message.toCharArray(buf, message.length() + 1);
   if (client.beginPublish (manager.dhtHumidityDiscoveryTopic().c_str(), message.length(), true)) {
     for (int i = 0; i <= message.length() + 1; i++) {
