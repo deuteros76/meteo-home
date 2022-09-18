@@ -66,6 +66,12 @@ void setup() {
   digitalWrite(YELLOW_PIN, HIGH);
   digitalWrite(GREEN_PIN, HIGH);
 
+  delay(1000); // Just one second to show that the process has started
+  
+  digitalWrite(RED_PIN, LOW);
+  digitalWrite(YELLOW_PIN, LOW);
+  digitalWrite(GREEN_PIN, LOW);
+
   // WiFi setup
   manager.setup_config_data();
   manager.setup_wifi();
@@ -113,6 +119,12 @@ void setup() {
   if (manager.useSleepMode().equals("true")){
     useSleepMode = true;
   } 
+
+  if (!bmpSensorReady){
+    digitalWrite(RED_PIN, HIGH);    
+  }
+  
+  digitalWrite(GREEN_PIN, HIGH);  
   Serial.println("Configured!!");
 }
 
