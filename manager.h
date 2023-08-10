@@ -34,6 +34,8 @@ using namespace std;
 
 extern bool shouldSaveConfig;//flag for saving data
 
+enum device_class{temperature_sensor, humidity_sensor};
+
 class Manager{
 
 public:  
@@ -47,7 +49,7 @@ public:
   static void saveConfigCallback () { Serial.println("Should save config"); shouldSaveConfig = true;}
 
   //Make the device discoverable
-  String getDiscoveryMsg(String topic, String unit);
+  String getDiscoveryMsg(String topic, device_class dev_class);
 
   String networkIp(){return network_ip;}
   String networkMask(){return network_mask;}

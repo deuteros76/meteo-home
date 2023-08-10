@@ -92,9 +92,11 @@ void Manager::setup_config_data(){
           bmp_pressure_topic = (const char *)json["bmp_pressure_topic"];
           bmp_temperature_topic=(const char *)json["bmp_temperature_topic"];
           
-          dht_temperature_discovery_topic = "homeassistant/sensor/"+ String(dht_temperature_topic) + "/config";
-          dht_humidity_discovery_topic = "homeassistant/sensor/"+ String(dht_humidity_topic) + "/config";
-          dht_heatindex_discovery_topic = "homeassistant/sensor/"+ String(dht_heatindex_topic) + "/config";
+          String mac = WiFi.macAddress();
+          mac.replace(":","");
+          dht_temperature_discovery_topic = "homeassistant/sensor/"+ String(dht_temperature_topic) + mac + "/config";
+          dht_humidity_discovery_topic = "homeassistant/sensor/"+ String(dht_humidity_topic) + mac + "/config";
+          dht_heatindex_discovery_topic = "homeassistant/sensor/"+ String(dht_heatindex_topic) + mac + "/config";
          
 
         } else {
@@ -273,11 +275,13 @@ void Manager::setup_wifi(){
  
 }
 
-String Manager::getDiscoveryMsg(String topic, String unit) {
+String Manager::getDiscoveryMsg(String topic, device_class dev_class) {
 
   DynamicJsonDocument doc(1024);
   String buffer;
-  String name;
+  String name = "sensor.meteohome";
+  String unit;
+  String className;
   char *token;
 
   char charBuf[50];
@@ -286,12 +290,21 @@ String Manager::getDiscoveryMsg(String topic, String unit) {
   token = strtok (charBuf,"/");
   while (token != NULL)
   {
-    printf ("%s\n",token);
+    name= name + "-" + token;
+    printf ("Token: %s\n",token);
     token = strtok (NULL, "/");
-    name.concat(token);
+  }
+  printf ("Name is: %s\n",name);
+
+  switch (dev_class){
+    case temperature_sensor: unit = "ºC"; className="temperature"; break;
+    case humidity_sensor: unit = "%"; className="humidity"; break;
+    default: break;
   }
 
   doc["name"] = name;
+  doc["stat_cla"] = "measurement";
+  doc["dev_cla"] = className;
   doc["stat_t"]   = topic;
   doc["unit_of_meas"] = unit;
   doc["frc_upd"] = true;

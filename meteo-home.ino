@@ -90,7 +90,7 @@ void setup() {
   client.loop();
 
   char buf[256];
-  String message = manager.getDiscoveryMsg(manager.dhtTemperatureTopic(), "ºC");
+  String message = manager.getDiscoveryMsg(manager.dhtTemperatureTopic(), temperature_sensor);
   message.toCharArray(buf, message.length() + 1);
   if (client.beginPublish (manager.dhtTemperatureDiscoveryTopic().c_str(), message.length(), true)) {
     for (int i = 0; i <= message.length() + 1; i++) {
@@ -104,7 +104,7 @@ void setup() {
   // Not sure why but I have to disconnect and connect again to make work the second publish
   client.disconnect();
   reconnect();
-  message = manager.getDiscoveryMsg(manager.dhtHumidityTopic(), "%");
+  message = manager.getDiscoveryMsg(manager.dhtHumidityTopic(), humidity_sensor);
   message.toCharArray(buf, message.length() + 1);
   if (client.beginPublish (manager.dhtHumidityDiscoveryTopic().c_str(), message.length(), true)) {
     for (int i = 0; i <= message.length() + 1; i++) {
