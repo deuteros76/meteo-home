@@ -55,7 +55,7 @@ bool useSleepMode=false;
 void setup() {
   //Serial port speed
   t_elapsed = millis();
-  Serial.begin(9600);
+  Serial.begin(115200);
 
   // Configuration of LED pins
   pinMode(GREEN_PIN, OUTPUT);
@@ -145,7 +145,7 @@ void reconnect() {
       digitalWrite(YELLOW_PIN, LOW);
       digitalWrite(GREEN_PIN, LOW);
       Serial.print("failed, rc=");
-      Serial.print(client.state());
+      Serial.println(client.state());
       Serial.println(manager.mqttServer());
       Serial.println(manager.mqttPort().c_str());
       Serial.println(" trying again in 5 seconds");
@@ -196,7 +196,7 @@ void loop() {
 
   readDHT22();
   if (isnan(temperature) || isnan(humidity)){
-    Serial.print("Error reading DHT22 values");    
+    Serial.println("Error reading DHT22 values");    
   }else {
     client.publish(manager.dhtTemperatureTopic().c_str(), String(temperature).c_str(), true);
     Serial.print(String(manager.dhtTemperatureTopic().c_str()));
@@ -212,8 +212,8 @@ void loop() {
     delay(50);
   }
   readBMP180();
-  if (isnan(pressure) || isnan(device_temperature)){
-    Serial.print("Error reading DHT22 values");    
+  if (isnan(pressure) || pressure== 0 || isnan(device_temperature)){
+    Serial.println("Error reading BMP180 values");    
   }else {
     client.publish(manager.bmpPressureTopic().c_str(), String(pressure).c_str(), true); 
     Serial.print(String(manager.bmpPressureTopic().c_str()));

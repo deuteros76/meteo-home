@@ -71,8 +71,8 @@ public:
   String dhtTemperatureDiscoveryTopic(){return dht_temperature_discovery_topic;}
   String dhtHumidityDiscoveryTopic(){return dht_humidity_discovery_topic;}
   String dhtHeatindexDiscoveryTopic(){return dht_heatindex_discovery_topic;}
-  String bmpPressureDiscoveryTopic(){return sgp_co2_discovery_topic;}
-  String bmpTemperatureDiscoveryTopic(){return sgp_tvoc_discovery_topic;}
+  String bmpPressureDiscoveryTopic(){return bmp_pressure_discovery_topic;}
+  String bmpTemperatureDiscoveryTopic(){return bmp_temperature_discovery_topic;}
 
 private:
   //MQTT  server
@@ -99,6 +99,8 @@ private:
   String dht_temperature_discovery_topic;
   String dht_humidity_discovery_topic;
   String dht_heatindex_discovery_topic;
+  String bmp_temperature_discovery_topic;
+  String bmp_pressure_discovery_topic;
   String sgp_co2_discovery_topic;
   String sgp_tvoc_discovery_topic;
 

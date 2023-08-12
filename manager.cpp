@@ -97,7 +97,9 @@ void Manager::setup_config_data(){
           dht_temperature_discovery_topic = "homeassistant/sensor/"+ String(dht_temperature_topic) + mac + "/config";
           dht_humidity_discovery_topic = "homeassistant/sensor/"+ String(dht_humidity_topic) + mac + "/config";
           dht_heatindex_discovery_topic = "homeassistant/sensor/"+ String(dht_heatindex_topic) + mac + "/config";
-         
+
+          bmp_temperature_discovery_topic = "homeassistant/sensor/"+ String(bmp_temperature_topic) + mac + "/config";
+          bmp_pressure_discovery_topic = "homeassistant/sensor/"+ String(bmp_pressure_topic) + mac + "/config";         
 
         } else {
           Serial.println("failed to load json config");
