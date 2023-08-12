@@ -34,9 +34,9 @@
 #define CONNECTION_TIMEOUT 20000 //Timeout for connections. The idea is to prevent for continuous conection tries. This would cause battery drain
 
 bool bmpSensorReady;
-DHT dht(DHTPIN, DHTTYPE); // Initializes the DHT sensor.
-Adafruit_BMP085 bmp; // Bmp sensor object
-Manager manager;  //Portal and wific connection manager
+DHT dht(DHTPIN, DHTTYPE); //! Initializes the DHT sensor.
+Adafruit_BMP085 bmp; //1 Bmp sensor object
+Manager manager;  //! Portal and wific connection manager
 //MQTT client
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -51,11 +51,14 @@ float pressure = 0;
 long t_elapsed;
 
 bool useSleepMode=false;
+uint32_t first_boot_done=0; //! Used with deepsleep mode. Send the discovery messages only in the first boot and not after sleeping.
+
 
 void setup() {
   //Serial port speed
   t_elapsed = millis();
   Serial.begin(115200);
+  Serial.println("Confifuring device...");
 
   // Configuration of LED pins
   pinMode(GREEN_PIN, OUTPUT);
@@ -89,30 +92,40 @@ void setup() {
   }
   client.loop();
 
-  char buf[256];
-  String message = manager.getDiscoveryMsg(manager.dhtTemperatureTopic(), temperature_sensor);
-  message.toCharArray(buf, message.length() + 1);
-  if (client.beginPublish (manager.dhtTemperatureDiscoveryTopic().c_str(), message.length(), true)) {
-    for (int i = 0; i <= message.length() + 1; i++) {
-      client.write(buf[i]);
-    }
-    client.endPublish();
-  } else {
-    Serial.println("Error sending humidity discovery message");
-  }
+  ESP.rtcUserMemoryRead(0,&first_boot_done,sizeof(first_boot_done)); // Read from persistent RAM memory
+  if (first_boot_done != 1){
+    first_boot_done = 1;
+    ESP.rtcUserMemoryWrite(0,&first_boot_done,sizeof(first_boot_done)); // Write to persistent RAM memory
+    char buf[256];
+    
+    Serial.println("Sending Home Assistant discovery messages.");
 
-  // Not sure why but I have to disconnect and connect again to make work the second publish
-  client.disconnect();
-  reconnect();
-  message = manager.getDiscoveryMsg(manager.dhtHumidityTopic(), humidity_sensor);
-  message.toCharArray(buf, message.length() + 1);
-  if (client.beginPublish (manager.dhtHumidityDiscoveryTopic().c_str(), message.length(), true)) {
-    for (int i = 0; i <= message.length() + 1; i++) {
-      client.write(buf[i]);
+    String message = manager.getDiscoveryMsg(manager.dhtTemperatureTopic(), temperature_sensor);
+    message.toCharArray(buf, message.length() + 1);
+    if (client.beginPublish (manager.dhtTemperatureDiscoveryTopic().c_str(), message.length(), true)) {
+      for (int i = 0; i <= message.length() + 1; i++) {
+        client.write(buf[i]);
+      }
+      client.endPublish();
+    } else {
+      Serial.println("Error sending temperature discovery message");
     }
-    client.endPublish();
-  } else {
-    Serial.println("Error sending humidity discovery message");
+
+    // Not sure why but I have to disconnect and connect again to make work the second publish
+    client.disconnect();
+    reconnect();
+    message = manager.getDiscoveryMsg(manager.dhtHumidityTopic(), humidity_sensor);
+    message.toCharArray(buf, message.length() + 1);
+    if (client.beginPublish (manager.dhtHumidityDiscoveryTopic().c_str(), message.length(), true)) {
+      for (int i = 0; i <= message.length() + 1; i++) {
+        client.write(buf[i]);
+      }
+      client.endPublish();
+    } else {
+      Serial.println("Error sending humidity discovery message");
+    }
+
+    client.disconnect();
   }
 
   manager.useSleepMode().toLowerCase();
@@ -134,10 +147,10 @@ void reconnect() {
   long t1 = millis();
   while (!client.connected() && (millis() - t1 < CONNECTION_TIMEOUT)) {
     // Attempt to connect
-    String clientName("ESP8266Client-");
+    String clientName("ESPClient-");
     clientName.concat(ESP.getChipId());
     Serial.print("Attempting MQTT connection... ");
-    Serial.println(clientName);
+    Serial.println(clientName.c_str());
     if (client.connect(clientName.c_str())) {
       Serial.println("Connected to mqtt");
     } else {
@@ -191,7 +204,7 @@ void loop() {
   Serial.print("Starting...");
   if (!client.connected()) {
     reconnect();
-  }
+  }  
   client.loop();
 
   readDHT22();
@@ -224,6 +237,7 @@ void loop() {
     Serial.println(String(device_temperature).c_str());
     delay(50);
   }
+
 
   if (useSleepMode){
     Serial.print("Going to sleep after ");
