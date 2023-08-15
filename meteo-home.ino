@@ -55,6 +55,9 @@ uint32_t first_boot_done=0; //! Used with deepsleep mode. Send the discovery mes
 
 
 void setup() {
+  // Check if this is the first boot (Usefull if using deep sleep mode)
+  ESP.rtcUserMemoryRead(0,&first_boot_done,sizeof(first_boot_done)); // Read from persistent RAM memory
+
   //Serial port speed
   t_elapsed = millis();
   Serial.begin(115200);
@@ -65,15 +68,18 @@ void setup() {
   pinMode(YELLOW_PIN, OUTPUT);
   pinMode(RED_PIN, OUTPUT);
 
-  digitalWrite(RED_PIN, HIGH);
-  digitalWrite(YELLOW_PIN, HIGH);
-  digitalWrite(GREEN_PIN, HIGH);
+  // Turn on the LEDs to show the device is configureing. In sleep mode, we don't want to use the LEDs everytime the device wakes up
+  if (first_boot_done != 1){  
+    digitalWrite(RED_PIN, HIGH);
+    digitalWrite(YELLOW_PIN, HIGH);
+    digitalWrite(GREEN_PIN, HIGH);
 
-  delay(1000); // Just one second to show that the process has started
-  
-  digitalWrite(RED_PIN, LOW);
-  digitalWrite(YELLOW_PIN, LOW);
-  digitalWrite(GREEN_PIN, LOW);
+    delay(1000); // Just one second to show that the process has started
+    
+    digitalWrite(RED_PIN, LOW);
+    digitalWrite(YELLOW_PIN, LOW);
+    digitalWrite(GREEN_PIN, LOW);
+  }
 
   // WiFi setup
   manager.setup_config_data();
@@ -92,7 +98,6 @@ void setup() {
   }
   client.loop();
 
-  ESP.rtcUserMemoryRead(0,&first_boot_done,sizeof(first_boot_done)); // Read from persistent RAM memory
   if (first_boot_done != 1){
     first_boot_done = 1;
     ESP.rtcUserMemoryWrite(0,&first_boot_done,sizeof(first_boot_done)); // Write to persistent RAM memory
