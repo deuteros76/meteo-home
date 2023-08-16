@@ -61,6 +61,7 @@ public:
   String mqttPassword(){return mqtt_password;}
   
   String useSleepMode(){return use_sleep_mode;}
+  String deviceName(){return device_name;}
 
   String dhtTemperatureTopic(){return dht_temperature_topic;}
   String dhtHumidityTopic(){return dht_humidity_topic;}
@@ -87,6 +88,7 @@ private:
   String mqtt_password;
   
   String use_sleep_mode;
+  String device_name; //! Device (or location) name used to generate the MQTT topics
 
   //MQTT subscriptions
   String dht_temperature_topic;

@@ -34,14 +34,8 @@ Manager::Manager(){
   mqtt_password = "YOUR_PASSWORD";
   
   use_sleep_mode = "true";
+  device_name = "Terrace"; 
 
-  //MQTT subscriptions
-  dht_temperature_topic = "room/temperature";
-  dht_humidity_topic = "room/humidity";
-  dht_heatindex_topic = "room/heatindex";
-  bmp_pressure_topic = "room/pressure";
-  bmp_temperature_topic = "room/device/temperature";
-  
   //flag for saving data
   shouldSaveConfig = false;
   configFileExists = false;
@@ -84,6 +78,7 @@ void Manager::setup_config_data(){
           mqtt_password = (const char *)json["mqtt_password"];
           
           use_sleep_mode = (const char *)json["use_sleep_mode"];
+          device_name = (const char *)json["device_name"];
 
           dht_temperature_topic = (const char *)json["dht_temperature_topic"];
           dht_humidity_topic = (const char *)json["dht_humidity_topic"];
@@ -94,12 +89,12 @@ void Manager::setup_config_data(){
           
           String mac = WiFi.macAddress();
           mac.replace(":","");
-          dht_temperature_discovery_topic = "homeassistant/sensor/"+ String(dht_temperature_topic) + mac + "/config";
-          dht_humidity_discovery_topic = "homeassistant/sensor/"+ String(dht_humidity_topic) + mac + "/config";
-          dht_heatindex_discovery_topic = "homeassistant/sensor/"+ String(dht_heatindex_topic) + mac + "/config";
+          dht_temperature_discovery_topic = "homeassistant/sensor/"+ device_name + "-" + mac + "-DHT22-temperature" + "/config";
+          dht_humidity_discovery_topic = "homeassistant/sensor/"+ device_name + "-" + mac + "-DHT22-humidity" + "/config";
+          dht_heatindex_discovery_topic = "homeassistant/sensor/"+ device_name + "-" + mac + "-DHT22-heatindex"+ "/config";
 
-          bmp_temperature_discovery_topic = "homeassistant/sensor/"+ String(bmp_temperature_topic) + mac + "/config";
-          bmp_pressure_discovery_topic = "homeassistant/sensor/"+ String(bmp_pressure_topic) + mac + "/config";         
+          bmp_temperature_discovery_topic = "homeassistant/sensor/"+ device_name + "-" + mac + "-BMP180-pressure"+ "/config";
+          bmp_pressure_discovery_topic = "homeassistant/sensor/"+ device_name + "-" + mac + "-BMP180-temperature"+ "/config";         
 
         } else {
           Serial.println("failed to load json config");
@@ -129,12 +124,8 @@ void Manager::setup_wifi(){
   WiFiManagerParameter custom_use_sleep_mode("sleepmode", "sleep mode", use_sleep_mode.c_str(), 30);
   
   WiFiManagerParameter custom_topics_group("<p>MQTT topics</p>");
-  WiFiManagerParameter custom_dht_temperature_topic("temperature","temperature",dht_temperature_topic.c_str(),40);
-  WiFiManagerParameter custom_dht_humidity_topic("humidity","humidity",dht_humidity_topic.c_str(),40);
-  WiFiManagerParameter custom_dht_heatindex_topic("heatindex","heatindex",dht_heatindex_topic.c_str(),40);
-  WiFiManagerParameter custom_bmp_pressure_topic("pressure","pressure",bmp_pressure_topic.c_str(),40);
-  WiFiManagerParameter custom_bmp_temperature_topic("temperature2","temperature2",bmp_temperature_topic.c_str(),40);
-  
+  WiFiManagerParameter custom_device_name("name","device name or location",device_name.c_str(),40);
+
   WiFiManager wifiManager;
 
   //set config save notify callback
@@ -143,8 +134,6 @@ void Manager::setup_wifi(){
 
   //reset settings - for testing
   //wifiManager.resetSettings();
-
-
   wifiManager.addParameter(&custom_network_group);
   wifiManager.addParameter(&custom_network_ip);
   wifiManager.addParameter(&custom_network_mask);
@@ -159,12 +148,7 @@ void Manager::setup_wifi(){
   wifiManager.addParameter(&custom_use_sleep_mode);
   
   wifiManager.addParameter(&custom_topics_group);
-  wifiManager.addParameter(&custom_dht_temperature_topic);
-  wifiManager.addParameter(&custom_dht_humidity_topic);
-  wifiManager.addParameter(&custom_dht_heatindex_topic);
-  wifiManager.addParameter(&custom_bmp_pressure_topic);
-  wifiManager.addParameter(&custom_bmp_temperature_topic);
-
+  wifiManager.addParameter(&custom_device_name);
 
   long wifiTimeStart = millis();
 
@@ -180,13 +164,14 @@ void Manager::setup_wifi(){
     mqtt_password=custom_mqtt_password.getValue();
     
     use_sleep_mode=custom_use_sleep_mode.getValue();
+    device_name= custom_device_name.getValue();
+
+    dht_temperature_topic=String(device_name) + "/DHT22/temperature";
+    dht_humidity_topic=String(device_name) + "/DHT22/humidity";
+    dht_heatindex_topic=String(device_name) + "/DHT22/heatindex";
     
-    dht_temperature_topic=custom_dht_temperature_topic.getValue();
-    dht_humidity_topic=custom_dht_humidity_topic.getValue();
-    dht_heatindex_topic=custom_dht_heatindex_topic.getValue();
-    
-    bmp_pressure_topic=custom_bmp_pressure_topic.getValue();
-    bmp_temperature_topic=custom_bmp_temperature_topic.getValue();
+    bmp_pressure_topic=String(device_name) + "/bmp180/pressure";
+    bmp_temperature_topic=String(device_name) + "/bmp180/temperature";
     
     IPAddress ip,gateway,mask;
     Serial.println(network_ip);
@@ -255,14 +240,15 @@ void Manager::setup_wifi(){
     json["mqtt_password"] = custom_mqtt_password.getValue();
     
     json["use_sleep_mode"] = custom_use_sleep_mode.getValue();
+    json["device_name"] = custom_device_name.getValue();
     
-    json["dht_temperature_topic"] = custom_dht_temperature_topic.getValue();
-    Serial.println(custom_dht_temperature_topic.getValue());
+    json["dht_temperature_topic"] = String(custom_device_name.getValue()) + "/DHT22/temperature";
+    Serial.println(String(custom_device_name.getValue())+"/DHT22/temperature");
     Serial.println("=================");
-    json["dht_humidity_topic"] = custom_dht_humidity_topic.getValue();
-    json["dht_heatindex_topic"] = custom_dht_heatindex_topic.getValue();
-    json["bmp_pressure_topic"] = custom_bmp_pressure_topic.getValue();
-    json["bmp_temperature_topic"] = custom_bmp_temperature_topic.getValue();
+    json["dht_humidity_topic"] = String(custom_device_name.getValue()) + "/DHT22/humidity";
+    json["dht_heatindex_topic"] = String(custom_device_name.getValue()) + "/DHT22/heatindex";
+    json["bmp_pressure_topic"] = String(custom_device_name.getValue()) + "/bmp180/pressure";
+    json["bmp_temperature_topic"] = String(custom_device_name.getValue()) + "/bmp180/temperature";
 
     File configFile = SPIFFS.open("/config.json", "w");
     if (!configFile) {
