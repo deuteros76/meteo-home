@@ -89,12 +89,12 @@ void Manager::setup_config_data(){
           
           String mac = WiFi.macAddress();
           mac.replace(":","");
-          dht_temperature_discovery_topic = "homeassistant/sensor/"+ device_name + "-" + mac + "-DHT22-temperature" + "/config";
-          dht_humidity_discovery_topic = "homeassistant/sensor/"+ device_name + "-" + mac + "-DHT22-humidity" + "/config";
-          dht_heatindex_discovery_topic = "homeassistant/sensor/"+ device_name + "-" + mac + "-DHT22-heatindex"+ "/config";
+          dht_temperature_discovery_topic = "homeassistant/sensor/"+ device_name + "-" + mac + "/DHT22-temperature" + "/config";
+          dht_humidity_discovery_topic = "homeassistant/sensor/"+ device_name + "-" + mac + "/DHT22-humidity" + "/config";
+          dht_heatindex_discovery_topic = "homeassistant/sensor/"+ device_name + "-" + mac + "/DHT22-heatindex"+ "/config";
 
-          bmp_temperature_discovery_topic = "homeassistant/sensor/"+ device_name + "-" + mac + "-BMP180-pressure"+ "/config";
-          bmp_pressure_discovery_topic = "homeassistant/sensor/"+ device_name + "-" + mac + "-BMP180-temperature"+ "/config";         
+          bmp_temperature_discovery_topic = "homeassistant/sensor/"+ device_name + "-" + mac + "/BMP180-pressure"+ "/config";
+          bmp_pressure_discovery_topic = "homeassistant/sensor/"+ device_name + "-" + mac + "/BMP180-temperature"+ "/config";         
 
         } else {
           Serial.println("failed to load json config");
@@ -120,11 +120,11 @@ void Manager::setup_wifi(){
   WiFiManagerParameter custom_mqtt_port("port", "mqtt port", mqtt_port.c_str(), 6);
   WiFiManagerParameter custom_mqtt_password("password", "mqtt password", mqtt_password.c_str(), 30);
   WiFiManagerParameter custom_mqtt_username("username", "user name", mqtt_user.c_str(), 30);
-  
-  WiFiManagerParameter custom_use_sleep_mode("sleepmode", "sleep mode", use_sleep_mode.c_str(), 30);
-  
-  WiFiManagerParameter custom_topics_group("<p>MQTT topics</p>");
+   
+  WiFiManagerParameter custom_paramenters_group("<p>Device parameters</p>");
   WiFiManagerParameter custom_device_name("name","device name or location",device_name.c_str(),40);
+  const char* custom_sleepmode_checkbox_str = "type='checkbox'";
+  WiFiManagerParameter custom_use_sleep_mode("sleepmode", "Sleep mode", "true", 2,custom_sleepmode_checkbox_str,WFM_LABEL_AFTER);
 
   WiFiManager wifiManager;
 
@@ -145,10 +145,9 @@ void Manager::setup_wifi(){
   wifiManager.addParameter(&custom_mqtt_username);
   wifiManager.addParameter(&custom_mqtt_password);
   
-  wifiManager.addParameter(&custom_use_sleep_mode);
-  
-  wifiManager.addParameter(&custom_topics_group);
+  wifiManager.addParameter(&custom_paramenters_group);
   wifiManager.addParameter(&custom_device_name);
+  wifiManager.addParameter(&custom_use_sleep_mode);
 
   long wifiTimeStart = millis();
 
