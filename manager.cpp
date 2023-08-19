@@ -33,7 +33,6 @@ Manager::Manager(){
   mqtt_user = "your_username";
   mqtt_password = "YOUR_PASSWORD";
   
-  use_sleep_mode = "true";
   device_name = "Terrace"; 
 
   //flag for saving data
@@ -66,7 +65,7 @@ void Manager::setup_config_data(){
           configFileExists=true;
           Serial.println("\nparsed json:");
           
-          serializeJson(json, Serial);
+          serializeJson(json, Serial);Serial.println();
 
           network_ip = (const char *)json["network_ip"];
           network_mask = (const char *)json["network_mask"];
@@ -77,7 +76,10 @@ void Manager::setup_config_data(){
           mqtt_user = (const char *)json["mqtt_user"];
           mqtt_password = (const char *)json["mqtt_password"];
           
+          Serial.println(String("1----->")+(const char *)json["use_sleep_mode"]);
           use_sleep_mode = (const char *)json["use_sleep_mode"];
+          Serial.println(String("2----->")+use_sleep_mode);
+          Serial.println(String("3----->")+ useSleepMode()); 
           device_name = (const char *)json["device_name"];
 
           dht_temperature_topic = (const char *)json["dht_temperature_topic"];
@@ -85,16 +87,7 @@ void Manager::setup_config_data(){
           dht_heatindex_topic = (const char *)json["dht_heatindex_topic"];
           
           bmp_pressure_topic = (const char *)json["bmp_pressure_topic"];
-          bmp_temperature_topic=(const char *)json["bmp_temperature_topic"];
-          
-          String mac = WiFi.macAddress();
-          mac.replace(":","");
-          dht_temperature_discovery_topic = "homeassistant/sensor/"+ device_name + "-" + mac + "/DHT22-temperature" + "/config";
-          dht_humidity_discovery_topic = "homeassistant/sensor/"+ device_name + "-" + mac + "/DHT22-humidity" + "/config";
-          dht_heatindex_discovery_topic = "homeassistant/sensor/"+ device_name + "-" + mac + "/DHT22-heatindex"+ "/config";
-
-          bmp_temperature_discovery_topic = "homeassistant/sensor/"+ device_name + "-" + mac + "/BMP180-pressure"+ "/config";
-          bmp_pressure_discovery_topic = "homeassistant/sensor/"+ device_name + "-" + mac + "/BMP180-temperature"+ "/config";         
+          bmp_temperature_topic=(const char *)json["bmp_temperature_topic"];     
 
         } else {
           Serial.println("failed to load json config");
@@ -124,7 +117,7 @@ void Manager::setup_wifi(){
   WiFiManagerParameter custom_paramenters_group("<p>Device parameters</p>");
   WiFiManagerParameter custom_device_name("name","device name or location",device_name.c_str(),40);
   const char* custom_sleepmode_checkbox_str = "type='checkbox'";
-  WiFiManagerParameter custom_use_sleep_mode("sleepmode", "Sleep mode", "true", 2,custom_sleepmode_checkbox_str,WFM_LABEL_AFTER);
+  WiFiManagerParameter custom_use_sleep_mode("sleepmode", "Sleep mode", "true", 4,custom_sleepmode_checkbox_str,WFM_LABEL_AFTER);
 
   WiFiManager wifiManager;
 
@@ -153,6 +146,7 @@ void Manager::setup_wifi(){
 
   if (configFileExists){
     //read updated parameters
+    /*
     network_ip=custom_network_ip.getValue();
     network_mask= custom_network_mask.getValue();
     network_gateway= custom_network_gateway.getValue();
@@ -161,7 +155,8 @@ void Manager::setup_wifi(){
     mqtt_port= custom_mqtt_port.getValue();
     mqtt_user= custom_mqtt_username.getValue();
     mqtt_password=custom_mqtt_password.getValue();
-    
+
+    Serial.println(String("1======>")+custom_use_sleep_mode.getValue());
     use_sleep_mode=custom_use_sleep_mode.getValue();
     device_name= custom_device_name.getValue();
 
@@ -171,7 +166,7 @@ void Manager::setup_wifi(){
     
     bmp_pressure_topic=String(device_name) + "/bmp180/pressure";
     bmp_temperature_topic=String(device_name) + "/bmp180/temperature";
-    
+    */
     IPAddress ip,gateway,mask;
     Serial.println(network_ip);
     Serial.println(network_gateway.c_str());
@@ -261,44 +256,3 @@ void Manager::setup_wifi(){
   }
  
 }
-
-String Manager::getDiscoveryMsg(String topic, device_class dev_class) {
-
-  DynamicJsonDocument doc(1024);
-  String buffer;
-  String name = "sensor.meteohome";
-  String unit;
-  String className;
-  char *token;
-
-  char charBuf[50];
-  topic.toCharArray(charBuf, 50);
-  
-  token = strtok (charBuf,"/");
-  while (token != NULL)
-  {
-    name= name + "-" + token;
-    printf ("Token: %s\n",token);
-    token = strtok (NULL, "/");
-  }
-  printf ("Name is: %s\n",name);
-
-  switch (dev_class){
-    case temperature_sensor: unit = "ºC"; className="temperature"; break;
-    case humidity_sensor: unit = "%"; className="humidity"; break;
-    default: break;
-  }
-
-  doc["name"] = name;
-  doc["stat_cla"] = "measurement";
-  doc["dev_cla"] = className;
-  doc["stat_t"]   = topic;
-  doc["unit_of_meas"] = unit;
-  doc["frc_upd"] = true;
-  doc["uniq_id"] =  topic;
-
-  serializeJson(doc, buffer);
-
-  return buffer;
-}
-  

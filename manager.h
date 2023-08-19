@@ -1,5 +1,5 @@
 /*
-Copyright 2022 meteo-home
+Copyright 2023 meteo-home
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -34,8 +34,6 @@ using namespace std;
 
 extern bool shouldSaveConfig;//flag for saving data
 
-enum device_class{temperature_sensor, humidity_sensor};
-
 class Manager{
 
 public:  
@@ -49,7 +47,7 @@ public:
   static void saveConfigCallback () { Serial.println("Should save config"); shouldSaveConfig = true;}
 
   //Make the device discoverable
-  String getDiscoveryMsg(String topic, device_class dev_class);
+//  String getDiscoveryMsg(String topic, device_class dev_class);
 
   String networkIp(){return network_ip;}
   String networkMask(){return network_mask;}
@@ -69,12 +67,6 @@ public:
   String bmpPressureTopic(){return bmp_pressure_topic;}
   String bmpTemperatureTopic(){return bmp_temperature_topic;}
   
-  String dhtTemperatureDiscoveryTopic(){return dht_temperature_discovery_topic;}
-  String dhtHumidityDiscoveryTopic(){return dht_humidity_discovery_topic;}
-  String dhtHeatindexDiscoveryTopic(){return dht_heatindex_discovery_topic;}
-  String bmpPressureDiscoveryTopic(){return bmp_pressure_discovery_topic;}
-  String bmpTemperatureDiscoveryTopic(){return bmp_temperature_discovery_topic;}
-
 private:
   //MQTT  server
   String network_ip;
@@ -96,16 +88,6 @@ private:
   String dht_heatindex_topic;
   String bmp_pressure_topic;
   String bmp_temperature_topic;
-  
-  //MQTT discovery topics
-  String dht_temperature_discovery_topic;
-  String dht_humidity_discovery_topic;
-  String dht_heatindex_discovery_topic;
-  String bmp_temperature_discovery_topic;
-  String bmp_pressure_discovery_topic;
-  String sgp_co2_discovery_topic;
-  String sgp_tvoc_discovery_topic;
-
   String sgp_co2_topic;
   String sgp_tvoc_topic;  
 };
