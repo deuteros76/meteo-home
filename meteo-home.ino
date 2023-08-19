@@ -16,7 +16,6 @@
 
 #include <ESP8266WiFi.h>
 #include <Wire.h>
-#include <Adafruit_BMP085.h>
 #include <PubSubClient.h>
 #include "mhdht.hpp"
 #include "mhbmp.hpp"
@@ -74,12 +73,9 @@ void setup() {
     digitalWrite(GREEN_PIN, LOW);
   }
 
-  Serial.println("1>>>>>"+manager.useSleepMode());
   // WiFi setup
   manager.setup_config_data();
-  Serial.println("2>>>>>"+manager.useSleepMode());
   manager.setup_wifi();
-  Serial.println("3>>>>>"+manager.useSleepMode());
 
   //DHT sensor for humidity and temperature
   dht.begin();
@@ -111,7 +107,6 @@ void setup() {
     }
   }
 
-  Serial.println(">>>>>"+manager.useSleepMode());
   manager.useSleepMode().toLowerCase();
   if (manager.useSleepMode().equals("true")){
     useSleepMode = true;
@@ -181,16 +176,10 @@ void loop() {
   dht.read();
   if (dht.available()){
     client.publish(manager.dhtTemperatureTopic().c_str(), String(dht.getTemperature()).c_str(), true);
-    //Serial.print(String(manager.dhtTemperatureTopic().c_str()));
-    //Serial.println(String(temperature).c_str());
     delay(50);
     client.publish(manager.dhtHumidityTopic().c_str(), String(dht.getHumidity()).c_str(), true);
-    //Serial.print(String(manager.dhtHumidityTopic().c_str()));
-    //Serial.println(String(humidity).c_str());
     delay(50);
     client.publish(manager.dhtHeatindexTopic().c_str(), String(dht.getHeatIndex()).c_str(), true);
-    //Serial.print(String(manager.dhtHeatindexTopic().c_str()));
-    //Serial.println(String(heatindex).c_str());
     delay(50);
   }else{
     Serial.println("Error reading DHT22 values");    
@@ -198,12 +187,8 @@ void loop() {
   bmp.read();
   if (bmp.available()){
     client.publish(manager.bmpPressureTopic().c_str(), String(bmp.getPressure()).c_str(), true); 
-    //Serial.print(String(manager.bmpPressureTopic().c_str()));
-    //Serial.println(String(pressure).c_str());
     delay(50);
     client.publish(manager.bmpTemperatureTopic().c_str(), String(bmp.getTemperature()).c_str(), true); 
-    //Serial.print(String(manager.bmpTemperatureTopic().c_str()));
-    //Serial.println(String(device_temperature).c_str());
     delay(50);
   }else {
     Serial.println("Error reading BMP180 values");    

@@ -76,10 +76,7 @@ void Manager::setup_config_data(){
           mqtt_user = (const char *)json["mqtt_user"];
           mqtt_password = (const char *)json["mqtt_password"];
           
-          Serial.println(String("1----->")+(const char *)json["use_sleep_mode"]);
           use_sleep_mode = (const char *)json["use_sleep_mode"];
-          Serial.println(String("2----->")+use_sleep_mode);
-          Serial.println(String("3----->")+ useSleepMode()); 
           device_name = (const char *)json["device_name"];
 
           dht_temperature_topic = (const char *)json["dht_temperature_topic"];
@@ -146,27 +143,6 @@ void Manager::setup_wifi(){
 
   if (configFileExists){
     //read updated parameters
-    /*
-    network_ip=custom_network_ip.getValue();
-    network_mask= custom_network_mask.getValue();
-    network_gateway= custom_network_gateway.getValue();
-    
-    mqtt_server=custom_mqtt_server.getValue();
-    mqtt_port= custom_mqtt_port.getValue();
-    mqtt_user= custom_mqtt_username.getValue();
-    mqtt_password=custom_mqtt_password.getValue();
-
-    Serial.println(String("1======>")+custom_use_sleep_mode.getValue());
-    use_sleep_mode=custom_use_sleep_mode.getValue();
-    device_name= custom_device_name.getValue();
-
-    dht_temperature_topic=String(device_name) + "/DHT22/temperature";
-    dht_humidity_topic=String(device_name) + "/DHT22/humidity";
-    dht_heatindex_topic=String(device_name) + "/DHT22/heatindex";
-    
-    bmp_pressure_topic=String(device_name) + "/bmp180/pressure";
-    bmp_temperature_topic=String(device_name) + "/bmp180/temperature";
-    */
     IPAddress ip,gateway,mask;
     Serial.println(network_ip);
     Serial.println(network_gateway.c_str());
