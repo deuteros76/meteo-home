@@ -29,11 +29,7 @@ bool MHBMP::begin(){
 bool MHBMP::available(){
   bool returnValue=true;
 
-  if (sensorReady){
-    if (isnan(pressure) || pressure== 0 || isnan(temperature)){
-      returnValue=false;
-    }
-  }else{
+  if (!sensorReady){   
     returnValue=false;  
   }
   return returnValue;

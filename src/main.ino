@@ -228,7 +228,7 @@ void loop() {
         digitalWrite(RED_PIN, HIGH);
       }
   }else {
-    Serial.println("Error reading BMP180 values");    
+    Serial.println("Error reading SGP30 values");    
   }
 
 
