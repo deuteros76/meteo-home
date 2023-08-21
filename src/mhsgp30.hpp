@@ -18,6 +18,7 @@ limitations under the License.
 #define _METEOSGP30_
 
 #include "meteosensor.hpp"
+#include <FS.h> 
 #include <SparkFun_SGP30_Arduino_Library.h>
 
 class MHSGP30: MeteoSensor, public SGP30{
@@ -25,6 +26,7 @@ class MHSGP30: MeteoSensor, public SGP30{
     MHSGP30();
     bool available(); //! Detect if the device is available/connected to the board
     void read(); //! Read the values provided by de sensor
+    void read(float temperature, float humidity); //! Read the values taking into accout current temperatura and humidity (better accuracy)
     String getDiscoveryMsg(String deviceName, deviceClass dev_class); //! Returns a Json with the complete discovery message
 
     bool begin(); //! Redefinition/override of the begin function
@@ -40,6 +42,12 @@ class MHSGP30: MeteoSensor, public SGP30{
 
     String co2_discovery_topic;
     String voc_discovery_topic;
+
+    void readBaseline();
+    void saveBaseline();
+
+    double RHtoAbsolute (float relHumidity, float tempC); //! Relative humidity to absolute
+    uint16_t doubleToFixedPoint( double number);
 
 };
 #endif

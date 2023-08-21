@@ -21,7 +21,7 @@ limitations under the License.
 
 class MeteoSensor{
   public:
-    enum deviceClass{temperature_sensor, humidity_sensor, pressure_sensor};
+    enum deviceClass{temperature_sensor, humidity_sensor, pressure_sensor, co2_sensor, voc_sensor};
     
     virtual bool available() = 0; //! Detect if the device is available/connected to the board
     virtual void read() = 0; //! Read the values provided by de sensor

@@ -84,7 +84,10 @@ void Manager::setup_config_data(){
           dht_heatindex_topic = (const char *)json["dht_heatindex_topic"];
           
           bmp_pressure_topic = (const char *)json["bmp_pressure_topic"];
-          bmp_temperature_topic=(const char *)json["bmp_temperature_topic"];     
+          bmp_temperature_topic=(const char *)json["bmp_temperature_topic"];    
+          
+          sgp_co2_topic = String(device_name) + "/SGP30/co2";
+          sgp_voc_topic=String(device_name) + "/SGP30/voc";    
 
         } else {
           Serial.println("failed to load json config");
@@ -219,6 +222,8 @@ void Manager::setup_wifi(){
     json["dht_heatindex_topic"] = String(custom_device_name.getValue()) + "/DHT22/heatindex";
     json["bmp_pressure_topic"] = String(custom_device_name.getValue()) + "/bmp180/pressure";
     json["bmp_temperature_topic"] = String(custom_device_name.getValue()) + "/bmp180/temperature";
+    json["sgp_co2_topic"] = String(custom_device_name.getValue()) + "/sgp30/co2";
+    json["sgp_voc_topic"] = String(custom_device_name.getValue()) + "/sgp30/voc";
 
     File configFile = SPIFFS.open("/config.json", "w");
     if (!configFile) {

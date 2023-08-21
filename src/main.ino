@@ -19,6 +19,7 @@
 #include <PubSubClient.h>
 #include "mhdht.hpp"
 #include "mhbmp.hpp"
+#include "mhsgp30.hpp"
 #include "manager.h"
 
 //Temperature sensor settings
@@ -35,6 +36,7 @@
 
 MHDHT dht(DHTPIN, DHTTYPE); //! Initializes the DHT sensor.
 MHBMP bmp; //1 Bmp sensor object
+MHSGP30 sgp30; //! Air quality sensor
 Manager manager;  //! Portal and wific connection manager
 //MQTT client
 WiFiClient espClient;
@@ -81,6 +83,8 @@ void setup() {
   dht.begin();
   //BMP180 sensor for pressure
   bmp.begin();
+  //SGP30 sensor for air quality
+  sgp30.begin();
   //Setup mqtt
   IPAddress addr;
   addr.fromString(manager.mqttServer());
@@ -104,6 +108,11 @@ void setup() {
     if (bmp.available()){
       sendDiscoveryMessage(bmp.getTemperatureDiscoveryTopic(), bmp.getDiscoveryMsg(manager.deviceName(),MeteoSensor::deviceClass::temperature_sensor));
       sendDiscoveryMessage(bmp.getPressureDiscoveryTopic(), bmp.getDiscoveryMsg(manager.deviceName(), MeteoSensor::deviceClass::pressure_sensor));
+    }
+
+    if (sgp30.available()){
+      sendDiscoveryMessage(sgp30.getCO2DiscoveryTopic(), sgp30.getDiscoveryMsg(manager.deviceName(),MeteoSensor::deviceClass::co2_sensor));
+      sendDiscoveryMessage(sgp30.getVOCDiscoveryTopic(), sgp30.getDiscoveryMsg(manager.deviceName(), MeteoSensor::deviceClass::voc_sensor));
     }
   }
 
@@ -190,6 +199,34 @@ void loop() {
     delay(50);
     client.publish(manager.bmpTemperatureTopic().c_str(), String(bmp.getTemperature()).c_str(), true); 
     delay(50);
+  }else {
+    Serial.println("Error reading BMP180 values");    
+  }
+  if (sgp30.available()){
+    if (dht.available()){
+      sgp30.read(dht.getTemperature(),dht.getHumidity());
+    }else{
+      sgp30.read();
+    }
+    float CO2 = sgp30.getCO2();
+    client.publish(manager.sgpCO2Topic().c_str(), String(CO2).c_str(), true); 
+    delay(50);
+    client.publish(manager.sgpVOCTopic().c_str(), String(sgp30.getVOC()).c_str(), true); 
+    delay(50);
+
+    if (CO2 < 600) {
+        digitalWrite(YELLOW_PIN, LOW);
+        digitalWrite(RED_PIN, LOW);
+        digitalWrite(GREEN_PIN, HIGH);
+      } else if (CO2 < 800) {
+        digitalWrite(GREEN_PIN, LOW);
+        digitalWrite(RED_PIN, LOW);
+        digitalWrite(YELLOW_PIN, HIGH);
+      } else {
+        digitalWrite(GREEN_PIN, LOW);
+        digitalWrite(YELLOW_PIN, LOW);
+        digitalWrite(RED_PIN, HIGH);
+      }
   }else {
     Serial.println("Error reading BMP180 values");    
   }

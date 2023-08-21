@@ -66,6 +66,8 @@ public:
   String dhtHeatindexTopic(){return dht_heatindex_topic;}  
   String bmpPressureTopic(){return bmp_pressure_topic;}
   String bmpTemperatureTopic(){return bmp_temperature_topic;}
+  String sgpCO2Topic(){return sgp_co2_topic;}
+  String sgpVOCTopic(){return sgp_voc_topic;}
   
 private:
   //MQTT  server
@@ -89,7 +91,7 @@ private:
   String bmp_pressure_topic;
   String bmp_temperature_topic;
   String sgp_co2_topic;
-  String sgp_tvoc_topic;  
+  String sgp_voc_topic;  
 };
 
 #endif
