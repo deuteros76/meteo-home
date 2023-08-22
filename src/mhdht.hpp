@@ -34,6 +34,10 @@ class MHDHT: MeteoSensor, public DHT{
     String getTemperatureDiscoveryTopic(){return temperature_discovery_topic;}
     String getHumidityDiscoveryTopic(){return humidity_discovery_topic;}
     String getHeatindexDiscoveryTopic(){return heatindex_discovery_topic;}
+    
+    String getTemperatureTopic(){return temperature_topic;}
+    String getHumidityTopic(){return humidity_topic;}
+    String getHeatindexTopic(){return heatindex_topic;}  
 
   private:
     float temperature = 0;
@@ -43,6 +47,10 @@ class MHDHT: MeteoSensor, public DHT{
     String temperature_discovery_topic;
     String humidity_discovery_topic;
     String heatindex_discovery_topic;
+
+    String temperature_topic;
+    String humidity_topic;
+    String heatindex_topic;
 
 };
 #endif

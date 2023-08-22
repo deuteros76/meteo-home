@@ -34,6 +34,9 @@ class MHBMP: MeteoSensor, public Adafruit_BMP085{
     String getTemperatureDiscoveryTopic(){return temperature_discovery_topic;}
     String getPressureDiscoveryTopic(){return pressure_discovery_topic;}
 
+    String getPressureTopic(){return pressure_topic;}
+    String getTemperatureTopic(){return temperature_topic;}
+
   private:
     bool sensorReady;
     float temperature = 0;
@@ -41,5 +44,8 @@ class MHBMP: MeteoSensor, public Adafruit_BMP085{
 
     String temperature_discovery_topic;
     String pressure_discovery_topic;
+
+    String pressure_topic;
+    String temperature_topic;
 };
 #endif
