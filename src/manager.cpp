@@ -205,10 +205,6 @@ void Manager::setup_wifi(){
     json["use_sleep_mode"] = custom_use_sleep_mode.getValue();
     json["device_name"] = custom_device_name.getValue();
     
-    json["dht_temperature_topic"] = String(custom_device_name.getValue()) + "/DHT22/temperature";
-    Serial.println(String(custom_device_name.getValue())+"/DHT22/temperature");
-    Serial.println("=================");
-
     File configFile = SPIFFS.open("/config.json", "w");
     if (!configFile) {
       Serial.println("failed to open config file for writing");

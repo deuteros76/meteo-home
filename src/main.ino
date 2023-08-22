@@ -102,8 +102,10 @@ void setup() {
     
     Serial.println("Sending Home Assistant discovery messages.");
 
-    sendDiscoveryMessage(dht.getTemperatureDiscoveryTopic(), dht.getDiscoveryMsg(manager.deviceName(),MeteoSensor::deviceClass::temperature_sensor));
-    sendDiscoveryMessage(dht.getHumidityDiscoveryTopic(), dht.getDiscoveryMsg(manager.deviceName(), MeteoSensor::deviceClass::humidity_sensor));
+    if (dht.available()){
+      sendDiscoveryMessage(dht.getTemperatureDiscoveryTopic(), dht.getDiscoveryMsg(manager.deviceName(),MeteoSensor::deviceClass::temperature_sensor));
+      sendDiscoveryMessage(dht.getHumidityDiscoveryTopic(), dht.getDiscoveryMsg(manager.deviceName(), MeteoSensor::deviceClass::humidity_sensor));
+    }
 
     if (bmp.available()){
       sendDiscoveryMessage(bmp.getTemperatureDiscoveryTopic(), bmp.getDiscoveryMsg(manager.deviceName(),MeteoSensor::deviceClass::temperature_sensor));
