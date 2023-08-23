@@ -42,17 +42,14 @@ Manager::Manager(){
 
 void Manager::setup_config_data(){
   //read configuration from FS json
-  Serial.println("mounting FS...");
+  Serial.println("[Manager] Mounting FS...");
 
   if (SPIFFS.begin()) {
-    Serial.println("mounted file system");
     //SPIFFS.remove("/config.json");
     if (SPIFFS.exists("/config.json")) {
       //file exists, reading and loading
-      Serial.println("reading config file");
       File configFile = SPIFFS.open("/config.json", "r");
       if (configFile) {
-        Serial.println("opened config file");
         size_t size = configFile.size();
         // Allocate a buffer to store contents of the file.
         std::unique_ptr<char[]> buf(new char[size]);
@@ -63,7 +60,7 @@ void Manager::setup_config_data(){
         serializeJson(json, Serial);
         if (!json.isNull()) {
           configFileExists=true;
-          Serial.println("\nparsed json:");
+          Serial.println("\n[Manager] Parsed json:");
           
           serializeJson(json, Serial);Serial.println();
 
@@ -80,14 +77,14 @@ void Manager::setup_config_data(){
           device_name = (const char *)json["device_name"];
 
         } else {
-          Serial.println("failed to load json config");
+          Serial.println("[Manager] Failed to load json config");
         }
       }
     }else{
       shouldSaveConfig=true;
     }
   } else {
-    Serial.println("failed to mount FS");
+    Serial.println("[Manager] Failed to mount FS");
   }
 }
 
@@ -137,10 +134,7 @@ void Manager::setup_wifi(){
   if (configFileExists){
     //read updated parameters
     IPAddress ip,gateway,mask;
-    Serial.println(network_ip);
-    Serial.println(network_gateway.c_str());
-    Serial.println(network_mask.c_str());
-    Serial.println(WiFi.macAddress());
+    Serial.println("[Manager] " + network_ip + " " + network_gateway + " " + network_mask + " " + WiFi.macAddress());
     ip.fromString(network_ip.c_str());
     gateway.fromString(network_gateway.c_str());
     mask.fromString(network_mask.c_str());
@@ -154,11 +148,11 @@ void Manager::setup_wifi(){
       wifiTimeStart = millis();
       if (strlen(WiFi.psk().c_str())==0){
         WiFi.begin(WiFi.SSID().c_str());
-        Serial.printf("\nConnecting to an open network (%s).\n",WiFi.SSID().c_str());  
+        Serial.printf("\n[Manager] Connecting to an open network (%s).\n",WiFi.SSID().c_str());  
       }
       else {
         WiFi.begin(WiFi.SSID().c_str(), WiFi.psk().c_str());
-        Serial.printf("\nConnecting to an encrypted network (%s).\n",WiFi.SSID().c_str());  
+        Serial.printf("\n[Manager] Connecting to an encrypted network (%s).\n",WiFi.SSID().c_str());  
       }
       
       while (WiFi.status() != WL_CONNECTED && (millis() - wifiTimeStart < WIFI_CONNECTION_TIMEOUT)) {
@@ -166,31 +160,24 @@ void Manager::setup_wifi(){
         Serial.print(".");
       }
       
-      Serial.println("\nUnable to connect to the WiFi network. Trying again.");   
+      Serial.println("\n[Manager] Unable to connect to the WiFi network. Trying again.");   
     }
     if (WiFi.status() != WL_CONNECTED){
-      Serial.println("\nIt was unable to connect to the WiFi network. Going to sleep");
+      Serial.println("\n[Manager] It was unable to connect to the WiFi network. Going to sleep");
       ESP.deepSleep(DEEP_SLEEP_TIME * 1000000);      
     }
     
-    Serial.println("");
-    Serial.println("WiFi connected");  
-    Serial.println("Network configuration: ");
-    Serial.println(WiFi.localIP());
-    Serial.println(WiFi.gatewayIP());
-    Serial.println(WiFi.subnetMask());
-    Serial.println(WiFi.hostname());
+    Serial.println("\n[Manager] WiFi connected.");
+    Serial.println("[Manager] Network configuration:" + WiFi.localIP().toString() + " " + WiFi.gatewayIP().toString() + " " + WiFi.subnetMask().toString() + " " + WiFi.hostname());
+
   }else {
         wifiManager.setTimeout(300);
         wifiManager.startConfigPortal("Meteo-home");
   }
-  
-  //if you get here you have connected to the WiFi
-  Serial.println("Connected!!)");
-    
+     
   //save the custom parameters to FS
   if (shouldSaveConfig) {
-    Serial.println("saving config");
+    Serial.println("[Manager] Saving configuration");
     DynamicJsonDocument json(1024);
 
     json["network_ip"] = custom_network_ip.getValue();
@@ -207,7 +194,7 @@ void Manager::setup_wifi(){
     
     File configFile = SPIFFS.open("/config.json", "w");
     if (!configFile) {
-      Serial.println("failed to open config file for writing");
+      Serial.println("[Manager] Failed to open config file for writing");
     }
 
     serializeJson(json, Serial);    
