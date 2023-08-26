@@ -102,8 +102,10 @@ void setup() {
     
     Serial.println("Sending Home Assistant discovery messages.");
 
-    sendDiscoveryMessage(dht.getTemperatureDiscoveryTopic(), dht.getDiscoveryMsg(manager.deviceName(),MeteoSensor::deviceClass::temperature_sensor));
-    sendDiscoveryMessage(dht.getHumidityDiscoveryTopic(), dht.getDiscoveryMsg(manager.deviceName(), MeteoSensor::deviceClass::humidity_sensor));
+    if (dht.available()){
+      sendDiscoveryMessage(dht.getTemperatureDiscoveryTopic(), dht.getDiscoveryMsg(manager.deviceName(),MeteoSensor::deviceClass::temperature_sensor));
+      sendDiscoveryMessage(dht.getHumidityDiscoveryTopic(), dht.getDiscoveryMsg(manager.deviceName(), MeteoSensor::deviceClass::humidity_sensor));
+    }
 
     if (bmp.available()){
       sendDiscoveryMessage(bmp.getTemperatureDiscoveryTopic(), bmp.getDiscoveryMsg(manager.deviceName(),MeteoSensor::deviceClass::temperature_sensor));
@@ -184,20 +186,20 @@ void loop() {
 
   dht.read();
   if (dht.available()){
-    client.publish(manager.dhtTemperatureTopic().c_str(), String(dht.getTemperature()).c_str(), true);
+    client.publish(dht.getTemperatureTopic().c_str(), String(dht.getTemperature()).c_str(), true);
     delay(50);
-    client.publish(manager.dhtHumidityTopic().c_str(), String(dht.getHumidity()).c_str(), true);
+    client.publish(dht.getHumidityTopic().c_str(), String(dht.getHumidity()).c_str(), true);
     delay(50);
-    client.publish(manager.dhtHeatindexTopic().c_str(), String(dht.getHeatIndex()).c_str(), true);
+    client.publish(dht.getHeatindexTopic().c_str(), String(dht.getHeatIndex()).c_str(), true);
     delay(50);
   }else{
     Serial.println("Error reading DHT22 values");    
   }
   bmp.read();
   if (bmp.available()){
-    client.publish(manager.bmpPressureTopic().c_str(), String(bmp.getPressure()).c_str(), true); 
+    client.publish(bmp.getPressureTopic().c_str(), String(bmp.getPressure()).c_str(), true); 
     delay(50);
-    client.publish(manager.bmpTemperatureTopic().c_str(), String(bmp.getTemperature()).c_str(), true); 
+    client.publish(bmp.getTemperatureTopic().c_str(), String(bmp.getTemperature()).c_str(), true); 
     delay(50);
   }else {
     Serial.println("Error reading BMP180 values");    
@@ -209,9 +211,9 @@ void loop() {
       sgp30.read();
     }
     float CO2 = sgp30.getCO2();
-    client.publish(manager.sgpCO2Topic().c_str(), String(CO2).c_str(), true); 
+    client.publish(sgp30.getCO2Topic().c_str(), String(CO2).c_str(), true); 
     delay(50);
-    client.publish(manager.sgpVOCTopic().c_str(), String(sgp30.getVOC()).c_str(), true); 
+    client.publish(sgp30.getVOCTopic().c_str(), String(sgp30.getVOC()).c_str(), true); 
     delay(50);
 
     if (CO2 < 600) {

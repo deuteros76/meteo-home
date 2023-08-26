@@ -60,14 +60,6 @@ public:
   
   String useSleepMode(){return use_sleep_mode;}
   String deviceName(){return device_name;}
-
-  String dhtTemperatureTopic(){return dht_temperature_topic;}
-  String dhtHumidityTopic(){return dht_humidity_topic;}
-  String dhtHeatindexTopic(){return dht_heatindex_topic;}  
-  String bmpPressureTopic(){return bmp_pressure_topic;}
-  String bmpTemperatureTopic(){return bmp_temperature_topic;}
-  String sgpCO2Topic(){return sgp_co2_topic;}
-  String sgpVOCTopic(){return sgp_voc_topic;}
   
 private:
   //MQTT  server
@@ -84,14 +76,6 @@ private:
   String use_sleep_mode;
   String device_name; //! Device (or location) name used to generate the MQTT topics
 
-  //MQTT subscriptions
-  String dht_temperature_topic;
-  String dht_humidity_topic;
-  String dht_heatindex_topic;
-  String bmp_pressure_topic;
-  String bmp_temperature_topic;
-  String sgp_co2_topic;
-  String sgp_voc_topic;  
 };
 
 #endif

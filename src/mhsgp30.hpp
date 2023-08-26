@@ -37,11 +37,17 @@ class MHSGP30: MeteoSensor, public SGP30{
     String getCO2DiscoveryTopic(){return co2_discovery_topic;}
     String getVOCDiscoveryTopic(){return voc_discovery_topic;}
 
+    String getCO2Topic(){return co2_topic;}
+    String getVOCTopic(){return voc_topic;}
+
   private:
     bool sensorReady;
 
     String co2_discovery_topic;
     String voc_discovery_topic;
+
+    String co2_topic;
+    String voc_topic;  
 
     void readBaseline();
     void saveBaseline();

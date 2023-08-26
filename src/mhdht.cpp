@@ -20,6 +20,8 @@ MHDHT::MHDHT(uint8_t pin, uint8_t type): DHT(pin, type){
   temperature_discovery_topic = "homeassistant/sensor/ESP-" + String(ESP.getChipId()) +"/DHT22-temperature/config";
   humidity_discovery_topic = "homeassistant/sensor/ESP-" + String(ESP.getChipId()) + "/DHT22-humidity/config";
   heatindex_discovery_topic = "homeassistant/sensor/ESP-" + String(ESP.getChipId()) + "/DHT22-heatindex/config";
+
+  read(); // this reading is to make available() work from the begining
 }
 
 bool MHDHT::available(){
