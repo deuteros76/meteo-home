@@ -33,15 +33,8 @@ Manager::Manager(){
   mqtt_user = "your_username";
   mqtt_password = "YOUR_PASSWORD";
   
-  use_sleep_mode = "true";
+  device_name = "Terrace"; 
 
-  //MQTT subscriptions
-  dht_temperature_topic = "room/temperature";
-  dht_humidity_topic = "room/humidity";
-  dht_heatindex_topic = "room/heatindex";
-  bmp_pressure_topic = "room/pressure";
-  bmp_temperature_topic = "room/device/temperature";
-  
   //flag for saving data
   shouldSaveConfig = false;
   configFileExists = false;
@@ -49,17 +42,14 @@ Manager::Manager(){
 
 void Manager::setup_config_data(){
   //read configuration from FS json
-  Serial.println("mounting FS...");
+  Serial.println("[Manager] Mounting FS...");
 
   if (SPIFFS.begin()) {
-    Serial.println("mounted file system");
     //SPIFFS.remove("/config.json");
     if (SPIFFS.exists("/config.json")) {
       //file exists, reading and loading
-      Serial.println("reading config file");
       File configFile = SPIFFS.open("/config.json", "r");
       if (configFile) {
-        Serial.println("opened config file");
         size_t size = configFile.size();
         // Allocate a buffer to store contents of the file.
         std::unique_ptr<char[]> buf(new char[size]);
@@ -70,9 +60,9 @@ void Manager::setup_config_data(){
         serializeJson(json, Serial);
         if (!json.isNull()) {
           configFileExists=true;
-          Serial.println("\nparsed json:");
+          Serial.println("\n[Manager] Parsed json:");
           
-          serializeJson(json, Serial);
+          serializeJson(json, Serial);Serial.println();
 
           network_ip = (const char *)json["network_ip"];
           network_mask = (const char *)json["network_mask"];
@@ -84,32 +74,17 @@ void Manager::setup_config_data(){
           mqtt_password = (const char *)json["mqtt_password"];
           
           use_sleep_mode = (const char *)json["use_sleep_mode"];
-
-          dht_temperature_topic = (const char *)json["dht_temperature_topic"];
-          dht_humidity_topic = (const char *)json["dht_humidity_topic"];
-          dht_heatindex_topic = (const char *)json["dht_heatindex_topic"];
-          
-          bmp_pressure_topic = (const char *)json["bmp_pressure_topic"];
-          bmp_temperature_topic=(const char *)json["bmp_temperature_topic"];
-          
-          String mac = WiFi.macAddress();
-          mac.replace(":","");
-          dht_temperature_discovery_topic = "homeassistant/sensor/"+ String(dht_temperature_topic) + mac + "/config";
-          dht_humidity_discovery_topic = "homeassistant/sensor/"+ String(dht_humidity_topic) + mac + "/config";
-          dht_heatindex_discovery_topic = "homeassistant/sensor/"+ String(dht_heatindex_topic) + mac + "/config";
-
-          bmp_temperature_discovery_topic = "homeassistant/sensor/"+ String(bmp_temperature_topic) + mac + "/config";
-          bmp_pressure_discovery_topic = "homeassistant/sensor/"+ String(bmp_pressure_topic) + mac + "/config";         
+          device_name = (const char *)json["device_name"];
 
         } else {
-          Serial.println("failed to load json config");
+          Serial.println("[Manager] Failed to load json config");
         }
       }
     }else{
       shouldSaveConfig=true;
     }
   } else {
-    Serial.println("failed to mount FS");
+    Serial.println("[Manager] Failed to mount FS");
   }
 }
 
@@ -125,16 +100,12 @@ void Manager::setup_wifi(){
   WiFiManagerParameter custom_mqtt_port("port", "mqtt port", mqtt_port.c_str(), 6);
   WiFiManagerParameter custom_mqtt_password("password", "mqtt password", mqtt_password.c_str(), 30);
   WiFiManagerParameter custom_mqtt_username("username", "user name", mqtt_user.c_str(), 30);
-  
-  WiFiManagerParameter custom_use_sleep_mode("sleepmode", "sleep mode", use_sleep_mode.c_str(), 30);
-  
-  WiFiManagerParameter custom_topics_group("<p>MQTT topics</p>");
-  WiFiManagerParameter custom_dht_temperature_topic("temperature","temperature",dht_temperature_topic.c_str(),40);
-  WiFiManagerParameter custom_dht_humidity_topic("humidity","humidity",dht_humidity_topic.c_str(),40);
-  WiFiManagerParameter custom_dht_heatindex_topic("heatindex","heatindex",dht_heatindex_topic.c_str(),40);
-  WiFiManagerParameter custom_bmp_pressure_topic("pressure","pressure",bmp_pressure_topic.c_str(),40);
-  WiFiManagerParameter custom_bmp_temperature_topic("temperature2","temperature2",bmp_temperature_topic.c_str(),40);
-  
+   
+  WiFiManagerParameter custom_paramenters_group("<p>Device parameters</p>");
+  WiFiManagerParameter custom_device_name("name","device name or location",device_name.c_str(),40);
+  const char* custom_sleepmode_checkbox_str = "type='checkbox'";
+  WiFiManagerParameter custom_use_sleep_mode("sleepmode", "Sleep mode", "true", 4,custom_sleepmode_checkbox_str,WFM_LABEL_AFTER);
+
   WiFiManager wifiManager;
 
   //set config save notify callback
@@ -143,8 +114,6 @@ void Manager::setup_wifi(){
 
   //reset settings - for testing
   //wifiManager.resetSettings();
-
-
   wifiManager.addParameter(&custom_network_group);
   wifiManager.addParameter(&custom_network_ip);
   wifiManager.addParameter(&custom_network_mask);
@@ -156,43 +125,16 @@ void Manager::setup_wifi(){
   wifiManager.addParameter(&custom_mqtt_username);
   wifiManager.addParameter(&custom_mqtt_password);
   
+  wifiManager.addParameter(&custom_paramenters_group);
+  wifiManager.addParameter(&custom_device_name);
   wifiManager.addParameter(&custom_use_sleep_mode);
-  
-  wifiManager.addParameter(&custom_topics_group);
-  wifiManager.addParameter(&custom_dht_temperature_topic);
-  wifiManager.addParameter(&custom_dht_humidity_topic);
-  wifiManager.addParameter(&custom_dht_heatindex_topic);
-  wifiManager.addParameter(&custom_bmp_pressure_topic);
-  wifiManager.addParameter(&custom_bmp_temperature_topic);
-
 
   long wifiTimeStart = millis();
 
   if (configFileExists){
     //read updated parameters
-    network_ip=custom_network_ip.getValue();
-    network_mask= custom_network_mask.getValue();
-    network_gateway= custom_network_gateway.getValue();
-    
-    mqtt_server=custom_mqtt_server.getValue();
-    mqtt_port= custom_mqtt_port.getValue();
-    mqtt_user= custom_mqtt_username.getValue();
-    mqtt_password=custom_mqtt_password.getValue();
-    
-    use_sleep_mode=custom_use_sleep_mode.getValue();
-    
-    dht_temperature_topic=custom_dht_temperature_topic.getValue();
-    dht_humidity_topic=custom_dht_humidity_topic.getValue();
-    dht_heatindex_topic=custom_dht_heatindex_topic.getValue();
-    
-    bmp_pressure_topic=custom_bmp_pressure_topic.getValue();
-    bmp_temperature_topic=custom_bmp_temperature_topic.getValue();
-    
     IPAddress ip,gateway,mask;
-    Serial.println(network_ip);
-    Serial.println(network_gateway.c_str());
-    Serial.println(network_mask.c_str());
-    Serial.println(WiFi.macAddress());
+    Serial.println("[Manager] " + network_ip + " " + network_gateway + " " + network_mask + " " + WiFi.macAddress());
     ip.fromString(network_ip.c_str());
     gateway.fromString(network_gateway.c_str());
     mask.fromString(network_mask.c_str());
@@ -206,11 +148,11 @@ void Manager::setup_wifi(){
       wifiTimeStart = millis();
       if (strlen(WiFi.psk().c_str())==0){
         WiFi.begin(WiFi.SSID().c_str());
-        Serial.printf("\nConnecting to an open network (%s).\n",WiFi.SSID().c_str());  
+        Serial.printf("\n[Manager] Connecting to an open network (%s).\n",WiFi.SSID().c_str());  
       }
       else {
         WiFi.begin(WiFi.SSID().c_str(), WiFi.psk().c_str());
-        Serial.printf("\nConnecting to an encrypted network (%s).\n",WiFi.SSID().c_str());  
+        Serial.printf("\n[Manager] Connecting to an encrypted network (%s).\n",WiFi.SSID().c_str());  
       }
       
       while (WiFi.status() != WL_CONNECTED && (millis() - wifiTimeStart < WIFI_CONNECTION_TIMEOUT)) {
@@ -218,31 +160,24 @@ void Manager::setup_wifi(){
         Serial.print(".");
       }
       
-      Serial.println("\nUnable to connect to the WiFi network. Trying again.");   
+      Serial.println("\n[Manager] Unable to connect to the WiFi network. Trying again.");   
     }
     if (WiFi.status() != WL_CONNECTED){
-      Serial.println("\nIt was unable to connect to the WiFi network. Going to sleep");
+      Serial.println("\n[Manager] It was unable to connect to the WiFi network. Going to sleep");
       ESP.deepSleep(DEEP_SLEEP_TIME * 1000000);      
     }
     
-    Serial.println("");
-    Serial.println("WiFi connected");  
-    Serial.println("Network configuration: ");
-    Serial.println(WiFi.localIP());
-    Serial.println(WiFi.gatewayIP());
-    Serial.println(WiFi.subnetMask());
-    Serial.println(WiFi.hostname());
+    Serial.println("\n[Manager] WiFi connected.");
+    Serial.println("[Manager] Network configuration:" + WiFi.localIP().toString() + " " + WiFi.gatewayIP().toString() + " " + WiFi.subnetMask().toString() + " " + WiFi.hostname());
+
   }else {
         wifiManager.setTimeout(300);
         wifiManager.startConfigPortal("Meteo-home");
   }
-  
-  //if you get here you have connected to the WiFi
-  Serial.println("Connected!!)");
-    
+     
   //save the custom parameters to FS
   if (shouldSaveConfig) {
-    Serial.println("saving config");
+    Serial.println("[Manager] Saving configuration");
     DynamicJsonDocument json(1024);
 
     json["network_ip"] = custom_network_ip.getValue();
@@ -255,18 +190,11 @@ void Manager::setup_wifi(){
     json["mqtt_password"] = custom_mqtt_password.getValue();
     
     json["use_sleep_mode"] = custom_use_sleep_mode.getValue();
+    json["device_name"] = custom_device_name.getValue();
     
-    json["dht_temperature_topic"] = custom_dht_temperature_topic.getValue();
-    Serial.println(custom_dht_temperature_topic.getValue());
-    Serial.println("=================");
-    json["dht_humidity_topic"] = custom_dht_humidity_topic.getValue();
-    json["dht_heatindex_topic"] = custom_dht_heatindex_topic.getValue();
-    json["bmp_pressure_topic"] = custom_bmp_pressure_topic.getValue();
-    json["bmp_temperature_topic"] = custom_bmp_temperature_topic.getValue();
-
     File configFile = SPIFFS.open("/config.json", "w");
     if (!configFile) {
-      Serial.println("failed to open config file for writing");
+      Serial.println("[Manager] Failed to open config file for writing");
     }
 
     serializeJson(json, Serial);    
@@ -276,44 +204,3 @@ void Manager::setup_wifi(){
   }
  
 }
-
-String Manager::getDiscoveryMsg(String topic, device_class dev_class) {
-
-  DynamicJsonDocument doc(1024);
-  String buffer;
-  String name = "sensor.meteohome";
-  String unit;
-  String className;
-  char *token;
-
-  char charBuf[50];
-  topic.toCharArray(charBuf, 50);
-  
-  token = strtok (charBuf,"/");
-  while (token != NULL)
-  {
-    name= name + "-" + token;
-    printf ("Token: %s\n",token);
-    token = strtok (NULL, "/");
-  }
-  printf ("Name is: %s\n",name);
-
-  switch (dev_class){
-    case temperature_sensor: unit = "ºC"; className="temperature"; break;
-    case humidity_sensor: unit = "%"; className="humidity"; break;
-    default: break;
-  }
-
-  doc["name"] = name;
-  doc["stat_cla"] = "measurement";
-  doc["dev_cla"] = className;
-  doc["stat_t"]   = topic;
-  doc["unit_of_meas"] = unit;
-  doc["frc_upd"] = true;
-  doc["uniq_id"] =  topic;
-
-  serializeJson(doc, buffer);
-
-  return buffer;
-}
-  
