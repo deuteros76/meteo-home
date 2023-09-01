@@ -1,4 +1,4 @@
-name: cicd project
+name: meteohome build
 on: [push]
 
 jobs:
