@@ -18,10 +18,13 @@ limitations under the License.
 
 #include <Arduino.h>
 #include <ArduinoJson.h> 
+#include "manager.h"
+
+extern Manager manager;
 
 class MeteoSensor{
   public:
-    enum deviceClass{temperature_sensor, humidity_sensor, pressure_sensor, co2_sensor, voc_sensor};
+    enum deviceClass{temperature_sensor, humidity_sensor, pressure_sensor, co2_sensor, voc_sensor, voltage_sensor};
     
     virtual bool available() = 0; //! Detect if the device is available/connected to the board
     virtual void read() = 0; //! Read the values provided by de sensor

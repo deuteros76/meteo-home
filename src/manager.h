@@ -30,7 +30,7 @@ limitations under the License.
 
 #define ARDUINOJSON_ENABLE_STD_STREAM
 
-using namespace std;
+//using namespace std;
 
 extern bool shouldSaveConfig;//flag for saving data
 

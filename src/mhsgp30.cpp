@@ -25,6 +25,10 @@ bool MHSGP30::begin(){
   sensorReady=SGP30::begin();
   initAirQuality();
   readBaseline();
+  
+  co2_discovery_topic = manager.deviceName() + "/SGP30/co2";
+  voc_discovery_topic = manager.deviceName() + "/SGP30/voc";
+
   return sensorReady;
 }
 

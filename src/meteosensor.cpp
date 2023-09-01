@@ -34,14 +34,7 @@ String MeteoSensor::createDiscoveryMsg(String topic,  String dev_class, String u
     token = strtok (NULL, "/");
   }
   printf ("Name is: %s\n",name);
-/*
-  switch (dev_class){
-    case temperature_sensor: unit = "ºC"; className="temperature"; break;
-    case humidity_sensor: unit = "%"; className="humidity"; break;
-    case pressure_sensor: unit = "Pa"; className="atmospheric_pressure"; break;
-    default: break;
-  }
-*/
+
   doc["name"] = name;
   doc["stat_cla"] = "measurement";
   doc["dev_cla"] = dev_class;

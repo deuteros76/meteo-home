@@ -17,6 +17,7 @@
 #include <ESP8266WiFi.h>
 #include <Wire.h>
 #include <PubSubClient.h>
+#include "meteoboard.hpp"
 #include "mhdht.hpp"
 #include "mhbmp.hpp"
 #include "mhsgp30.hpp"
@@ -34,10 +35,12 @@
 //Timeout connection for wifi or mqtt server
 #define CONNECTION_TIMEOUT 20000 //Timeout for connections. The idea is to prevent for continuous conection tries. This would cause battery drain
 
+Manager manager;  //! Portal and wific connection manager
+MeteoBoard board;
 MHDHT dht(DHTPIN, DHTTYPE); //! Initializes the DHT sensor.
 MHBMP bmp; //1 Bmp sensor object
 MHSGP30 sgp30; //! Air quality sensor
-Manager manager;  //! Portal and wific connection manager
+
 //MQTT client
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -47,6 +50,8 @@ long t_elapsed;
 bool useSleepMode=false;
 uint32_t first_boot_done=0; //! Used with deepsleep mode. Send the discovery messages only in the first boot and not after sleeping.
 
+// (https://arduino-esp8266.readthedocs.io/en/latest/libraries.html) Add the following line to the top of your sketch to use getVcc:
+ADC_MODE(ADC_VCC); 
 
 void setup() {
   // Check if this is the first boot (Usefull if using deep sleep mode)
@@ -79,6 +84,8 @@ void setup() {
   manager.setup_config_data();
   manager.setup_wifi();
 
+  //ESP board
+  board.begin();
   //DHT sensor for humidity and temperature
   dht.begin();
   //BMP180 sensor for pressure
@@ -101,6 +108,10 @@ void setup() {
     char buf[256];
     
     Serial.println("Sending Home Assistant discovery messages.");
+ 
+    if (board.available()){
+      sendDiscoveryMessage(board.getVoltageDiscoveryTopic(), board.getDiscoveryMsg(manager.deviceName(),MeteoSensor::deviceClass::voltage_sensor));
+    }
 
     if (dht.available()){
       sendDiscoveryMessage(dht.getTemperatureDiscoveryTopic(), dht.getDiscoveryMsg(manager.deviceName(),MeteoSensor::deviceClass::temperature_sensor));
@@ -132,6 +143,7 @@ void setup() {
 void reconnect() {
   // Loop until we're reconnected
   long t1 = millis();
+
   while (!client.connected() && (millis() - t1 < CONNECTION_TIMEOUT)) {
     // Attempt to connect
     String clientName("ESPClient-");
@@ -184,9 +196,17 @@ void loop() {
   }  
   client.loop();
 
+  board.read();
+  if (board.available()){
+    client.publish(board.getVoltageTopic().c_str(), String(board.getVoltage()).c_str(), true); 
+    delay(50);
+  }else {
+    Serial.println("Error reading ESP board voltage values");    
+  }
   dht.read();
   if (dht.available()){
     client.publish(dht.getTemperatureTopic().c_str(), String(dht.getTemperature()).c_str(), true);
+    Serial.println("Topic is "+dht.getTemperatureTopic() + " " + String(dht.getTemperature()));
     delay(50);
     client.publish(dht.getHumidityTopic().c_str(), String(dht.getHumidity()).c_str(), true);
     delay(50);

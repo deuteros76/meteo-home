@@ -23,6 +23,9 @@ MHBMP::MHBMP(): Adafruit_BMP085(){
 
 bool MHBMP::begin(){
   sensorReady=Adafruit_BMP085::begin();
+  
+  pressure_topic = manager.deviceName() + "/BMP180/pressure";
+  temperature_topic = manager.deviceName() + "/BMP180/temperature";
   return sensorReady;
 }
 
