@@ -9,8 +9,8 @@ runs Home Assistant which is the responsible of showing the current status of th
 - Possibility of being used with Home Assistant
 
 ## Requirements
-- This source uses Arduino IDE and its standard libraries
-- Additional libraries: WiFiManager, Arduino Json, PubSubClient, DHT and Adafruit BMP085
+- This source uses PlatformIO IDE
+- Additional libraries: WiFiManager, Arduino Json, PubSubClient, DHT and Adafruit BMP085 (see platformio.ini)
 - A computer running MQTT
 - [Optional] A computer running Home Assistant
 
