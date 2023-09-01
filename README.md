@@ -1,3 +1,6 @@
+
+![workflow status](https://github.com/deuteros76/meteo-home/actions/workflows/main.yml/badge.svg)
+
 # meteo-home
 MeteoHome is yet another weather station project using a NodeMCU ESP8266 devboard with DHT22 and BMPP180 sensors. The particularity in this case is the configuration using a captive web portal and the use of MQTT to send the information to a server. Additionally the machine that gathers all the data 
 runs Home Assistant which is the responsible of showing the current status of the sensors and historical graphs
