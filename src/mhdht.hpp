@@ -20,7 +20,7 @@ limitations under the License.
 #include "meteosensor.hpp"
 #include <DHT.h>
 
-class MHDHT: MeteoSensor, public DHT{
+class MHDHT: public MeteoSensor, public DHT{
   public:
     MHDHT(uint8_t pin, uint8_t type);
     bool available(); //! Detect if the device is available/connected to the board

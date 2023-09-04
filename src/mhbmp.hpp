@@ -19,7 +19,7 @@ limitations under the License.
 #include "meteosensor.hpp"
 #include <Adafruit_BMP085.h>
 
-class MHBMP: MeteoSensor, public Adafruit_BMP085{
+class MHBMP: public MeteoSensor, public Adafruit_BMP085{
   public:
     MHBMP();
     bool available(); //! Detect if the device is available/connected to the board

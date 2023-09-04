@@ -23,14 +23,20 @@ MHDHT::MHDHT(uint8_t pin, uint8_t type): DHT(pin, type){
 }
 
 bool MHDHT::begin(){
+  bool returnValue=true;
+
   DHT::begin();
   
   read(); // this reading is to make available() work from the begining
-  temperature_topic = manager.deviceName() + "/DHT22/temperature";
-  humidity_topic = manager.deviceName() + "/DHT22/humidity";
-  heatindex_topic = manager.deviceName() + "/DHT22/heatindex";
 
-  return true; //! TODO: think about this boolean functio
+  if (available()){
+    temperature_topic = manager.deviceName() + "/DHT22/temperature";
+    humidity_topic = manager.deviceName() + "/DHT22/humidity";
+    heatindex_topic = manager.deviceName() + "/DHT22/heatindex";
+  }else{
+    returnValue=false;
+  }
+  return returnValue; //! TODO: think about this boolean functio
 }
 
 bool MHDHT::available(){
@@ -47,7 +53,14 @@ void MHDHT::read(){
   temperature = readTemperature();    
   humidity = readHumidity();
   heatindex = computeHeatIndex(temperature, humidity, false);
-     
+
+  client.publish(getTemperatureTopic().c_str(), String(getTemperature()).c_str(), true);
+  delay(50);
+  client.publish(getHumidityTopic().c_str(), String(getHumidity()).c_str(), true);
+  delay(50);
+  client.publish(getHeatindexTopic().c_str(), String(getHeatIndex()).c_str(), true);
+  delay(50);
+
   Serial.print(temperature);
   Serial.print(" ");
   Serial.print(humidity);

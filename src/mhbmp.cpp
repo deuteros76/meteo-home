@@ -43,7 +43,12 @@ void MHBMP::read(){
   if (sensorReady){
     temperature = readTemperature(); 
     pressure = readPressure()/100.0; //Dividing by 100 we get The pressure in Bars
-      
+    
+    client.publish(getPressureTopic().c_str(), String(getPressure()).c_str(), true); 
+    delay(50);
+    client.publish(getTemperatureTopic().c_str(), String(getTemperature()).c_str(), true); 
+    delay(50);
+
     Serial.print(temperature);
     Serial.print(" ");
     Serial.println(pressure);

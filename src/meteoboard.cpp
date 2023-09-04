@@ -37,7 +37,7 @@ void MeteoBoard::read(){
     //read dht22 value
   voltage = getVcc()/1000.0;
      
-  Serial.println(voltage);
+  Serial.println("[Board] Voltage = " + String(voltage));
 }
 
 String MeteoBoard::getDiscoveryMsg(String deviceName, deviceClass dev_class){

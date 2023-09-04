@@ -21,7 +21,7 @@ limitations under the License.
 #include <FS.h> 
 #include <SparkFun_SGP30_Arduino_Library.h>
 
-class MHSGP30: MeteoSensor, public SGP30{
+class MHSGP30: public MeteoSensor, public SGP30{
   public:
     MHSGP30();
     bool available(); //! Detect if the device is available/connected to the board

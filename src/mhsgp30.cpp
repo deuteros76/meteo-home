@@ -26,8 +26,8 @@ bool MHSGP30::begin(){
   initAirQuality();
   readBaseline();
   
-  co2_discovery_topic = manager.deviceName() + "/SGP30/co2";
-  voc_discovery_topic = manager.deviceName() + "/SGP30/voc";
+  co2_topic = manager.deviceName() + "/SGP30/co2";
+  voc_topic = manager.deviceName() + "/SGP30/voc";
 
   return sensorReady;
 }
@@ -44,10 +44,14 @@ bool MHSGP30::available(){
 void MHSGP30::read(){
     //read dht22 value
   measureAirQuality();
+
+  float CO2 = getCO2();
+  client.publish(getCO2Topic().c_str(), String(CO2).c_str(), true); 
+  delay(50);
+  client.publish(getVOCTopic().c_str(), String(getVOC()).c_str(), true); 
+  delay(50);
      
-  Serial.print(CO2);
-  Serial.print(" ");
-  Serial.println(TVOC);
+  Serial.println("[SGP30] CO2 = " + String(CO2) + " TVOC = " + String(TVOC));
   
   saveBaseline();
 }
@@ -63,9 +67,7 @@ void MHSGP30::read(float temperature, float humidity){
     //Set the humidity compensation on the SGP30 to the measured value
     //If no humidity sensor attached, sensHumidity should be 0 and sensor will use default
     setHumidity(sensHumidity);
-    Serial.print("Absolute Humidity Compensation set to: ");
-    Serial.print(absHumidity);
-    Serial.println("g/m^3 ");
+    Serial.print("[SGP30] Absolute Humidity Compensation set to: " + String(absHumidity) +" g/m^3 ");
   }
   read();
 }
@@ -99,7 +101,7 @@ void MHSGP30::readBaseline(){
         DynamicJsonDocument json(1024);
         DeserializationError error =deserializeJson(json,buf.get());
         if (!error) {
-          Serial.println("\nparsed json");          
+          Serial.println("\n[SGP30] parsed json");          
           serializeJson(json, Serial);
         
 
@@ -108,12 +110,12 @@ void MHSGP30::readBaseline(){
           setBaseline(baselineCO2, baselineTVOC);
           Serial.println(String("\n[SGP30] Restoring baseline from file (CO2/TVOC):")+baselineCO2+"/"+baselineTVOC);
         }else{
-          Serial.println("\nBaseline json is corrpupt.");      
+          Serial.println("\n[SGP30] Baseline json is corrpupt.");      
         }
       }
       blFile.close();
     }else{
-      Serial.println("\nBaseline file not found.");      
+      Serial.println("\n[SGP30] Baseline file not found.");      
     }
   }
 }
@@ -130,7 +132,7 @@ void MHSGP30::saveBaseline(){
       
     File blFile = SPIFFS.open("/baseline.json", "w");
     if (!blFile) {
-      Serial.println("failed to open config file for writing");
+      Serial.println("[SGP30] failed to open config file for writing");
     }
     
     serializeJson(json, blFile);

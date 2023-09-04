@@ -18,9 +18,12 @@ limitations under the License.
 
 #include <Arduino.h>
 #include <ArduinoJson.h> 
+#include <PubSubClient.h>
 #include "manager.h"
 
 extern Manager manager;
+
+extern PubSubClient client;
 
 class MeteoSensor{
   public:
@@ -31,6 +34,14 @@ class MeteoSensor{
     virtual String getDiscoveryMsg(String deviceName, deviceClass dev_class) = 0; //! Returns a Json with the complete discovery message
 
   protected:
+    /**
+     * @brief Creates a discovery message string. These messages are used by Home Assistant to auto discover new MQTT topics
+     * 
+     * @param topic usually is the name of the device or the location/room where is installed
+     * @param dev_class Home Assistant device class
+     * @param unit unit of measurement
+     * @return String the message to be sent to Home Assistant for autodiscovery
+     */
     String createDiscoveryMsg(String topic, String dev_class, String unit) ; //! Builds a JSON string containing the discovery message for Home Assistant
 
   private:

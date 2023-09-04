@@ -41,6 +41,9 @@ MHDHT dht(DHTPIN, DHTTYPE); //! Initializes the DHT sensor.
 MHBMP bmp; //1 Bmp sensor object
 MHSGP30 sgp30; //! Air quality sensor
 
+MeteoSensor* sensors[]={};
+int sensorIndex=0;
+
 //MQTT client
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -60,7 +63,7 @@ void setup() {
   //Serial port speed
   t_elapsed = millis();
   Serial.begin(115200);
-  Serial.println("Confifuring device...");
+  Serial.println("[Main] Confifuring device...");
 
   // Configuration of LED pins
   pinMode(GREEN_PIN, OUTPUT);
@@ -87,11 +90,20 @@ void setup() {
   //ESP board
   board.begin();
   //DHT sensor for humidity and temperature
-  dht.begin();
+  if (dht.begin()){
+    sensors[sensorIndex]=&dht;
+    sensorIndex++;
+  }
   //BMP180 sensor for pressure
-  bmp.begin();
+  if (bmp.begin()){
+    sensors[sensorIndex]=&bmp;
+    sensorIndex++;
+  }
   //SGP30 sensor for air quality
-  sgp30.begin();
+  if (sgp30.begin()){
+    sensors[sensorIndex]=&sgp30;
+    sensorIndex++;
+  }
   //Setup mqtt
   IPAddress addr;
   addr.fromString(manager.mqttServer());
@@ -107,7 +119,7 @@ void setup() {
     ESP.rtcUserMemoryWrite(0,&first_boot_done,sizeof(first_boot_done)); // Write to persistent RAM memory
     char buf[256];
     
-    Serial.println("Sending Home Assistant discovery messages.");
+    Serial.println("[Main] Sending Home Assistant discovery messages.");
  
     if (board.available()){
       sendDiscoveryMessage(board.getVoltageDiscoveryTopic(), board.getDiscoveryMsg(manager.deviceName(),MeteoSensor::deviceClass::voltage_sensor));
@@ -116,6 +128,7 @@ void setup() {
     if (dht.available()){
       sendDiscoveryMessage(dht.getTemperatureDiscoveryTopic(), dht.getDiscoveryMsg(manager.deviceName(),MeteoSensor::deviceClass::temperature_sensor));
       sendDiscoveryMessage(dht.getHumidityDiscoveryTopic(), dht.getDiscoveryMsg(manager.deviceName(), MeteoSensor::deviceClass::humidity_sensor));
+
     }
 
     if (bmp.available()){
@@ -133,10 +146,9 @@ void setup() {
   if (manager.useSleepMode().equals("true")){
     useSleepMode = true;
   } 
-
   
   digitalWrite(GREEN_PIN, HIGH);  
-  Serial.println("Configured!!");
+  Serial.println("[Main] Configured!!");
 }
 
 
@@ -148,10 +160,10 @@ void reconnect() {
     // Attempt to connect
     String clientName("ESPClient-");
     clientName.concat(ESP.getChipId());
-    Serial.print("Attempting MQTT connection... ");
+    Serial.print("[Main] Attempting MQTT connection... ");
     Serial.println(clientName.c_str());
     if (client.connect(clientName.c_str())) {
-      Serial.println("Connected to mqtt");
+      Serial.println("[Main] Connected to mqtt");
     } else {
       digitalWrite(RED_PIN, LOW);
       digitalWrite(YELLOW_PIN, LOW);
@@ -160,7 +172,7 @@ void reconnect() {
       Serial.println(client.state());
       Serial.println(manager.mqttServer());
       Serial.println(manager.mqttPort().c_str());
-      Serial.println(" trying again in 5 seconds");
+      Serial.println("trying again in 5 seconds");
       // Wait 5 seconds before retrying
       delay(2500);
       digitalWrite(YELLOW_PIN, HIGH);
@@ -183,14 +195,14 @@ void sendDiscoveryMessage(String discoveryTopic, String message){
       }
       client.endPublish();
     } else {
-      Serial.println(String("Error sending discovery message to ") + discoveryTopic);
+      Serial.println(String("[Main] Error sending discovery message to ") + discoveryTopic);
     }
 
     client.disconnect();
 }
 
 void loop() {  
-  Serial.println("Starting main loop...");
+  Serial.println("[Main] Starting main loop...");
   if (!client.connected()) {
     reconnect();
   }  
@@ -201,40 +213,22 @@ void loop() {
     client.publish(board.getVoltageTopic().c_str(), String(board.getVoltage()).c_str(), true); 
     delay(50);
   }else {
-    Serial.println("Error reading ESP board voltage values");    
+    Serial.println("[Main] Error reading ESP board voltage values");    
   }
-  dht.read();
-  if (dht.available()){
-    client.publish(dht.getTemperatureTopic().c_str(), String(dht.getTemperature()).c_str(), true);
-    Serial.println("Topic is "+dht.getTemperatureTopic() + " " + String(dht.getTemperature()));
-    delay(50);
-    client.publish(dht.getHumidityTopic().c_str(), String(dht.getHumidity()).c_str(), true);
-    delay(50);
-    client.publish(dht.getHeatindexTopic().c_str(), String(dht.getHeatIndex()).c_str(), true);
-    delay(50);
-  }else{
-    Serial.println("Error reading DHT22 values");    
-  }
-  bmp.read();
-  if (bmp.available()){
-    client.publish(bmp.getPressureTopic().c_str(), String(bmp.getPressure()).c_str(), true); 
-    delay(50);
-    client.publish(bmp.getTemperatureTopic().c_str(), String(bmp.getTemperature()).c_str(), true); 
-    delay(50);
-  }else {
-    Serial.println("Error reading BMP180 values");    
-  }
-  if (sgp30.available()){
-    if (dht.available()){
-      sgp30.read(dht.getTemperature(),dht.getHumidity());
+
+  for (int i =0; i<sensorIndex; i++){
+    Serial.println("[Main] Reading sensror"+String(i));
+    MeteoSensor* sensor = reinterpret_cast <MeteoSensor*> (sensors[i]);
+    if (sensor->available()){
+      sensor->read();
     }else{
-      sgp30.read();
+      Serial.println("[Main] Error reading sensor " + String(i) + " values");    
     }
+  }
+
+  //TOO: improve this code. Do we need a class for managing LEDs?
+  if (sgp30.available()){
     float CO2 = sgp30.getCO2();
-    client.publish(sgp30.getCO2Topic().c_str(), String(CO2).c_str(), true); 
-    delay(50);
-    client.publish(sgp30.getVOCTopic().c_str(), String(sgp30.getVOC()).c_str(), true); 
-    delay(50);
 
     if (CO2 < 600) {
         digitalWrite(YELLOW_PIN, LOW);
@@ -249,13 +243,11 @@ void loop() {
         digitalWrite(YELLOW_PIN, LOW);
         digitalWrite(RED_PIN, HIGH);
       }
-  }else {
-    Serial.println("Error reading SGP30 values");    
   }
 
 
   if (useSleepMode){
-    Serial.print("Going to sleep after ");
+    Serial.print("[Main] Going to sleep after ");
     Serial.println((millis()-t_elapsed)/1000);
     ESP.deepSleep(DEEP_SLEEP_TIME * 1000000);
   }else{
