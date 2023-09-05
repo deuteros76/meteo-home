@@ -60,12 +60,9 @@ void MHDHT::read(){
   delay(50);
   client.publish(getHeatindexTopic().c_str(), String(getHeatIndex()).c_str(), true);
   delay(50);
+     
+  Serial.println("[DHT] Temperature = " + String(temperature) + " Humidity = " + String(humidity) +" HeatIndex = " + String(heatindex));
 
-  Serial.print(temperature);
-  Serial.print(" ");
-  Serial.print(humidity);
-  Serial.print(" ");
-  Serial.println(heatindex);
 }
 
 String MHDHT::getDiscoveryMsg(String deviceName, deviceClass dev_class){

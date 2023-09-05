@@ -48,10 +48,9 @@ void MHBMP::read(){
     delay(50);
     client.publish(getTemperatureTopic().c_str(), String(getTemperature()).c_str(), true); 
     delay(50);
+     
+    Serial.println("[BMP] Temoerature = " + String(temperature) + " Pressure = " + String(pressure));
 
-    Serial.print(temperature);
-    Serial.print(" ");
-    Serial.println(pressure);
   }
 }
 
