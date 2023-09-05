@@ -76,3 +76,10 @@ String MHDHT::getDiscoveryMsg(String deviceName, deviceClass dev_class){
 
   return createDiscoveryMsg(topic, className, unit);
 }
+
+void MHDHT::autodiscover(){
+  if (available()){
+      sendDiscoveryMessage(getTemperatureDiscoveryTopic(), getDiscoveryMsg(manager.deviceName(),MeteoSensor::deviceClass::temperature_sensor));    
+      sendDiscoveryMessage(getHumidityDiscoveryTopic(), getDiscoveryMsg(manager.deviceName(), MeteoSensor::deviceClass::humidity_sensor));
+ }
+}

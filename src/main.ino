@@ -121,25 +121,18 @@ void setup() {
     
     Serial.println("[Main] Sending Home Assistant discovery messages.");
  
-    if (board.available()){
-      sendDiscoveryMessage(board.getVoltageDiscoveryTopic(), board.getDiscoveryMsg(manager.deviceName(),MeteoSensor::deviceClass::voltage_sensor));
-    }
+    board.autodiscover();
 
-    if (dht.available()){
-      sendDiscoveryMessage(dht.getTemperatureDiscoveryTopic(), dht.getDiscoveryMsg(manager.deviceName(),MeteoSensor::deviceClass::temperature_sensor));
-      sendDiscoveryMessage(dht.getHumidityDiscoveryTopic(), dht.getDiscoveryMsg(manager.deviceName(), MeteoSensor::deviceClass::humidity_sensor));
-
+    for (int i =0; i<sensorIndex; i++){
+      Serial.println("[Main] Sending discovery message for sensor "+String(i));
+      MeteoSensor* sensor = reinterpret_cast <MeteoSensor*> (sensors[i]);
+      if (sensor->available()){
+        sensor->autodiscover();
+      }else{
+        Serial.println("[Main] Error sending discovert message of sensor " + String(i));    
+      }
     }
-
-    if (bmp.available()){
-      sendDiscoveryMessage(bmp.getTemperatureDiscoveryTopic(), bmp.getDiscoveryMsg(manager.deviceName(),MeteoSensor::deviceClass::temperature_sensor));
-      sendDiscoveryMessage(bmp.getPressureDiscoveryTopic(), bmp.getDiscoveryMsg(manager.deviceName(), MeteoSensor::deviceClass::pressure_sensor));
-    }
-
-    if (sgp30.available()){
-      sendDiscoveryMessage(sgp30.getCO2DiscoveryTopic(), sgp30.getDiscoveryMsg(manager.deviceName(),MeteoSensor::deviceClass::co2_sensor));
-      sendDiscoveryMessage(sgp30.getVOCDiscoveryTopic(), sgp30.getDiscoveryMsg(manager.deviceName(), MeteoSensor::deviceClass::voc_sensor));
-    }
+     
   }
 
   manager.useSleepMode().toLowerCase();
@@ -181,24 +174,6 @@ void reconnect() {
     }
   }
   digitalWrite(YELLOW_PIN, LOW);
-}
-
-//TODO: discovery message as a parameter
-void sendDiscoveryMessage(String discoveryTopic, String message){
-    char buf[256];
-    reconnect();
-    //String message = manager.getDiscoveryMsg(topic, sensorType);
-    message.toCharArray(buf, message.length() + 1);
-    if (client.beginPublish (discoveryTopic.c_str(), message.length(), true)) {
-      for (int i = 0; i <= message.length() + 1; i++) {
-        client.write(buf[i]);
-      }
-      client.endPublish();
-    } else {
-      Serial.println(String("[Main] Error sending discovery message to ") + discoveryTopic);
-    }
-
-    client.disconnect();
 }
 
 void loop() {  

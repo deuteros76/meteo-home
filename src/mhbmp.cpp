@@ -49,7 +49,7 @@ void MHBMP::read(){
     client.publish(getTemperatureTopic().c_str(), String(getTemperature()).c_str(), true); 
     delay(50);
      
-    Serial.println("[BMP] Temoerature = " + String(temperature) + " Pressure = " + String(pressure));
+    Serial.println("[BMP] Temperature = " + String(temperature) + " Pressure = " + String(pressure));
 
   }
 }
@@ -64,4 +64,11 @@ String MHBMP::getDiscoveryMsg(String deviceName, deviceClass dev_class){
   }
 
   return createDiscoveryMsg(topic, className, unit);
+}
+
+void MHBMP::autodiscover(){
+  if (available()){
+      sendDiscoveryMessage(getTemperatureDiscoveryTopic(), getDiscoveryMsg(manager.deviceName(),MeteoSensor::deviceClass::temperature_sensor));
+      sendDiscoveryMessage(getPressureDiscoveryTopic(), getDiscoveryMsg(manager.deviceName(), MeteoSensor::deviceClass::pressure_sensor));
+    }
 }

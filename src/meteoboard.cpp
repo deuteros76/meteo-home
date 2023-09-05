@@ -47,3 +47,9 @@ String MeteoBoard::getDiscoveryMsg(String deviceName, deviceClass dev_class){
   className="voltage"; 
   return createDiscoveryMsg(voltage_topic, className, unit);
 }
+
+void MeteoBoard::autodiscover(){
+  if (available()){
+    sendDiscoveryMessage(getVoltageDiscoveryTopic(), getDiscoveryMsg(manager.deviceName(),MeteoSensor::deviceClass::voltage_sensor));
+  }
+}

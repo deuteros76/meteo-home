@@ -153,3 +153,10 @@ uint16_t MHSGP30::doubleToFixedPoint( double number) {
   uint16_t value = floor(number2 + 0.5);
   return value;
 }
+
+void MHSGP30::autodiscover(){
+  if (available()){
+      sendDiscoveryMessage(getCO2DiscoveryTopic(), getDiscoveryMsg(manager.deviceName(),MeteoSensor::deviceClass::co2_sensor));
+      sendDiscoveryMessage(getVOCDiscoveryTopic(), getDiscoveryMsg(manager.deviceName(), MeteoSensor::deviceClass::voc_sensor));
+   }
+}

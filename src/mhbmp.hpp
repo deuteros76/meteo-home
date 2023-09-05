@@ -25,6 +25,7 @@ class MHBMP: public MeteoSensor, public Adafruit_BMP085{
     bool available(); //! Detect if the device is available/connected to the board
     void read(); //! Read the values provided by de sensor
     String getDiscoveryMsg(String deviceName, deviceClass dev_class); //! Returns a Json with the complete discovery message
+    void autodiscover(); //! Send autodiscovery messages to Home Assistant
 
     bool begin(); //! Redefinition/override of the begin function
 
