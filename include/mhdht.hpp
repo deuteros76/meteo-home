@@ -56,5 +56,7 @@ class MHDHT: public MeteoSensor, public DHT{
     String humidity_topic;
     String heatindex_topic;
 
+    bool values_read; //! Flag to check if the sensr has been recently read. Used to force available function to read new values if the device is not available.
+
 };
 #endif

@@ -20,6 +20,8 @@ MHDHT::MHDHT(uint8_t pin, uint8_t type): DHT(pin, type){
   temperature_discovery_topic = "homeassistant/sensor/ESP-" + String(ESP.getChipId()) +"/DHT22-temperature/config";
   humidity_discovery_topic = "homeassistant/sensor/ESP-" + String(ESP.getChipId()) + "/DHT22-humidity/config";
   heatindex_discovery_topic = "homeassistant/sensor/ESP-" + String(ESP.getChipId()) + "/DHT22-heatindex/config";
+
+  values_read = false;
 }
 
 bool MHDHT::begin(){
@@ -43,16 +45,24 @@ bool MHDHT::available(){
   bool returnValue=true;
 
   if (isnan(temperature) || isnan(humidity)){
-    returnValue=false;
+    if (values_read){
+      returnValue=false;
+    }else{
+      values_read= true;
+      returnValue = (!isnan(temperature) && !isnan(humidity));
+    }
+
   }
   return returnValue;
 }
 
 void MHDHT::read(){
     //read dht22 value
-  temperature = readTemperature();    
-  humidity = readHumidity();
-  heatindex = computeHeatIndex(temperature, humidity, false);
+  if (!values_read){
+    temperature = readTemperature();    
+    humidity = readHumidity();
+    heatindex = computeHeatIndex(temperature, humidity, false);
+  }
 
   client.publish(getTemperatureTopic().c_str(), String(getTemperature()).c_str(), true);
   delay(50);
@@ -62,7 +72,7 @@ void MHDHT::read(){
   delay(50);
      
   Serial.println("[DHT] Temperature = " + String(temperature) + " Humidity = " + String(humidity) +" HeatIndex = " + String(heatindex));
-
+  values_read= false;
 }
 
 String MHDHT::getDiscoveryMsg(String deviceName, deviceClass dev_class){
