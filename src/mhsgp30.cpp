@@ -21,13 +21,21 @@ MHSGP30::MHSGP30(): SGP30(){
   voc_discovery_topic = "homeassistant/sensor/ESP-" + String(ESP.getChipId()) + "/SGP30-VOC/config";
 }
 
-bool MHSGP30::begin(){
-  sensorReady=SGP30::begin();
-  initAirQuality();
-  readBaseline();
+bool MHSGP30::begin(TwoWire &wirePort){
+  Wire.begin();
+  if (SGP30::begin()){
+    sensorReady= true;
+    initAirQuality();
+    //readBaseline();
+
+    co2_topic = manager.deviceName() + "/SGP30/co2";
+    voc_topic = manager.deviceName() + "/SGP30/voc";
+     Serial.println("[SGP30] Configured.");
+  }else{     
+     Serial.println("[SGP30] Error initializing SGP30 sensor.");
+    sensorReady= false;
+  }
   
-  co2_topic = manager.deviceName() + "/SGP30/co2";
-  voc_topic = manager.deviceName() + "/SGP30/voc";
 
   return sensorReady;
 }
@@ -35,6 +43,7 @@ bool MHSGP30::begin(){
 bool MHSGP30::available(){
   bool returnValue=true;
 
+  Serial.println("[SGP30] 0");
   if (!sensorReady){
     returnValue=false;  
   }
@@ -42,12 +51,14 @@ bool MHSGP30::available(){
 }
 
 void MHSGP30::read(){
-    //read dht22 value
-  measureAirQuality();
+  //read SGP30 values
+  //measureAirQuality();
 
+  Serial.println("[SGP30] 1");
   float CO2 = getCO2();
   client.publish(getCO2Topic().c_str(), String(CO2).c_str(), true); 
   delay(50);
+  Serial.println("[SGP30] 2");
   client.publish(getVOCTopic().c_str(), String(getVOC()).c_str(), true); 
   delay(50);
      

@@ -19,6 +19,7 @@ limitations under the License.
 
 #include "meteosensor.hpp"
 #include <FS.h> 
+#include <Wire.h>
 #include <SparkFun_SGP30_Arduino_Library.h>
 
 class MHSGP30: public MeteoSensor, public SGP30{
@@ -30,7 +31,7 @@ class MHSGP30: public MeteoSensor, public SGP30{
     String getDiscoveryMsg(String deviceName, deviceClass dev_class); //! Returns a Json with the complete discovery message
     void autodiscover(); //! Send autodiscovery messages to Home Assistant
     
-    bool begin(); //! Redefinition/override of the begin function
+    bool begin(TwoWire &wirePort = Wire); //! Redefinition/override of the begin function
 
     float getCO2(){return CO2;}
     float getVOC(){return TVOC;}

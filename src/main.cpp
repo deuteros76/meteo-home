@@ -14,9 +14,12 @@
   limitations under the License.
 */
 
+#ifndef PIO_UNIT_TESTING
+
 #include <ESP8266WiFi.h>
 #include <Wire.h>
 #include <PubSubClient.h>
+//#include "connection.hpp"
 #include "meteoboard.hpp"
 #include "mhdht.hpp"
 #include "mhbmp.hpp"
@@ -41,7 +44,7 @@ MHDHT dht(DHTPIN, DHTTYPE); //! Initializes the DHT sensor.
 MHBMP bmp; //1 Bmp sensor object
 MHSGP30 sgp30; //! Air quality sensor
 
-MeteoSensor* sensors[]={};
+uintptr_t sensors[]={};
 int sensorIndex=0;
 
 //MQTT client
@@ -87,21 +90,24 @@ void setup() {
   manager.setup_config_data();
   manager.setup_wifi();
 
+  Wire.begin();
+
   //ESP board
   board.begin();
   //DHT sensor for humidity and temperature
   if (dht.begin()){
-    sensors[sensorIndex]=&dht;
+    sensors[sensorIndex]=reinterpret_cast<uintptr_t>(&dht);
     sensorIndex++;
   }
   //BMP180 sensor for pressure
+  
   if (bmp.begin()){
-    sensors[sensorIndex]=&bmp;
+    sensors[sensorIndex]=reinterpret_cast<uintptr_t>(&bmp);
     sensorIndex++;
   }
   //SGP30 sensor for air quality
   if (sgp30.begin()){
-    sensors[sensorIndex]=&sgp30;
+    sensors[sensorIndex]=reinterpret_cast<uintptr_t>(&sgp30);
     sensorIndex++;
   }
   //Setup mqtt
@@ -109,9 +115,9 @@ void setup() {
   addr.fromString(manager.mqttServer());
   client.setServer(addr, atoi(manager.mqttPort().c_str())); 
 
-  if (!client.connected()) {
-    reconnect();
-  }
+  //if (!client.connected()) {
+  //  reconnect();
+  //}
   client.loop();
 
   if (first_boot_done != 1){
@@ -144,7 +150,6 @@ void setup() {
   Serial.println("[Main] Configured!!");
 }
 
-
 void reconnect() {
   // Loop until we're reconnected
   long t1 = millis();
@@ -176,6 +181,7 @@ void reconnect() {
   digitalWrite(YELLOW_PIN, LOW);
 }
 
+
 void loop() {  
   Serial.println("[Main] Starting main loop...");
   if (!client.connected()) {
@@ -192,8 +198,9 @@ void loop() {
   }
 
   for (int i =0; i<sensorIndex; i++){
-    Serial.println("[Main] Reading sensror"+String(i));
+    Serial.println("[Main] Reading sensor "+String(i));
     MeteoSensor* sensor = reinterpret_cast <MeteoSensor*> (sensors[i]);
+
     if (sensor->available()){
       sensor->read();
     }else{
@@ -229,3 +236,5 @@ void loop() {
     delay(DEEP_SLEEP_TIME * 1000);
   }
 }
+
+#endif

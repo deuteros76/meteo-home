@@ -26,7 +26,7 @@ bool MHDHT::begin(){
   bool returnValue=true;
 
   DHT::begin();
-  
+  delay(50);
   read(); // this reading is to make available() work from the begining
 
   if (available()){

@@ -19,6 +19,7 @@ limitations under the License.
 
 #include "meteosensor.hpp"
 #include <DHT.h>
+#include <typeinfo>
 
 class MHDHT: public MeteoSensor, public DHT{
   public:

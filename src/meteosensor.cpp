@@ -30,10 +30,10 @@ String MeteoSensor::createDiscoveryMsg(String topic,  String dev_class, String u
   while (token != NULL)
   {
     name= name + "-" + token;
-    printf ("Token: %s\n",token);
+    //printf ("Token: %s\n",token);
     token = strtok (NULL, "/");
   }
-  printf ("Name is: %s\n",name);
+  //printf ("Name is: %s\n",name);
 
   doc["name"] = name;
   doc["stat_cla"] = "measurement";
