@@ -16,23 +16,23 @@ limitations under the License.
 
 #include "mhsgp30.hpp"
 
-MHSGP30::MHSGP30(): SGP30(){
-  co2_discovery_topic = "homeassistant/sensor/ESP-" + String(ESP.getChipId()) +"/SGP30-CO2/config";
-  voc_discovery_topic = "homeassistant/sensor/ESP-" + String(ESP.getChipId()) + "/SGP30-VOC/config";
+MHSGP30::MHSGP30() : SGP30()
+{
+  co2_discovery_topic = String("homeassistant/sensor/ESP-" + String(ESP.getChipId()) +"/SGP30-CO2/config");
+  voc_discovery_topic = String("homeassistant/sensor/ESP-" + String(ESP.getChipId()) + "/SGP30-VOC/config");
 }
 
 bool MHSGP30::begin(TwoWire &wirePort){
-  Wire.begin();
-  if (SGP30::begin()){
+  if (SGP30::begin(wirePort)){
     sensorReady= true;
     initAirQuality();
+    //Serial.println("[SGP30] reading baseline.");
     //readBaseline();
 
     co2_topic = manager.deviceName() + "/SGP30/co2";
     voc_topic = manager.deviceName() + "/SGP30/voc";
-     Serial.println("[SGP30] Configured.");
   }else{     
-     Serial.println("[SGP30] Error initializing SGP30 sensor.");
+    Serial.println("[SGP30] Error initializing SGP30 sensor.");
     sensorReady= false;
   }
   
@@ -42,8 +42,6 @@ bool MHSGP30::begin(TwoWire &wirePort){
 
 bool MHSGP30::available(){
   bool returnValue=true;
-
-  Serial.println("[SGP30] 0");
   if (!sensorReady){
     returnValue=false;  
   }
@@ -52,13 +50,11 @@ bool MHSGP30::available(){
 
 void MHSGP30::read(){
   //read SGP30 values
-  //measureAirQuality();
+  measureAirQuality();
 
-  Serial.println("[SGP30] 1");
   float CO2 = getCO2();
   client.publish(getCO2Topic().c_str(), String(CO2).c_str(), true); 
   delay(50);
-  Serial.println("[SGP30] 2");
   client.publish(getVOCTopic().c_str(), String(getVOC()).c_str(), true); 
   delay(50);
      
@@ -80,7 +76,7 @@ void MHSGP30::read(float temperature, float humidity){
     setHumidity(sensHumidity);
     Serial.print("[SGP30] Absolute Humidity Compensation set to: " + String(absHumidity) +" g/m^3 ");
   }
-  read();
+  //read();
 }
 
 String MHSGP30::getDiscoveryMsg(String deviceName, deviceClass dev_class){
@@ -91,14 +87,13 @@ String MHSGP30::getDiscoveryMsg(String deviceName, deviceClass dev_class){
     case voc_sensor: unit = "ppb\t"; className="volatile_organic_compounds"; topic= deviceName+"/SGP30/voc"; break;
     default: break;
   }
-
   return createDiscoveryMsg(topic, className, unit);
 }
 
 
 
 void MHSGP30::readBaseline(){
-  if (SPIFFS.begin()) {
+  /*if (SPIFFS.begin()) {
     //SPIFFS.remove("/baseline.json"); // Uncomment to remove the file if the device sends extremly high values of CO2 / TVOC
     if (SPIFFS.exists("/baseline.json")) {
       //file exists, reading and loading
@@ -128,11 +123,11 @@ void MHSGP30::readBaseline(){
     }else{
       Serial.println("\n[SGP30] Baseline file not found.");      
     }
-  }
+  }*/
 }
 
 void MHSGP30::saveBaseline(){
-  DynamicJsonDocument json(1024);
+  /*DynamicJsonDocument json(1024);
 
   getBaseline();  
 
@@ -149,9 +144,17 @@ void MHSGP30::saveBaseline(){
     serializeJson(json, blFile);
     blFile.close();
   }
+  */
  }
 
- double MHSGP30::RHtoAbsolute (float relHumidity, float tempC) {
+void MHSGP30::autodiscover(){
+  if (sensorReady){
+      sendDiscoveryMessage(getCO2DiscoveryTopic(), getDiscoveryMsg(manager.deviceName(),MeteoSensor::deviceClass::co2_sensor));
+      sendDiscoveryMessage(getVOCDiscoveryTopic(), getDiscoveryMsg(manager.deviceName(), MeteoSensor::deviceClass::voc_sensor));
+   }
+}
+
+double MHSGP30::RHtoAbsolute (float relHumidity, float tempC) {
   double eSat = 6.11 * pow(10.0, (7.5 * tempC / (237.7 + tempC)));
   double vaporPressure = (relHumidity * eSat) / 100; //millibars
   double absHumidity = 1000 * vaporPressure * 100 / ((tempC + 273) * 461.5); //Ideal gas law with unit conversions
@@ -163,11 +166,4 @@ uint16_t MHSGP30::doubleToFixedPoint( double number) {
   double number2 = number * power;
   uint16_t value = floor(number2 + 0.5);
   return value;
-}
-
-void MHSGP30::autodiscover(){
-  if (available()){
-      sendDiscoveryMessage(getCO2DiscoveryTopic(), getDiscoveryMsg(manager.deviceName(),MeteoSensor::deviceClass::co2_sensor));
-      sendDiscoveryMessage(getVOCDiscoveryTopic(), getDiscoveryMsg(manager.deviceName(), MeteoSensor::deviceClass::voc_sensor));
-   }
 }

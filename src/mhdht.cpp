@@ -91,5 +91,5 @@ void MHDHT::autodiscover(){
   if (available()){
       sendDiscoveryMessage(getTemperatureDiscoveryTopic(), getDiscoveryMsg(manager.deviceName(),MeteoSensor::deviceClass::temperature_sensor));    
       sendDiscoveryMessage(getHumidityDiscoveryTopic(), getDiscoveryMsg(manager.deviceName(), MeteoSensor::deviceClass::humidity_sensor));
- }
+  }
 }

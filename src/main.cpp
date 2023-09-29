@@ -19,12 +19,13 @@
 #include <ESP8266WiFi.h>
 #include <Wire.h>
 #include <PubSubClient.h>
-//#include "connection.hpp"
+#include "connection.hpp"
 #include "meteoboard.hpp"
 #include "mhdht.hpp"
 #include "mhbmp.hpp"
 #include "mhsgp30.hpp"
 #include "manager.h"
+#include <vector>
 
 //Temperature sensor settings
 #define DHTPIN 12 // what digital pin we're connected to
@@ -41,11 +42,10 @@
 Manager manager;  //! Portal and wific connection manager
 MeteoBoard board;
 MHDHT dht(DHTPIN, DHTTYPE); //! Initializes the DHT sensor.
-MHBMP bmp; //1 Bmp sensor object
+MHBMP bmp; //! Bmp sensor object
 MHSGP30 sgp30; //! Air quality sensor
 
-uintptr_t sensors[]={};
-int sensorIndex=0;
+std::vector<std::unique_ptr<MeteoSensor>> sensors; // To store sensors addresses
 
 //MQTT client
 WiFiClient espClient;
@@ -59,7 +59,40 @@ uint32_t first_boot_done=0; //! Used with deepsleep mode. Send the discovery mes
 // (https://arduino-esp8266.readthedocs.io/en/latest/libraries.html) Add the following line to the top of your sketch to use getVcc:
 ADC_MODE(ADC_VCC); 
 
+
+void reconnect() {
+  // Loop until we're reconnected
+  long t1 = millis();
+
+  while (!client.connected() && (millis() - t1 < CONNECTION_TIMEOUT)) {
+    // Attempt to connect
+    String clientName("ESPClient-");
+    clientName.concat(ESP.getChipId());
+    Serial.print("[Main] Attempting MQTT connection... ");
+    Serial.println(clientName.c_str());
+    if (client.connect(clientName.c_str())) {
+      Serial.println("[Main] Connected to mqtt");
+    } else {
+      digitalWrite(RED_PIN, LOW);
+      digitalWrite(YELLOW_PIN, LOW);
+      digitalWrite(GREEN_PIN, LOW);
+      Serial.print("failed, rc=");
+      Serial.println(client.state());
+      Serial.println(manager.mqttServer());
+      Serial.println(manager.mqttPort().c_str());
+      Serial.println("trying again in 5 seconds");
+      // Wait 5 seconds before retrying
+      delay(2500);
+      digitalWrite(YELLOW_PIN, HIGH);
+      delay(2500);
+      digitalWrite(YELLOW_PIN, LOW);
+    }
+  }
+  digitalWrite(YELLOW_PIN, LOW);
+}
+
 void setup() {
+  char buffer[30];
   // Check if this is the first boot (Usefull if using deep sleep mode)
   ESP.rtcUserMemoryRead(0,&first_boot_done,sizeof(first_boot_done)); // Read from persistent RAM memory
 
@@ -96,20 +129,17 @@ void setup() {
   board.begin();
   //DHT sensor for humidity and temperature
   if (dht.begin()){
-    sensors[sensorIndex]=reinterpret_cast<uintptr_t>(&dht);
-    sensorIndex++;
+    sensors.emplace_back(&dht);
   }
-  //BMP180 sensor for pressure
-  
+  //BMP180 sensor for pressure  
   if (bmp.begin()){
-    sensors[sensorIndex]=reinterpret_cast<uintptr_t>(&bmp);
-    sensorIndex++;
+    sensors.emplace_back(&bmp);
   }
   //SGP30 sensor for air quality
   if (sgp30.begin()){
-    sensors[sensorIndex]=reinterpret_cast<uintptr_t>(&sgp30);
-    sensorIndex++;
+    sensors.emplace_back(&sgp30);
   }
+
   //Setup mqtt
   IPAddress addr;
   addr.fromString(manager.mqttServer());
@@ -123,22 +153,18 @@ void setup() {
   if (first_boot_done != 1){
     first_boot_done = 1;
     ESP.rtcUserMemoryWrite(0,&first_boot_done,sizeof(first_boot_done)); // Write to persistent RAM memory
-    char buf[256];
     
     Serial.println("[Main] Sending Home Assistant discovery messages.");
  
     board.autodiscover();
-
-    for (int i =0; i<sensorIndex; i++){
-      Serial.println("[Main] Sending discovery message for sensor "+String(i));
-      MeteoSensor* sensor = reinterpret_cast <MeteoSensor*> (sensors[i]);
+    
+    for (auto &sensor : sensors) {
       if (sensor->available()){
         sensor->autodiscover();
       }else{
-        Serial.println("[Main] Error sending discovert message of sensor " + String(i));    
+        Serial.println("[Main] Error sending discovery message of sensor ");    
       }
     }
-     
   }
 
   manager.useSleepMode().toLowerCase();
@@ -148,37 +174,6 @@ void setup() {
   
   digitalWrite(GREEN_PIN, HIGH);  
   Serial.println("[Main] Configured!!");
-}
-
-void reconnect() {
-  // Loop until we're reconnected
-  long t1 = millis();
-
-  while (!client.connected() && (millis() - t1 < CONNECTION_TIMEOUT)) {
-    // Attempt to connect
-    String clientName("ESPClient-");
-    clientName.concat(ESP.getChipId());
-    Serial.print("[Main] Attempting MQTT connection... ");
-    Serial.println(clientName.c_str());
-    if (client.connect(clientName.c_str())) {
-      Serial.println("[Main] Connected to mqtt");
-    } else {
-      digitalWrite(RED_PIN, LOW);
-      digitalWrite(YELLOW_PIN, LOW);
-      digitalWrite(GREEN_PIN, LOW);
-      Serial.print("failed, rc=");
-      Serial.println(client.state());
-      Serial.println(manager.mqttServer());
-      Serial.println(manager.mqttPort().c_str());
-      Serial.println("trying again in 5 seconds");
-      // Wait 5 seconds before retrying
-      delay(2500);
-      digitalWrite(YELLOW_PIN, HIGH);
-      delay(2500);
-      digitalWrite(YELLOW_PIN, LOW);
-    }
-  }
-  digitalWrite(YELLOW_PIN, LOW);
 }
 
 
@@ -197,17 +192,14 @@ void loop() {
     Serial.println("[Main] Error reading ESP board voltage values");    
   }
 
-  for (int i =0; i<sensorIndex; i++){
-    Serial.println("[Main] Reading sensor "+String(i));
-    MeteoSensor* sensor = reinterpret_cast <MeteoSensor*> (sensors[i]);
-
+  for (auto &sensor : sensors) {
     if (sensor->available()){
       sensor->read();
-    }else{
-      Serial.println("[Main] Error reading sensor " + String(i) + " values");    
+    }else{ 
+      Serial.println("[Main] Error reading sensor values");    
     }
   }
-
+  
   //TOO: improve this code. Do we need a class for managing LEDs?
   if (sgp30.available()){
     float CO2 = sgp30.getCO2();
