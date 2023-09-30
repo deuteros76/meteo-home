@@ -25,16 +25,12 @@
 #include "mhbmp.hpp"
 #include "mhsgp30.hpp"
 #include "manager.hpp"
+#include "leds.hpp"
 #include <vector>
 
 //Temperature sensor settings
 #define DHTPIN 12 // what digital pin we're connected to
 #define DHTTYPE DHT22 // DHT 22  (AM2302), AM2321
-
-// LEDs pins
-#define GREEN_PIN 14
-#define YELLOW_PIN 13
-#define RED_PIN 15
 
 //Timeout connection for wifi or mqtt server
 #define CONNECTION_TIMEOUT 20000 //Timeout for connections. The idea is to prevent for continuous conection tries. This would cause battery drain
@@ -44,6 +40,7 @@ MeteoBoard board;
 MHDHT dht(DHTPIN, DHTTYPE); //! Initializes the DHT sensor.
 MHBMP bmp; //! Bmp sensor object
 MHSGP30 sgp30; //! Air quality sensor
+Leds leds;
 
 std::vector<std::unique_ptr<MeteoSensor>> sensors; // To store sensors addresses
 
@@ -73,9 +70,7 @@ void reconnect() {
     if (client.connect(clientName.c_str())) {
       Serial.println("[Main] Connected to mqtt");
     } else {
-      digitalWrite(RED_PIN, LOW);
-      digitalWrite(YELLOW_PIN, LOW);
-      digitalWrite(GREEN_PIN, LOW);
+      leds.setLEDs(LOW,LOW,LOW);
       Serial.print("failed, rc=");
       Serial.println(client.state());
       Serial.println(manager.mqttServer());
@@ -83,12 +78,12 @@ void reconnect() {
       Serial.println("trying again in 5 seconds");
       // Wait 5 seconds before retrying
       delay(2500);
-      digitalWrite(YELLOW_PIN, HIGH);
+      leds.setYellow(HIGH);
       delay(2500);
-      digitalWrite(YELLOW_PIN, LOW);
+      leds.setYellow( LOW);
     }
   }
-  digitalWrite(YELLOW_PIN, LOW);
+  leds.setYellow(LOW);
 }
 
 void setup() {
@@ -101,22 +96,13 @@ void setup() {
   Serial.begin(115200);
   Serial.println("[Main] Confifuring device...");
 
-  // Configuration of LED pins
-  pinMode(GREEN_PIN, OUTPUT);
-  pinMode(YELLOW_PIN, OUTPUT);
-  pinMode(RED_PIN, OUTPUT);
+  leds.begin();
 
   // Turn on the LEDs to show the device is configureing. In sleep mode, we don't want to use the LEDs everytime the device wakes up
   if (first_boot_done != 1){  
-    digitalWrite(RED_PIN, HIGH);
-    digitalWrite(YELLOW_PIN, HIGH);
-    digitalWrite(GREEN_PIN, HIGH);
-
-    delay(1000); // Just one second to show that the process has started
-    
-    digitalWrite(RED_PIN, LOW);
-    digitalWrite(YELLOW_PIN, LOW);
-    digitalWrite(GREEN_PIN, LOW);
+    leds.setLEDs(HIGH,HIGH,HIGH);
+    delay(1000); // Just one second to show that the process has started    
+    leds.setLEDs(LOW,LOW,LOW);
   }
 
   // WiFi setup
@@ -145,9 +131,6 @@ void setup() {
   addr.fromString(manager.mqttServer());
   client.setServer(addr, atoi(manager.mqttPort().c_str())); 
 
-  //if (!client.connected()) {
-  //  reconnect();
-  //}
   client.loop();
 
   if (first_boot_done != 1){
@@ -200,22 +183,16 @@ void loop() {
     }
   }
   
-  //TOO: improve this code. Do we need a class for managing LEDs?
+  //TOO: improve this code. Move to MHSGP30 class
   if (sgp30.available()){
     float CO2 = sgp30.getCO2();
 
     if (CO2 < 600) {
-        digitalWrite(YELLOW_PIN, LOW);
-        digitalWrite(RED_PIN, LOW);
-        digitalWrite(GREEN_PIN, HIGH);
+        leds.setLEDs(LOW,HIGH,LOW);
       } else if (CO2 < 800) {
-        digitalWrite(GREEN_PIN, LOW);
-        digitalWrite(RED_PIN, LOW);
-        digitalWrite(YELLOW_PIN, HIGH);
+        leds.setLEDs(LOW,LOW,HIGH);
       } else {
-        digitalWrite(GREEN_PIN, LOW);
-        digitalWrite(YELLOW_PIN, LOW);
-        digitalWrite(RED_PIN, HIGH);
+        leds.setLEDs(HIGH,LOW,LOW);
       }
   }
 
