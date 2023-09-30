@@ -24,7 +24,7 @@
 #include "mhdht.hpp"
 #include "mhbmp.hpp"
 #include "mhsgp30.hpp"
-#include "manager.h"
+#include "manager.hpp"
 #include <vector>
 
 //Temperature sensor settings

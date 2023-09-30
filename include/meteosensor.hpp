@@ -19,7 +19,7 @@ limitations under the License.
 #include <Arduino.h>
 #include <ArduinoJson.h> 
 #include <PubSubClient.h>
-#include "manager.h"
+#include "manager.hpp"
 
 extern Manager manager;
 
