@@ -18,13 +18,14 @@ limitations under the License.
 #define _METEOSGP30_
 
 #include "meteosensor.hpp"
+#include "leds.hpp"
 #include <FS.h> 
 #include <SparkFun_SGP30_Arduino_Library.h>
 
 class MHSGP30: public MeteoSensor, public SGP30
 {
   public:
-    MHSGP30();
+    MHSGP30(Leds *l);
     bool available(); //! Detect if the device is available/connected to the board
     void read(); //! Read the values provided by de sensor
     void read(float temperature, float humidity); //! Read the values taking into accout current temperatura and humidity (better accuracy)
@@ -56,6 +57,8 @@ class MHSGP30: public MeteoSensor, public SGP30
 
     double RHtoAbsolute (float relHumidity, float tempC); //! Relative humidity to absolute
     uint16_t doubleToFixedPoint( double number);
+
+    Leds *leds = nullptr;
 
 };
 #endif

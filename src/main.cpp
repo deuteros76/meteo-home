@@ -13,7 +13,6 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 */
-
 #ifndef PIO_UNIT_TESTING
 
 #include <ESP8266WiFi.h>
@@ -39,8 +38,8 @@ Manager manager;  //! Portal and wific connection manager
 MeteoBoard board;
 MHDHT dht(DHTPIN, DHTTYPE); //! Initializes the DHT sensor.
 MHBMP bmp; //! Bmp sensor object
-MHSGP30 sgp30; //! Air quality sensor
-Leds leds;
+Leds leds; //! To mange the three LEDs
+MHSGP30 sgp30(&leds); //! Air quality sensor. Leds is a dependency for showing the air quality state
 
 std::vector<std::unique_ptr<MeteoSensor>> sensors; // To store sensors addresses
 
@@ -137,8 +136,7 @@ void setup() {
     first_boot_done = 1;
     ESP.rtcUserMemoryWrite(0,&first_boot_done,sizeof(first_boot_done)); // Write to persistent RAM memory
     
-    Serial.println("[Main] Sending Home Assistant discovery messages.");
- 
+    Serial.println("[Main] Sending Home Assistant discovery messages."); 
     board.autodiscover();
     
     for (auto &sensor : sensors) {
@@ -158,7 +156,6 @@ void setup() {
   digitalWrite(GREEN_PIN, HIGH);  
   Serial.println("[Main] Configured!!");
 }
-
 
 void loop() {  
   Serial.println("[Main] Starting main loop...");
@@ -183,20 +180,6 @@ void loop() {
     }
   }
   
-  //TOO: improve this code. Move to MHSGP30 class
-  if (sgp30.available()){
-    float CO2 = sgp30.getCO2();
-
-    if (CO2 < 600) {
-        leds.setLEDs(LOW,HIGH,LOW);
-      } else if (CO2 < 800) {
-        leds.setLEDs(LOW,LOW,HIGH);
-      } else {
-        leds.setLEDs(HIGH,LOW,LOW);
-      }
-  }
-
-
   if (useSleepMode){
     Serial.print("[Main] Going to sleep after ");
     Serial.println((millis()-t_elapsed)/1000);

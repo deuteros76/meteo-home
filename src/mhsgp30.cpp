@@ -16,7 +16,7 @@ limitations under the License.
 
 #include "mhsgp30.hpp"
 
-MHSGP30::MHSGP30() : SGP30()
+MHSGP30::MHSGP30(Leds *l) : SGP30(), leds(l)
 {
   co2_discovery_topic = String("homeassistant/sensor/ESP-" + String(ESP.getChipId()) +"/SGP30-CO2/config");
   voc_discovery_topic = String("homeassistant/sensor/ESP-" + String(ESP.getChipId()) + "/SGP30-VOC/config");
@@ -34,6 +34,10 @@ bool MHSGP30::begin(TwoWire &wirePort){
   }else{     
     Serial.println("[SGP30] Error initializing SGP30 sensor.");
     sensorReady= false;
+  }
+  if(leds == nullptr){
+    //throw std::invalid_argument("service must not be null");
+    sensorReady = false;
   }
   
 
@@ -61,6 +65,14 @@ void MHSGP30::read(){
   Serial.println("[SGP30] CO2 = " + String(CO2) + " TVOC = " + String(TVOC));
   
   saveBaseline();
+
+  if (CO2 < 600) {
+    leds->setLEDs(LOW,HIGH,LOW);
+  } else if (CO2 < 800) {
+    leds->setLEDs(LOW,LOW,HIGH);
+  } else {
+    leds->setLEDs(HIGH,LOW,LOW);
+  }
 }
 
 void MHSGP30::read(float temperature, float humidity){
@@ -76,7 +88,7 @@ void MHSGP30::read(float temperature, float humidity){
     setHumidity(sensHumidity);
     Serial.print("[SGP30] Absolute Humidity Compensation set to: " + String(absHumidity) +" g/m^3 ");
   }
-  //read();
+  read();
 }
 
 String MHSGP30::getDiscoveryMsg(String deviceName, deviceClass dev_class){
