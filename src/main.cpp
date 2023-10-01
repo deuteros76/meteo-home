@@ -70,8 +70,7 @@ void reconnect() {
       Serial.println("[Main] Connected to mqtt");
     } else {
       leds.setLEDs(LOW,LOW,LOW);
-      Serial.print("failed, rc=");
-      Serial.println(client.state());
+      Serial.println("failed, rc= " + String(client.state()));
       Serial.println(manager.mqttServer());
       Serial.println(manager.mqttPort().c_str());
       Serial.println("trying again in 5 seconds");
@@ -181,8 +180,7 @@ void loop() {
   }
   
   if (useSleepMode){
-    Serial.print("[Main] Going to sleep after ");
-    Serial.println((millis()-t_elapsed)/1000);
+    Serial.print("[Main] Going to sleep after " + String((millis()-t_elapsed)/1000));
     ESP.deepSleep(DEEP_SLEEP_TIME * 1000000);
   }else{
     delay(DEEP_SLEEP_TIME * 1000);
