@@ -25,7 +25,7 @@ limitations under the License.
 class MHSGP30: public MeteoSensor, public SGP30
 {
   public:
-    MHSGP30(Leds *l);
+    MHSGP30(Manager *m, Leds *l);
     bool available(); //! Detect if the device is available/connected to the board
     void read(); //! Read the values provided by de sensor
     void read(float temperature, float humidity); //! Read the values taking into accout current temperatura and humidity (better accuracy)

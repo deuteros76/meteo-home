@@ -16,21 +16,24 @@ limitations under the License.
 
 #include "mhsgp30.hpp"
 
-MHSGP30::MHSGP30(Leds *l) : SGP30(), leds(l)
+MHSGP30::MHSGP30(Manager *m, Leds *l) : SGP30(), leds(l)
 {
+  manager = m;
   co2_discovery_topic = String("homeassistant/sensor/ESP-" + String(ESP.getChipId()) +"/SGP30-CO2/config");
   voc_discovery_topic = String("homeassistant/sensor/ESP-" + String(ESP.getChipId()) + "/SGP30-VOC/config");
 }
 
 bool MHSGP30::begin(TwoWire &wirePort){
-  if (SGP30::begin(wirePort)){
+  if (manager == nullptr){
+    sensorReady = false;
+  }else if (SGP30::begin(wirePort)){
     sensorReady= true;
     initAirQuality();
     //Serial.println("[SGP30] reading baseline.");
     //readBaseline();
 
-    co2_topic = manager.deviceName() + "/SGP30/co2";
-    voc_topic = manager.deviceName() + "/SGP30/voc";
+    co2_topic = manager->deviceName() + "/SGP30/co2";
+    voc_topic = manager->deviceName() + "/SGP30/voc";
   }else{     
     Serial.println("[SGP30] Error initializing SGP30 sensor.");
     sensorReady= false;
@@ -38,8 +41,7 @@ bool MHSGP30::begin(TwoWire &wirePort){
   if(leds == nullptr){
     //throw std::invalid_argument("service must not be null");
     sensorReady = false;
-  }
-  
+  }  
 
   return sensorReady;
 }
@@ -161,8 +163,8 @@ void MHSGP30::saveBaseline(){
 
 void MHSGP30::autodiscover(){
   if (sensorReady){
-      sendDiscoveryMessage(getCO2DiscoveryTopic(), getDiscoveryMsg(manager.deviceName(),MeteoSensor::deviceClass::co2_sensor));
-      sendDiscoveryMessage(getVOCDiscoveryTopic(), getDiscoveryMsg(manager.deviceName(), MeteoSensor::deviceClass::voc_sensor));
+      sendDiscoveryMessage(getCO2DiscoveryTopic(), getDiscoveryMsg(manager->deviceName(),MeteoSensor::deviceClass::co2_sensor));
+      sendDiscoveryMessage(getVOCDiscoveryTopic(), getDiscoveryMsg(manager->deviceName(), MeteoSensor::deviceClass::voc_sensor));
    }
 }
 

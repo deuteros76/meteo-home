@@ -16,7 +16,8 @@ limitations under the License.
 
 #include "mhdht.hpp"
 
-MHDHT::MHDHT(uint8_t pin, uint8_t type): DHT(pin, type){
+MHDHT::MHDHT(Manager *m, uint8_t pin, uint8_t type): DHT(pin, type){
+  manager = m;
   temperature_discovery_topic = "homeassistant/sensor/ESP-" + String(ESP.getChipId()) +"/DHT22-temperature/config";
   humidity_discovery_topic = "homeassistant/sensor/ESP-" + String(ESP.getChipId()) + "/DHT22-humidity/config";
   heatindex_discovery_topic = "homeassistant/sensor/ESP-" + String(ESP.getChipId()) + "/DHT22-heatindex/config";
@@ -31,10 +32,12 @@ bool MHDHT::begin(){
   delay(50);
   read(); // this reading is to make available() work from the begining
 
-  if (available()){
-    temperature_topic = manager.deviceName() + "/DHT22/temperature";
-    humidity_topic = manager.deviceName() + "/DHT22/humidity";
-    heatindex_topic = manager.deviceName() + "/DHT22/heatindex";
+  if (manager == nullptr){
+    returnValue = false;
+  }else if (available()){
+    temperature_topic = manager->deviceName() + "/DHT22/temperature";
+    humidity_topic = manager->deviceName() + "/DHT22/humidity";
+    heatindex_topic = manager->deviceName() + "/DHT22/heatindex";
   }else{
     returnValue=false;
   }
@@ -89,7 +92,7 @@ String MHDHT::getDiscoveryMsg(String deviceName, deviceClass dev_class){
 
 void MHDHT::autodiscover(){
   if (available()){
-      sendDiscoveryMessage(getTemperatureDiscoveryTopic(), getDiscoveryMsg(manager.deviceName(),MeteoSensor::deviceClass::temperature_sensor));    
-      sendDiscoveryMessage(getHumidityDiscoveryTopic(), getDiscoveryMsg(manager.deviceName(), MeteoSensor::deviceClass::humidity_sensor));
+      sendDiscoveryMessage(getTemperatureDiscoveryTopic(), getDiscoveryMsg(manager->deviceName(),MeteoSensor::deviceClass::temperature_sensor));    
+      sendDiscoveryMessage(getHumidityDiscoveryTopic(), getDiscoveryMsg(manager->deviceName(), MeteoSensor::deviceClass::humidity_sensor));
   }
 }

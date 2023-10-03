@@ -21,8 +21,6 @@ limitations under the License.
 #include <PubSubClient.h>
 #include "manager.hpp"
 
-extern Manager manager;
-
 extern PubSubClient client;
 
 class MeteoSensor{
@@ -46,6 +44,9 @@ class MeteoSensor{
     String createDiscoveryMsg(String topic, String dev_class, String unit) ; 
 
     void sendDiscoveryMessage(String discoveryTopic, String message);
+  protected:
+    Manager *manager = nullptr;
+
   private:
     String discoveryMessage;
 

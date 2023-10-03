@@ -16,16 +16,21 @@ limitations under the License.
 
 #include "mhbmp.hpp"
 
-MHBMP::MHBMP(): Adafruit_BMP085(){
+MHBMP::MHBMP(Manager *m): Adafruit_BMP085(){
+  manager = m;
   temperature_discovery_topic = "homeassistant/sensor/ESP-" + String(ESP.getChipId()) +"/BMP-temperature/config";
   pressure_discovery_topic = "homeassistant/sensor/ESP-" + String(ESP.getChipId()) + "/BMP-pressure/config";
 }
 
 bool MHBMP::begin(){
-  sensorReady=Adafruit_BMP085::begin();
-  
-  pressure_topic = manager.deviceName() + "/BMP180/pressure";
-  temperature_topic = manager.deviceName() + "/BMP180/temperature";
+  if (manager == nullptr){
+    sensorReady = false;
+  }else{
+    sensorReady=Adafruit_BMP085::begin();
+    
+    pressure_topic = manager->deviceName() + "/BMP180/pressure";
+    temperature_topic = manager->deviceName() + "/BMP180/temperature";
+  }
   return sensorReady;
 }
 
@@ -68,7 +73,7 @@ String MHBMP::getDiscoveryMsg(String deviceName, deviceClass dev_class){
 
 void MHBMP::autodiscover(){
   if (available()){
-      sendDiscoveryMessage(getTemperatureDiscoveryTopic(), getDiscoveryMsg(manager.deviceName(),MeteoSensor::deviceClass::temperature_sensor));
-      sendDiscoveryMessage(getPressureDiscoveryTopic(), getDiscoveryMsg(manager.deviceName(), MeteoSensor::deviceClass::pressure_sensor));
-    }
+      sendDiscoveryMessage(getTemperatureDiscoveryTopic(), getDiscoveryMsg(manager->deviceName(),MeteoSensor::deviceClass::temperature_sensor));
+      sendDiscoveryMessage(getPressureDiscoveryTopic(), getDiscoveryMsg(manager->deviceName(), MeteoSensor::deviceClass::pressure_sensor));
+   }
 }

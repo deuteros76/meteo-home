@@ -35,11 +35,11 @@
 #define CONNECTION_TIMEOUT 20000 //Timeout for connections. The idea is to prevent for continuous conection tries. This would cause battery drain
 
 Manager manager;  //! Portal and wific connection manager
-MeteoBoard board;
-MHDHT dht(DHTPIN, DHTTYPE); //! Initializes the DHT sensor.
-MHBMP bmp; //! Bmp sensor object
+MeteoBoard board(&manager);
+MHDHT dht(&manager,DHTPIN, DHTTYPE); //! Initializes the DHT sensor.
+MHBMP bmp(&manager); //! Bmp sensor object
 Leds leds; //! To mange the three LEDs
-MHSGP30 sgp30(&leds); //! Air quality sensor. Leds is a dependency for showing the air quality state
+MHSGP30 sgp30(&manager,&leds); //! Air quality sensor. Leds is a dependency for showing the air quality state
 
 std::vector<std::unique_ptr<MeteoSensor>> sensors; // To store sensors addresses
 

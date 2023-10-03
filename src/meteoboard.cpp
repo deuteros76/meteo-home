@@ -16,14 +16,19 @@ limitations under the License.
 
 #include "meteoboard.hpp"
 
-MeteoBoard::MeteoBoard(){
+MeteoBoard::MeteoBoard(Manager *m){
+  manager = m;
   voltage_discovery_topic = "homeassistant/sensor/ESP-" + String(ESP.getChipId()) + "/ESP-voltage/config";
 }
 
 bool MeteoBoard::begin(){
-  voltage_topic = manager.deviceName() + "/ESP/vcc";
+  bool returnValue = false;
+  if (manager != nullptr){
+    voltage_topic = manager->deviceName() + "/ESP/vcc";
+    returnValue = true;
+  }
 
-  return true; //! TODO: think about this boolean function
+  return returnValue; //! TODO: think about this boolean function
 }
 
 bool MeteoBoard::available(){
@@ -50,6 +55,6 @@ String MeteoBoard::getDiscoveryMsg(String deviceName, deviceClass dev_class){
 
 void MeteoBoard::autodiscover(){
   if (available()){
-    sendDiscoveryMessage(getVoltageDiscoveryTopic(), getDiscoveryMsg(manager.deviceName(),MeteoSensor::deviceClass::voltage_sensor));
+    sendDiscoveryMessage(getVoltageDiscoveryTopic(), getDiscoveryMsg(manager->deviceName(),MeteoSensor::deviceClass::voltage_sensor));
   }
 }
