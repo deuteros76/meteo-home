@@ -16,9 +16,10 @@ limitations under the License.
 
 #include "mhsgp30.hpp"
 
-MHSGP30::MHSGP30(Manager *m, Leds *l) : SGP30(), leds(l)
+MHSGP30::MHSGP30(MeteoBoard *p, Manager *m, Leds *l) : SGP30(), leds(l)
 {
   manager = m;
+  parent = p;
   co2_discovery_topic = String("homeassistant/sensor/ESP-" + String(ESP.getChipId()) +"/SGP30-CO2/config");
   voc_discovery_topic = String("homeassistant/sensor/ESP-" + String(ESP.getChipId()) + "/SGP30-VOC/config");
 }
@@ -59,10 +60,15 @@ void MHSGP30::read(){
   measureAirQuality();
 
   float CO2 = getCO2();
-  client.publish(getCO2Topic().c_str(), String(CO2).c_str(), true); 
-  delay(50);
-  client.publish(getVOCTopic().c_str(), String(getVOC()).c_str(), true); 
-  delay(50);
+  //if (connectToMQTT())
+  //{ 
+    client.publish(getCO2Topic().c_str(), String(CO2).c_str(), true); 
+    delay(50);
+    client.publish(getVOCTopic().c_str(), String(getVOC()).c_str(), true); 
+    delay(50);
+  //}else{
+  //  Serial.println("[SGP30] Error connecting to mqtt" );
+  //}
      
   Serial.println("[SGP30] CO2 = " + String(CO2) + " TVOC = " + String(TVOC));
   
@@ -163,8 +169,8 @@ void MHSGP30::saveBaseline(){
 
 void MHSGP30::autodiscover(){
   if (sensorReady){
-      sendDiscoveryMessage(getCO2DiscoveryTopic(), getDiscoveryMsg(manager->deviceName(),MeteoSensor::deviceClass::co2_sensor));
-      sendDiscoveryMessage(getVOCDiscoveryTopic(), getDiscoveryMsg(manager->deviceName(), MeteoSensor::deviceClass::voc_sensor));
+      parent->sendDiscoveryMessage(getCO2DiscoveryTopic(), getDiscoveryMsg(manager->deviceName(),MeteoSensor::deviceClass::co2_sensor));
+      parent->sendDiscoveryMessage(getVOCDiscoveryTopic(), getDiscoveryMsg(manager->deviceName(), MeteoSensor::deviceClass::voc_sensor));
    }
 }
 

@@ -16,8 +16,9 @@ limitations under the License.
 
 #include "mhdht.hpp"
 
-MHDHT::MHDHT(Manager *m, uint8_t pin, uint8_t type): DHT(pin, type){
+MHDHT::MHDHT(MeteoBoard *p, Manager *m, uint8_t pin, uint8_t type): DHT(pin, type){
   manager = m;
+  parent = p;
   temperature_discovery_topic = "homeassistant/sensor/ESP-" + String(ESP.getChipId()) +"/DHT22-temperature/config";
   humidity_discovery_topic = "homeassistant/sensor/ESP-" + String(ESP.getChipId()) + "/DHT22-humidity/config";
   heatindex_discovery_topic = "homeassistant/sensor/ESP-" + String(ESP.getChipId()) + "/DHT22-heatindex/config";
@@ -66,14 +67,18 @@ void MHDHT::read(){
     humidity = readHumidity();
     heatindex = computeHeatIndex(temperature, humidity, false);
   }
-
-  client.publish(getTemperatureTopic().c_str(), String(getTemperature()).c_str(), true);
-  delay(50);
-  client.publish(getHumidityTopic().c_str(), String(getHumidity()).c_str(), true);
-  delay(50);
-  client.publish(getHeatindexTopic().c_str(), String(getHeatIndex()).c_str(), true);
-  delay(50);
-     
+   
+  //if (connectToMQTT()){
+    client.publish(getTemperatureTopic().c_str(), String(getTemperature()).c_str(), true);
+    delay(50);
+    client.publish(getHumidityTopic().c_str(), String(getHumidity()).c_str(), true);
+    delay(50);
+    client.publish(getHeatindexTopic().c_str(), String(getHeatIndex()).c_str(), true);
+    delay(50);
+  //}else{
+   // Serial.println("[DHT] Error connecting to mqtt" );
+  //}
+      
   Serial.println("[DHT] Temperature = " + String(temperature) + " Humidity = " + String(humidity) +" HeatIndex = " + String(heatindex));
   values_read= false;
 }
@@ -92,7 +97,7 @@ String MHDHT::getDiscoveryMsg(String deviceName, deviceClass dev_class){
 
 void MHDHT::autodiscover(){
   if (available()){
-      sendDiscoveryMessage(getTemperatureDiscoveryTopic(), getDiscoveryMsg(manager->deviceName(),MeteoSensor::deviceClass::temperature_sensor));    
-      sendDiscoveryMessage(getHumidityDiscoveryTopic(), getDiscoveryMsg(manager->deviceName(), MeteoSensor::deviceClass::humidity_sensor));
+     parent->sendDiscoveryMessage(getTemperatureDiscoveryTopic(), getDiscoveryMsg(manager->deviceName(),MeteoSensor::deviceClass::temperature_sensor));    
+     parent->sendDiscoveryMessage(getHumidityDiscoveryTopic(), getDiscoveryMsg(manager->deviceName(), MeteoSensor::deviceClass::humidity_sensor));
   }
 }

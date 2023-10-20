@@ -23,7 +23,7 @@ limitations under the License.
 
 class MHDHT: public MeteoSensor, public DHT{
   public:
-    MHDHT(Manager *m, uint8_t pin, uint8_t type);
+    MHDHT(MeteoBoard *p, Manager *m, uint8_t pin, uint8_t type);
     bool available(); //! Detect if the device is available/connected to the board
     void read(); //! Read the values provided by de sensor
     String getDiscoveryMsg(String deviceName, deviceClass dev_class); //! Returns a Json with the complete discovery message

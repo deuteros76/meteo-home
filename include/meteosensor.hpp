@@ -20,8 +20,11 @@ limitations under the License.
 #include <ArduinoJson.h> 
 #include <PubSubClient.h>
 #include "manager.hpp"
+#include "meteoboard.hpp"
 
 extern PubSubClient client;
+
+class MeteoBoard;
 
 class MeteoSensor{
   public:
@@ -43,14 +46,13 @@ class MeteoSensor{
      */
     String createDiscoveryMsg(String topic, String dev_class, String unit) ; 
 
-    void sendDiscoveryMessage(String discoveryTopic, String message);
   protected:
     Manager *manager = nullptr;
+    MeteoBoard *parent;
 
   private:
     String discoveryMessage;
 
-    bool connectToMQTT(); //! Connect to mqtt server
 };
 
 #endif

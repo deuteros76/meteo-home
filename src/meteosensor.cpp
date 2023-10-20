@@ -17,7 +17,6 @@ limitations under the License.
 #include "meteosensor.hpp"
 
 String MeteoSensor::createDiscoveryMsg(String topic,  String dev_class, String unit) {
-
   DynamicJsonDocument doc(1024);
   String buffer;
   String name = "sensor.meteohome";
@@ -25,7 +24,7 @@ String MeteoSensor::createDiscoveryMsg(String topic,  String dev_class, String u
 
   char charBuf[50];
   topic.toCharArray(charBuf, 50);
-  
+
   token = strtok (charBuf,"/");
   while (token != NULL)
   {
@@ -46,44 +45,4 @@ String MeteoSensor::createDiscoveryMsg(String topic,  String dev_class, String u
   serializeJson(doc, buffer);
 
   return buffer;
-}
-  
-void MeteoSensor::sendDiscoveryMessage(String discoveryTopic, String message){
-    char buf[256];
-
-    connectToMQTT();
-    message.toCharArray(buf, message.length() + 1);
-    if (client.beginPublish (discoveryTopic.c_str(), message.length(), true)) {
-      for (int i = 0; i <= message.length() + 1; i++) {
-        client.write(buf[i]);
-      }
-      client.endPublish();
-    } else {
-      Serial.println(String("[Main] Error sending discovery message to ") + discoveryTopic);
-    }
-
-    client.disconnect();
-}
-
-bool MeteoSensor::connectToMQTT(){
-  bool returnValue=true;
-  const int timeout = 20000;
-
-  // Loop until we're reconnected
-  long t1 = millis();
-
-  while (!client.connected() && (millis() - t1 < timeout)) {
-    String clientName("ESPClient-");
-    clientName.concat(ESP.getChipId());
-    Serial.print("[MeteoSensor] Attempting MQTT connection... ");
-    Serial.println(clientName.c_str());
-    if (client.connect(clientName.c_str())) {
-      Serial.println("[MeteoSensor] Connected to mqtt");
-    } else {
-      Serial.println("[MeteoSensor] Failed to connect to mqtt");
-      returnValue = false;
-    }
-  }
-
-  return returnValue;
 }
