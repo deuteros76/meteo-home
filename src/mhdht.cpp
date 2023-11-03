@@ -69,11 +69,11 @@ void MHDHT::read(){
   }
    
   //if (connectToMQTT()){
-    client.publish(getTemperatureTopic().c_str(), String(getTemperature()).c_str(), true);
+    parent->getClient()->publish(getTemperatureTopic().c_str(), String(getTemperature()).c_str(), true);
     delay(50);
-    client.publish(getHumidityTopic().c_str(), String(getHumidity()).c_str(), true);
+    parent->getClient()->publish(getHumidityTopic().c_str(), String(getHumidity()).c_str(), true);
     delay(50);
-    client.publish(getHeatindexTopic().c_str(), String(getHeatIndex()).c_str(), true);
+    parent->getClient()->publish(getHeatindexTopic().c_str(), String(getHeatIndex()).c_str(), true);
     delay(50);
   //}else{
    // Serial.println("[DHT] Error connecting to mqtt" );

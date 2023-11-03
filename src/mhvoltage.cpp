@@ -41,7 +41,7 @@ bool MHVoltage::available(){
 
 void MHVoltage::read(){
   voltage = getVcc()/1000.0;
-     
+  parent->getClient()->publish(getVoltageTopic().c_str(), String(getVoltage()).c_str(), true);    
   Serial.println("[Board] Voltage = " + String(voltage));
 }
 

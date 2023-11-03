@@ -39,22 +39,19 @@ WiFiClient espClient;
 PubSubClient client(espClient);
 
 Manager manager;  //! Portal and wific connection manager
-MeteoBoard board(&manager);
+MeteoBoard board(&manager, &client);
 MHDHT dht(&board, &manager,DHTPIN, DHTTYPE); //! Initializes the DHT sensor.
 MHBMP bmp(&board, &manager); //! Bmp sensor object
 Leds leds; //! To mange the three LEDs
 MHSGP30 sgp30(&board, &manager,&leds); //! Air quality sensor. Leds is a dependency for showing the air quality state
 MHVoltage voltage(&board, &manager);
 
-//std::vector<std::unique_ptr<MeteoSensor>> sensors; // To store sensors addresses
-
 long t_elapsed;
 
 bool useSleepMode=false;
 uint32_t first_boot_done=0; //! Used with deepsleep mode. Send the discovery messages only in the first boot and not after sleeping.
 
-// (https://arduino-esp8266.readthedocs.io/en/latest/libraries.html) Add the following line to the top of your sketch to use getVcc:
-ADC_MODE(ADC_VCC); 
+ADC_MODE(ADC_VCC); // (https://arduino-esp8266.readthedocs.io/en/latest/libraries.html) Add the following line to the top of your sketch to use getVcc:
 
 void setup() {
   // Check if this is the first boot (Usefull if using deep sleep mode)
@@ -100,9 +97,9 @@ void setup() {
   }
 
   //Setup mqtt
-  IPAddress addr;
-  addr.fromString(manager.mqttServer());
-  client.setServer(addr, atoi(manager.mqttPort().c_str())); 
+  //IPAddress addr;
+  //addr.fromString(manager.mqttServer());
+  //client.setServer(addr, atoi(manager.mqttPort().c_str())); 
 
   if (first_boot_done != 1){
     first_boot_done = 1;

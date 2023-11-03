@@ -62,9 +62,9 @@ void MHSGP30::read(){
   float CO2 = getCO2();
   //if (connectToMQTT())
   //{ 
-    client.publish(getCO2Topic().c_str(), String(CO2).c_str(), true); 
+    parent->getClient()->publish(getCO2Topic().c_str(), String(CO2).c_str(), true); 
     delay(50);
-    client.publish(getVOCTopic().c_str(), String(getVOC()).c_str(), true); 
+    parent->getClient()->publish(getVOCTopic().c_str(), String(getVOC()).c_str(), true); 
     delay(50);
   //}else{
   //  Serial.println("[SGP30] Error connecting to mqtt" );

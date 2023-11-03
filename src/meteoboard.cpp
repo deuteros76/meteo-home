@@ -16,8 +16,15 @@ limitations under the License.
 
 #include "meteoboard.hpp"
 
-MeteoBoard::MeteoBoard(Manager *m){
+MeteoBoard::MeteoBoard(Manager *m, PubSubClient *c){
   manager = m;
+
+  client = c;
+  
+  //Setup mqtt
+  IPAddress addr;
+  addr.fromString(manager->mqttServer());
+  client->setServer(addr, atoi(manager->mqttPort().c_str())); 
 }
 
 bool MeteoBoard::begin(){
@@ -33,7 +40,7 @@ void MeteoBoard::autodiscover(){
   connectToMQTT();
 
   for (auto &sensor : sensors) {
-    Serial.println("[Board] Client state " + String(client.state()));
+    Serial.println("[Board] Client state " + String(client->state()));
     connectToMQTT();
     if (sensor->available()){
       sensor->autodiscover();
@@ -63,19 +70,19 @@ bool MeteoBoard::connectToMQTT(){
   // Loop until we're reconnected
   long t1 = millis();
 
-  while (!client.connected() && (millis() - t1 < timeout)) {
+  while (!client->connected() && (millis() - t1 < timeout)) {
     String clientName("ESPClient-");
     clientName.concat(ESP.getChipId());
     Serial.print("[Board] Attempting MQTT connection... ");
     Serial.println(clientName.c_str());
-    if (client.connect(clientName.c_str())) {
+    if (client->connect(clientName.c_str())) {
       Serial.println("[Board] Connected to mqtt");
     } else {
       Serial.println("[Board] Failed to connect to mqtt");
       returnValue = false;
     }
   }
-  client.loop();
+  client->loop();
   
   return returnValue;
 }
@@ -85,13 +92,13 @@ void MeteoBoard::sendDiscoveryMessage(String discoveryTopic, String message){
 
     connectToMQTT();
     message.toCharArray(buf, message.length() + 1);
-    if (client.beginPublish (discoveryTopic.c_str(), message.length(), false)) {
+    if (client->beginPublish (discoveryTopic.c_str(), message.length(), true)) {
       for (int i = 0; i <= message.length() + 1; i++) {
-        client.write(buf[i]);
+        client->write(buf[i]);
       }
-      client.endPublish();
+      client->endPublish();
     } else {
       Serial.println(String("[Sensor] Error sending discovery message to ") + discoveryTopic);
     }
-    client.disconnect();
+    client->disconnect();
 }

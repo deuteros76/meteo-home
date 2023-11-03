@@ -22,8 +22,6 @@ limitations under the License.
 #include "meteosensor.hpp"
 #include "manager.hpp"
 
-extern PubSubClient client;
-
 class MeteoSensor;
 
 /**
@@ -33,7 +31,7 @@ class MeteoSensor;
  */
 class MeteoBoard: public EspClass{
   public:
-    MeteoBoard(Manager *m);
+    MeteoBoard(Manager *m, PubSubClient *c);
     bool begin(); //! Redefinition/override of the begin function
 
     void autodiscover(); //! Send autodiscovery messages to Home Assistant
@@ -43,11 +41,13 @@ class MeteoBoard: public EspClass{
     void processSensors();
 
     bool connectToMQTT(); //! Connect to mqtt server
+    PubSubClient *getClient(){return client;}
     void sendDiscoveryMessage(String discoveryTopic, String message);
 
   private:    
     Manager *manager;
-
+    PubSubClient *client;
+    
     std::vector<std::unique_ptr<MeteoSensor>> sensors; // To store sensors addresses
 };
 
