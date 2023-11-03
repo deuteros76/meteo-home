@@ -16,25 +16,39 @@ limitations under the License.
 
 #include "mhsgp30.hpp"
 
-MHSGP30::MHSGP30(): SGP30(){
-  co2_discovery_topic = "homeassistant/sensor/ESP-" + String(ESP.getChipId()) +"/SGP30-CO2/config";
-  voc_discovery_topic = "homeassistant/sensor/ESP-" + String(ESP.getChipId()) + "/SGP30-VOC/config";
+MHSGP30::MHSGP30(MeteoBoard *p, Manager *m, Leds *l) : SGP30(), leds(l)
+{
+  manager = m;
+  parent = p;
+  co2_discovery_topic = String("homeassistant/sensor/ESP-" + String(ESP.getChipId()) +"/SGP30-CO2/config");
+  voc_discovery_topic = String("homeassistant/sensor/ESP-" + String(ESP.getChipId()) + "/SGP30-VOC/config");
 }
 
-bool MHSGP30::begin(){
-  sensorReady=SGP30::begin();
-  initAirQuality();
-  readBaseline();
-  
-  co2_discovery_topic = manager.deviceName() + "/SGP30/co2";
-  voc_discovery_topic = manager.deviceName() + "/SGP30/voc";
+bool MHSGP30::begin(TwoWire &wirePort){
+  if (manager == nullptr){
+    sensorReady = false;
+  }else if (SGP30::begin(wirePort)){
+    sensorReady= true;
+    initAirQuality();
+    Serial.println("[SGP30] reading baseline.");
+    readBaseline();
+
+    co2_topic = manager->deviceName() + "/SGP30/co2";
+    voc_topic = manager->deviceName() + "/SGP30/voc";
+  }else{     
+    Serial.println("[SGP30] Error initializing SGP30 sensor.");
+    sensorReady= false;
+  }
+  if(leds == nullptr){
+    //throw std::invalid_argument("service must not be null");
+    sensorReady = false;
+  }  
 
   return sensorReady;
 }
 
 bool MHSGP30::available(){
   bool returnValue=true;
-
   if (!sensorReady){
     returnValue=false;  
   }
@@ -42,14 +56,27 @@ bool MHSGP30::available(){
 }
 
 void MHSGP30::read(){
-    //read dht22 value
+  //read SGP30 values
   measureAirQuality();
+
+  float CO2 = getCO2();
+
+  parent->getClient()->publish(getCO2Topic().c_str(), String(CO2).c_str(), true); 
+  delay(50);
+  parent->getClient()->publish(getVOCTopic().c_str(), String(getVOC()).c_str(), true); 
+  delay(50);
      
-  Serial.print(CO2);
-  Serial.print(" ");
-  Serial.println(TVOC);
+  Serial.println("[SGP30] CO2 = " + String(CO2) + " TVOC = " + String(TVOC));
   
   saveBaseline();
+
+  if (CO2 < 600) {
+    leds->setLEDs(LOW,HIGH,LOW);
+  } else if (CO2 < 800) {
+    leds->setLEDs(LOW,LOW,HIGH);
+  } else {
+    leds->setLEDs(HIGH,LOW,LOW);
+  }
 }
 
 void MHSGP30::read(float temperature, float humidity){
@@ -63,9 +90,7 @@ void MHSGP30::read(float temperature, float humidity){
     //Set the humidity compensation on the SGP30 to the measured value
     //If no humidity sensor attached, sensHumidity should be 0 and sensor will use default
     setHumidity(sensHumidity);
-    Serial.print("Absolute Humidity Compensation set to: ");
-    Serial.print(absHumidity);
-    Serial.println("g/m^3 ");
+    Serial.print("[SGP30] Absolute Humidity Compensation set to: " + String(absHumidity) +" g/m^3 ");
   }
   read();
 }
@@ -78,7 +103,6 @@ String MHSGP30::getDiscoveryMsg(String deviceName, deviceClass dev_class){
     case voc_sensor: unit = "ppb\t"; className="volatile_organic_compounds"; topic= deviceName+"/SGP30/voc"; break;
     default: break;
   }
-
   return createDiscoveryMsg(topic, className, unit);
 }
 
@@ -99,7 +123,7 @@ void MHSGP30::readBaseline(){
         DynamicJsonDocument json(1024);
         DeserializationError error =deserializeJson(json,buf.get());
         if (!error) {
-          Serial.println("\nparsed json");          
+          Serial.println("\n[SGP30] parsed json");          
           serializeJson(json, Serial);
         
 
@@ -108,12 +132,12 @@ void MHSGP30::readBaseline(){
           setBaseline(baselineCO2, baselineTVOC);
           Serial.println(String("\n[SGP30] Restoring baseline from file (CO2/TVOC):")+baselineCO2+"/"+baselineTVOC);
         }else{
-          Serial.println("\nBaseline json is corrpupt.");      
+          Serial.println("\n[SGP30] Baseline json is corrpupt.");      
         }
       }
       blFile.close();
     }else{
-      Serial.println("\nBaseline file not found.");      
+      Serial.println("\n[SGP30] Baseline file not found.");      
     }
   }
 }
@@ -130,7 +154,7 @@ void MHSGP30::saveBaseline(){
       
     File blFile = SPIFFS.open("/baseline.json", "w");
     if (!blFile) {
-      Serial.println("failed to open config file for writing");
+      Serial.println("[SGP30] failed to open config file for writing");
     }
     
     serializeJson(json, blFile);
@@ -138,7 +162,14 @@ void MHSGP30::saveBaseline(){
   }
  }
 
- double MHSGP30::RHtoAbsolute (float relHumidity, float tempC) {
+void MHSGP30::autodiscover(){
+  if (sensorReady){
+      parent->sendDiscoveryMessage(getCO2DiscoveryTopic(), getDiscoveryMsg(manager->deviceName(),MeteoSensor::deviceClass::co2_sensor));
+      parent->sendDiscoveryMessage(getVOCDiscoveryTopic(), getDiscoveryMsg(manager->deviceName(), MeteoSensor::deviceClass::voc_sensor));
+   }
+}
+
+double MHSGP30::RHtoAbsolute (float relHumidity, float tempC) {
   double eSat = 6.11 * pow(10.0, (7.5 * tempC / (237.7 + tempC)));
   double vaporPressure = (relHumidity * eSat) / 100; //millibars
   double absHumidity = 1000 * vaporPressure * 100 / ((tempC + 273) * 461.5); //Ideal gas law with unit conversions

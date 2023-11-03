@@ -16,16 +16,22 @@ limitations under the License.
 
 #include "mhbmp.hpp"
 
-MHBMP::MHBMP(): Adafruit_BMP085(){
+MHBMP::MHBMP( MeteoBoard *p, Manager *m): Adafruit_BMP085(){
+  manager = m;
+  parent = p;
   temperature_discovery_topic = "homeassistant/sensor/ESP-" + String(ESP.getChipId()) +"/BMP-temperature/config";
   pressure_discovery_topic = "homeassistant/sensor/ESP-" + String(ESP.getChipId()) + "/BMP-pressure/config";
 }
 
 bool MHBMP::begin(){
-  sensorReady=Adafruit_BMP085::begin();
-  
-  pressure_topic = manager.deviceName() + "/BMP180/pressure";
-  temperature_topic = manager.deviceName() + "/BMP180/temperature";
+  if (manager == nullptr){
+    sensorReady = false;
+  }else{
+    sensorReady=Adafruit_BMP085::begin();
+    
+    pressure_topic = manager->deviceName() + "/BMP180/pressure";
+    temperature_topic = manager->deviceName() + "/BMP180/temperature";
+  }
   return sensorReady;
 }
 
@@ -43,10 +49,13 @@ void MHBMP::read(){
   if (sensorReady){
     temperature = readTemperature(); 
     pressure = readPressure()/100.0; //Dividing by 100 we get The pressure in Bars
-      
-    Serial.print(temperature);
-    Serial.print(" ");
-    Serial.println(pressure);
+
+    parent->getClient()->publish(getPressureTopic().c_str(), String(getPressure()).c_str(), true); 
+    delay(50);
+    parent->getClient()->publish(getTemperatureTopic().c_str(), String(getTemperature()).c_str(), true); 
+    delay(50);
+
+    Serial.println("[BMP] Temperature = " + String(temperature) + " Pressure = " + String(pressure));
   }
 }
 
@@ -55,9 +64,16 @@ String MHBMP::getDiscoveryMsg(String deviceName, deviceClass dev_class){
 
   switch (dev_class){
     case temperature_sensor: unit = "ºC"; className="temperature"; topic= deviceName+"/BMP180/temperature"; break;
-    case pressure_sensor: unit = "%"; className="atmospheric_pressure"; topic= deviceName+"/BMP180/pressure"; break;
+    case pressure_sensor: unit = "Pa"; className="atmospheric_pressure"; topic= deviceName+"/BMP180/pressure"; break;
     default: break;
   }
 
   return createDiscoveryMsg(topic, className, unit);
+}
+
+void MHBMP::autodiscover(){
+  if (available()){
+      parent->sendDiscoveryMessage(getTemperatureDiscoveryTopic(), getDiscoveryMsg(manager->deviceName(),MeteoSensor::deviceClass::temperature_sensor));
+      parent->sendDiscoveryMessage(getPressureDiscoveryTopic(), getDiscoveryMsg(manager->deviceName(), MeteoSensor::deviceClass::pressure_sensor));
+   }
 }
