@@ -19,14 +19,16 @@ limitations under the License.
 
 #include "meteosensor.hpp"
 #include <DHT.h>
+#include <typeinfo>
 
-class MHDHT: MeteoSensor, public DHT{
+class MHDHT: public MeteoSensor, public DHT{
   public:
-    MHDHT(uint8_t pin, uint8_t type);
+    MHDHT(MeteoBoard *p, Manager *m, uint8_t pin, uint8_t type);
     bool available(); //! Detect if the device is available/connected to the board
     void read(); //! Read the values provided by de sensor
     String getDiscoveryMsg(String deviceName, deviceClass dev_class); //! Returns a Json with the complete discovery message
-        
+    void autodiscover(); //! Send autodiscovery messages to Home Assistant
+         
     bool begin(); //! Redefinition/override of the begin function
 
     float getTemperature(){return temperature;}
@@ -53,6 +55,8 @@ class MHDHT: MeteoSensor, public DHT{
     String temperature_topic;
     String humidity_topic;
     String heatindex_topic;
+
+    bool values_read; //! Flag to check if the sensr has been recently read. Used to force available function to read new values if the device is not available.
 
 };
 #endif

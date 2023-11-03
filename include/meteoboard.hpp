@@ -18,35 +18,37 @@ limitations under the License.
 
 #include <Arduino.h>
 #include <ArduinoJson.h> 
+#include <vector>
 #include "meteosensor.hpp"
+#include "manager.hpp"
+
+class MeteoSensor;
 
 /**
  * @brief A meteoboard is a developer board (mmicrocontroller). Many boad include their own sensors
  * so this class inherits MeteoSensor
  * 
  */
-class MeteoBoard: MeteoSensor, public EspClass{
+class MeteoBoard: public EspClass{
   public:
-    MeteoBoard();
-    bool available(); //! Detect if the device is available/connected to the board
-    void read(); //! Read the values provided by de sensor
-    String getDiscoveryMsg(String deviceName, deviceClass dev_class); //! Returns a Json with the complete discovery message
-
+    MeteoBoard(Manager *m, PubSubClient *c);
     bool begin(); //! Redefinition/override of the begin function
 
-    float getVoltage(){return voltage;}
+    void autodiscover(); //! Send autodiscovery messages to Home Assistant
+    
 
-    String getVoltageDiscoveryTopic(){return voltage_discovery_topic;}
+    template<class T> void addSensor(T *sensor){sensors.emplace_back(sensor);}
+    void processSensors();
 
-    String getVoltageTopic(){return voltage_topic;}
+    bool connectToMQTT(); //! Connect to mqtt server
+    PubSubClient *getClient(){return client;}
+    void sendDiscoveryMessage(String discoveryTopic, String message);
 
-  private:
-    bool sensorReady;
-    float voltage = 0;
-
-    String voltage_discovery_topic;
-
-    String voltage_topic;
+  private:    
+    Manager *manager;
+    PubSubClient *client;
+    
+    std::vector<std::unique_ptr<MeteoSensor>> sensors; // To store sensors addresses
 };
 
 #endif

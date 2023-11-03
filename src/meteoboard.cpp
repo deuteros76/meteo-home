@@ -16,34 +16,89 @@ limitations under the License.
 
 #include "meteoboard.hpp"
 
-MeteoBoard::MeteoBoard(){
-  voltage_discovery_topic = "homeassistant/sensor/ESP-" + String(ESP.getChipId()) + "/ESP-voltage/config";
+MeteoBoard::MeteoBoard(Manager *m, PubSubClient *c){
+  manager = m;
+
+  client = c;
+  
+  //Setup mqtt
+  IPAddress addr;
+  addr.fromString(manager->mqttServer());
+  client->setServer(addr, atoi(manager->mqttPort().c_str())); 
 }
 
 bool MeteoBoard::begin(){
-  voltage_topic = manager.deviceName() + "/ESP/vcc";
+  bool returnValue = false;
+  if (manager != nullptr){
+    returnValue = true;
+  }
 
-  return true; //! TODO: think about this boolean function
+  return returnValue; //! TODO: think about this boolean function
 }
 
-bool MeteoBoard::available(){
-  bool returnValue=true;
+void MeteoBoard::autodiscover(){
+  connectToMQTT();
 
-   //! TODO: think about this boolean function
+  for (auto &sensor : sensors) {
+    Serial.println("[Board] Client state " + String(client->state()));
+    connectToMQTT();
+    if (sensor->available()){
+      sensor->autodiscover();
+    }else{
+      Serial.println("[Board] Error sending discovery message of sensor ");    
+    }
+  }
+}
+
+void MeteoBoard::processSensors(){
+  connectToMQTT();
+
+  for (auto &sensor : sensors) {
+    connectToMQTT();
+    if (sensor->available()){
+      sensor->read();
+    }else{ 
+      Serial.println("[Board] Error reading sensor values");    
+    }
+  }  
+}
+
+bool MeteoBoard::connectToMQTT(){
+  bool returnValue=true;
+  const int timeout = 20000;
+
+  // Loop until we're reconnected
+  long t1 = millis();
+
+  while (!client->connected() && (millis() - t1 < timeout)) {
+    String clientName("ESPClient-");
+    clientName.concat(ESP.getChipId());
+    Serial.print("[Board] Attempting MQTT connection... ");
+    Serial.println(clientName.c_str());
+    if (client->connect(clientName.c_str())) {
+      Serial.println("[Board] Connected to mqtt");
+    } else {
+      Serial.println("[Board] Failed to connect to mqtt");
+      returnValue = false;
+    }
+  }
+  client->loop();
+  
   return returnValue;
 }
 
-void MeteoBoard::read(){
-    //read dht22 value
-  voltage = getVcc()/1000.0;
-     
-  Serial.println(voltage);
-}
+void MeteoBoard::sendDiscoveryMessage(String discoveryTopic, String message){
+    char buf[256];
 
-String MeteoBoard::getDiscoveryMsg(String deviceName, deviceClass dev_class){
-  String unit, className;
-
-  unit = "V"; 
-  className="voltage"; 
-  return createDiscoveryMsg(voltage_topic, className, unit);
+    connectToMQTT();
+    message.toCharArray(buf, message.length() + 1);
+    if (client->beginPublish (discoveryTopic.c_str(), message.length(), true)) {
+      for (int i = 0; i <= message.length() + 1; i++) {
+        client->write(buf[i]);
+      }
+      client->endPublish();
+    } else {
+      Serial.println(String("[Sensor] Error sending discovery message to ") + discoveryTopic);
+    }
+    client->disconnect();
 }

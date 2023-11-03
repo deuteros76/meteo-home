@@ -17,7 +17,6 @@ limitations under the License.
 #include "meteosensor.hpp"
 
 String MeteoSensor::createDiscoveryMsg(String topic,  String dev_class, String unit) {
-
   DynamicJsonDocument doc(1024);
   String buffer;
   String name = "sensor.meteohome";
@@ -25,15 +24,15 @@ String MeteoSensor::createDiscoveryMsg(String topic,  String dev_class, String u
 
   char charBuf[50];
   topic.toCharArray(charBuf, 50);
-  
+
   token = strtok (charBuf,"/");
   while (token != NULL)
   {
     name= name + "-" + token;
-    printf ("Token: %s\n",token);
+    //printf ("Token: %s\n",token);
     token = strtok (NULL, "/");
   }
-  printf ("Name is: %s\n",name);
+  //printf ("Name is: %s\n",name);
 
   doc["name"] = name;
   doc["stat_cla"] = "measurement";
@@ -47,4 +46,3 @@ String MeteoSensor::createDiscoveryMsg(String topic,  String dev_class, String u
 
   return buffer;
 }
-  

@@ -16,43 +16,71 @@ limitations under the License.
 
 #include "mhdht.hpp"
 
-MHDHT::MHDHT(uint8_t pin, uint8_t type): DHT(pin, type){
+MHDHT::MHDHT(MeteoBoard *p, Manager *m, uint8_t pin, uint8_t type): DHT(pin, type){
+  manager = m;
+  parent = p;
   temperature_discovery_topic = "homeassistant/sensor/ESP-" + String(ESP.getChipId()) +"/DHT22-temperature/config";
   humidity_discovery_topic = "homeassistant/sensor/ESP-" + String(ESP.getChipId()) + "/DHT22-humidity/config";
   heatindex_discovery_topic = "homeassistant/sensor/ESP-" + String(ESP.getChipId()) + "/DHT22-heatindex/config";
+
+  values_read = false;
 }
 
 bool MHDHT::begin(){
-  DHT::begin();
-  
-  read(); // this reading is to make available() work from the begining
-  temperature_topic = manager.deviceName() + "/DHT22/temperature";
-  humidity_topic = manager.deviceName() + "/DHT22/humidity";
-  heatindex_topic = manager.deviceName() + "/DHT22/heatindex";
+  bool returnValue=true;
 
-  return true; //! TODO: think about this boolean functio
+  DHT::begin();
+  delay(50);
+  read(); // this reading is to make available() work from the begining
+
+  if (manager == nullptr){
+    returnValue = false;
+  }else if (available()){
+    temperature_topic = manager->deviceName() + "/DHT22/temperature";
+    humidity_topic = manager->deviceName() + "/DHT22/humidity";
+    heatindex_topic = manager->deviceName() + "/DHT22/heatindex";
+  }else{
+    returnValue=false;
+  }
+  return returnValue; //! TODO: think about this boolean functio
 }
 
 bool MHDHT::available(){
   bool returnValue=true;
 
   if (isnan(temperature) || isnan(humidity)){
-    returnValue=false;
+    if (values_read){
+      returnValue=false;
+    }else{
+      values_read= true;
+      returnValue = (!isnan(temperature) && !isnan(humidity));
+    }
+
   }
   return returnValue;
 }
 
 void MHDHT::read(){
     //read dht22 value
-  temperature = readTemperature();    
-  humidity = readHumidity();
-  heatindex = computeHeatIndex(temperature, humidity, false);
-     
-  Serial.print(temperature);
-  Serial.print(" ");
-  Serial.print(humidity);
-  Serial.print(" ");
-  Serial.println(heatindex);
+  if (!values_read){
+    temperature = readTemperature();    
+    humidity = readHumidity();
+    heatindex = computeHeatIndex(temperature, humidity, false);
+  }
+   
+  //if (connectToMQTT()){
+    parent->getClient()->publish(getTemperatureTopic().c_str(), String(getTemperature()).c_str(), true);
+    delay(50);
+    parent->getClient()->publish(getHumidityTopic().c_str(), String(getHumidity()).c_str(), true);
+    delay(50);
+    parent->getClient()->publish(getHeatindexTopic().c_str(), String(getHeatIndex()).c_str(), true);
+    delay(50);
+  //}else{
+   // Serial.println("[DHT] Error connecting to mqtt" );
+  //}
+      
+  Serial.println("[DHT] Temperature = " + String(temperature) + " Humidity = " + String(humidity) +" HeatIndex = " + String(heatindex));
+  values_read= false;
 }
 
 String MHDHT::getDiscoveryMsg(String deviceName, deviceClass dev_class){
@@ -65,4 +93,11 @@ String MHDHT::getDiscoveryMsg(String deviceName, deviceClass dev_class){
   }
 
   return createDiscoveryMsg(topic, className, unit);
+}
+
+void MHDHT::autodiscover(){
+  if (available()){
+     parent->sendDiscoveryMessage(getTemperatureDiscoveryTopic(), getDiscoveryMsg(manager->deviceName(),MeteoSensor::deviceClass::temperature_sensor));    
+     parent->sendDiscoveryMessage(getHumidityDiscoveryTopic(), getDiscoveryMsg(manager->deviceName(), MeteoSensor::deviceClass::humidity_sensor));
+  }
 }
