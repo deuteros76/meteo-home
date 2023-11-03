@@ -30,8 +30,8 @@ bool MHSGP30::begin(TwoWire &wirePort){
   }else if (SGP30::begin(wirePort)){
     sensorReady= true;
     initAirQuality();
-    //Serial.println("[SGP30] reading baseline.");
-    //readBaseline();
+    Serial.println("[SGP30] reading baseline.");
+    readBaseline();
 
     co2_topic = manager->deviceName() + "/SGP30/co2";
     voc_topic = manager->deviceName() + "/SGP30/voc";
@@ -60,15 +60,11 @@ void MHSGP30::read(){
   measureAirQuality();
 
   float CO2 = getCO2();
-  //if (connectToMQTT())
-  //{ 
-    parent->getClient()->publish(getCO2Topic().c_str(), String(CO2).c_str(), true); 
-    delay(50);
-    parent->getClient()->publish(getVOCTopic().c_str(), String(getVOC()).c_str(), true); 
-    delay(50);
-  //}else{
-  //  Serial.println("[SGP30] Error connecting to mqtt" );
-  //}
+
+  parent->getClient()->publish(getCO2Topic().c_str(), String(CO2).c_str(), true); 
+  delay(50);
+  parent->getClient()->publish(getVOCTopic().c_str(), String(getVOC()).c_str(), true); 
+  delay(50);
      
   Serial.println("[SGP30] CO2 = " + String(CO2) + " TVOC = " + String(TVOC));
   
@@ -113,7 +109,7 @@ String MHSGP30::getDiscoveryMsg(String deviceName, deviceClass dev_class){
 
 
 void MHSGP30::readBaseline(){
-  /*if (SPIFFS.begin()) {
+  if (SPIFFS.begin()) {
     //SPIFFS.remove("/baseline.json"); // Uncomment to remove the file if the device sends extremly high values of CO2 / TVOC
     if (SPIFFS.exists("/baseline.json")) {
       //file exists, reading and loading
@@ -143,11 +139,11 @@ void MHSGP30::readBaseline(){
     }else{
       Serial.println("\n[SGP30] Baseline file not found.");      
     }
-  }*/
+  }
 }
 
 void MHSGP30::saveBaseline(){
-  /*DynamicJsonDocument json(1024);
+  DynamicJsonDocument json(1024);
 
   getBaseline();  
 
@@ -164,7 +160,6 @@ void MHSGP30::saveBaseline(){
     serializeJson(json, blFile);
     blFile.close();
   }
-  */
  }
 
 void MHSGP30::autodiscover(){
