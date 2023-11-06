@@ -21,4 +21,4 @@ jobs:
         pip install -U https://github.com/platformio/platformio-core/archive/v6.1.11.zip
 
     - name: build
-      run: pio ci  -c platformio.ini   src/
+      run: pio ci  -c platformio.ini -e d1_mini_lite -l include/  src/
