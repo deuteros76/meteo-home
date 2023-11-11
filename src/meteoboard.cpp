@@ -93,7 +93,7 @@ void MeteoBoard::sendDiscoveryMessage(String discoveryTopic, String message){
     connectToMQTT();
     message.toCharArray(buf, message.length() + 1);
     if (client->beginPublish (discoveryTopic.c_str(), message.length(), true)) {
-      for (int i = 0; i <= message.length() + 1; i++) {
+      for (unsigned int i = 0; i <= message.length() + 1; i++) {
         client->write(buf[i]);
       }
       client->endPublish();
