@@ -109,11 +109,11 @@ String MHSGP30::getDiscoveryMsg(String deviceName, deviceClass dev_class){
 
 
 void MHSGP30::readBaseline(){
-  if (SPIFFS.begin()) {
-    //SPIFFS.remove("/baseline.json"); // Uncomment to remove the file if the device sends extremly high values of CO2 / TVOC
-    if (SPIFFS.exists("/baseline.json")) {
+  if (LittleFS.begin()) {
+    //LittleFS.remove("/baseline.json"); // Uncomment to remove the file if the device sends extremly high values of CO2 / TVOC
+    if (LittleFS.exists("/baseline.json")) {
       //file exists, reading and loading
-      File blFile = SPIFFS.open("/baseline.json", "r");
+      File blFile = LittleFS.open("/baseline.json", "r");
       if (blFile) {
         size_t size = blFile.size();
         // Allocate a buffer to store contents of the file.
@@ -152,7 +152,7 @@ void MHSGP30::saveBaseline(){
     json["blTVOC"] = String(baselineTVOC);
     Serial.println(String("\n[SGP30] Saving new baseline values (CO2,TVOC):")+baselineCO2+"/"+baselineTVOC);
       
-    File blFile = SPIFFS.open("/baseline.json", "w");
+    File blFile = LittleFS.open("/baseline.json", "w");
     if (!blFile) {
       Serial.println("[SGP30] failed to open config file for writing");
     }

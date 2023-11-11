@@ -22,13 +22,15 @@ limitations under the License.
 #include "WiFiManager.h"      
 
 #include <ArduinoJson.h> 
-#include <FS.h> 
+#include <LittleFS.h> 
 
 //Deep sleep
 #define DEEP_SLEEP_TIME 60 //time in seconds
 #define WIFI_CONNECTION_TIMEOUT 20000 //Timeout for WIFI connections. The idea is to prevent for continuous conection tries. This would cause battery drain
 
+#ifndef ARDUINOJSON_ENABLE_STD_STREAM
 #define ARDUINOJSON_ENABLE_STD_STREAM
+#endif
 
 //using namespace std;
 
