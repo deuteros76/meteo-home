@@ -44,11 +44,11 @@ void Manager::setup_config_data(){
   //read configuration from FS json
   Serial.println("[Manager] Mounting FS...");
 
-  if (SPIFFS.begin()) {
-    //SPIFFS.remove("/config.json");
-    if (SPIFFS.exists("/config.json")) {
+  if (LittleFS.begin()) {
+    //LittleFS.remove("/config.json");
+    if (LittleFS.exists("/config.json")) {
       //file exists, reading and loading
-      File configFile = SPIFFS.open("/config.json", "r");
+      File configFile = LittleFS.open("/config.json", "r");
       if (configFile) {
         size_t size = configFile.size();
         // Allocate a buffer to store contents of the file.
@@ -82,6 +82,7 @@ void Manager::setup_config_data(){
       }
     }else{
       shouldSaveConfig=true;
+      Serial.println("[Manager] Config file not found.");
     }
   } else {
     Serial.println("[Manager] Failed to mount FS");
@@ -192,7 +193,7 @@ void Manager::setup_wifi(){
     json["use_sleep_mode"] = custom_use_sleep_mode.getValue();
     json["device_name"] = custom_device_name.getValue();
     
-    File configFile = SPIFFS.open("/config.json", "w");
+    File configFile = LittleFS.open("/config.json", "w");
     if (!configFile) {
       Serial.println("[Manager] Failed to open config file for writing");
     }
