@@ -18,13 +18,6 @@ PubSubClient client(espClient);
 
 std::vector<std::unique_ptr<MeteoSensor>> sensors; // To store sensors addresses
 
-void setup(void) {
-    // set stuff up here
-}
-
-void tearDown(void) {
-    // clean stuff up here
-}
 
 void test_createDHTDiscoveryMsg() {
 
@@ -77,15 +70,3 @@ void test_objectIteration() {
     }
 }
 
-//int main( int argc, char **argv) {
-void loop(){
-    UNITY_BEGIN();
-
-    RUN_TEST(test_createDHTDiscoveryMsg);
-    RUN_TEST(test_createBMPDiscoveryMsg);
-    RUN_TEST(test_createSGPDiscoveryMsg);
-    RUN_TEST(test_objectIteration);
-
-    UNITY_END();
-    delay(1000);
-}
