@@ -21,6 +21,8 @@ MHBMP::MHBMP( MeteoBoard *p, Manager *m): Adafruit_BMP085(){
   parent = p;
   temperature_discovery_topic = "homeassistant/sensor/ESP-" + String(ESP.getChipId()) +"/BMP-temperature/config";
   pressure_discovery_topic = "homeassistant/sensor/ESP-" + String(ESP.getChipId()) + "/BMP-pressure/config";
+
+  sensorReady=false;
 }
 
 bool MHBMP::begin(){

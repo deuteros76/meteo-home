@@ -22,6 +22,8 @@ MHSGP30::MHSGP30(MeteoBoard *p, Manager *m, Leds *l) : SGP30(), leds(l)
   parent = p;
   co2_discovery_topic = String("homeassistant/sensor/ESP-" + String(ESP.getChipId()) +"/SGP30-CO2/config");
   voc_discovery_topic = String("homeassistant/sensor/ESP-" + String(ESP.getChipId()) + "/SGP30-VOC/config");
+
+  sensorReady=false;
 }
 
 bool MHSGP30::begin(TwoWire &wirePort){

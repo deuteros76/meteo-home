@@ -96,11 +96,6 @@ void setup() {
     board.addSensor(&sgp30);
   }
 
-  //Setup mqtt
-  //IPAddress addr;
-  //addr.fromString(manager.mqttServer());
-  //client.setServer(addr, atoi(manager.mqttPort().c_str())); 
-
   if (first_boot_done != 1){
     first_boot_done = 1;
     ESP.rtcUserMemoryWrite(0,&first_boot_done,sizeof(first_boot_done)); // Write to persistent RAM memory

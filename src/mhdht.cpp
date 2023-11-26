@@ -61,23 +61,19 @@ bool MHDHT::available(){
 }
 
 void MHDHT::read(){
-    //read dht22 value
+   //read dht22 value
   if (!values_read){
     temperature = readTemperature();    
     humidity = readHumidity();
     heatindex = computeHeatIndex(temperature, humidity, false);
   }
-   
-  //if (connectToMQTT()){
-    parent->getClient()->publish(getTemperatureTopic().c_str(), String(getTemperature()).c_str(), true);
-    delay(50);
-    parent->getClient()->publish(getHumidityTopic().c_str(), String(getHumidity()).c_str(), true);
-    delay(50);
-    parent->getClient()->publish(getHeatindexTopic().c_str(), String(getHeatIndex()).c_str(), true);
-    delay(50);
-  //}else{
-   // Serial.println("[DHT] Error connecting to mqtt" );
-  //}
+
+  parent->getClient()->publish(getTemperatureTopic().c_str(), String(getTemperature()).c_str(), true);
+  delay(50);
+  parent->getClient()->publish(getHumidityTopic().c_str(), String(getHumidity()).c_str(), true);
+  delay(50);
+  parent->getClient()->publish(getHeatindexTopic().c_str(), String(getHeatIndex()).c_str(), true);
+  delay(50);
       
   Serial.println("[DHT] Temperature = " + String(temperature) + " Humidity = " + String(humidity) +" HeatIndex = " + String(heatindex));
   values_read= false;
