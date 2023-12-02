@@ -2,7 +2,7 @@
 ![workflow status](https://github.com/deuteros76/meteo-home/actions/workflows/main.yml/badge.svg)
 
 # meteo-home
-MeteoHome was born as a weather station project using a NodeMCU ESP8266 devboard with DHT22 and BMPP180 sensors. Now, the concept has changed and the board (currently a Wemos D1 Lite) and the source is being redesigned to allow the use of different type of sensors. One of the main features of MeteoHome is the configuration using a captive web portal and the use of MQTT to send the information to a server. Additionally it has been designed to be connected to a machine running Home Assistant. In this case, this software could be used to show the current the status of the sensors and display graphs
+MeteoHome was born as a weather station project using a NodeMCU ESP8266 devboard with DHT22 and BMPP180 sensors. Now, the concept has changed and the board (currently a Wemos D1 Lite) and the source are being redesigned to allow the use of different type of sensors. One of the main features of MeteoHome is the configuration using a captive web portal and the use of MQTT to send the information to a server. Additionally, it has been designed to be connected to a machine running Home Assistant. In this case, this software could be used to show the current status of the sensors and display graphs.
 
 ## Features
 - configuration of WiFi network and MQTT through a web portal 
@@ -11,7 +11,7 @@ MeteoHome was born as a weather station project using a NodeMCU ESP8266 devboard
 - Possibility of being used with Home Assistant
 
 ## Future
-The idea is to continue the development of both hardware and software. Currently the MCU is a Wemos D1 Lite but the plan is to extend the possibilites including an ESP32 or a Raspberry Pi Pico, At the same time the sofware will accept more sensors and will be adapted to the new hardware.
+The idea is to continue the development of both hardware and software. Currently the MCU is a Wemos D1 Lite but the plan is to extend the possibilites including an ESP32 or a Raspberry Pi Pico, At the same time, the sofware will accept more sensors and will be adapted to the new hardware.
 
 - Integration of light sensor
 - Integration of ATH20 sensor
@@ -41,7 +41,7 @@ The hardware has been designed in Kicad. All the source files are available unde
 ![](pics/meteo-home-kicad.png)
 
 ### Hardware components
-- Wemos D1 Mini Lite (the board is designed to use that microcontroller)
+- Wemos D1 Mini Lite (the board is designed to use this microcontroller)
 - One or more sensors (DHT22, BMPP180, SGP-30)
 - Wires, tools...
 
