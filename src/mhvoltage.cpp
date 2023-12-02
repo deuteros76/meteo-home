@@ -20,6 +20,8 @@ MHVoltage::MHVoltage(MeteoBoard *p, Manager *m){
   manager = m;
   parent = p;
   voltage_discovery_topic = "homeassistant/sensor/ESP-" + String(ESP.getChipId()) + "/ESP-voltage/config";
+
+  sensorReady=false;
 }
 
 bool MHVoltage::begin(){
