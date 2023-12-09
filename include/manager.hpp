@@ -46,10 +46,10 @@ public:
   bool configFileExists;
 
   //callback notifying us of the need to save config
-  static void saveConfigCallback () { Serial.println("Should save config"); shouldSaveConfig = true;}
+  static void saveConfigCallback () { Serial.println("[Manager] Callback. Should save config"); }
 
   //Make the device discoverable
-//  String getDiscoveryMsg(String topic, device_class dev_class);
+  //String getDiscoveryMsg(String topic, device_class dev_class);
 
   String networkIp(){return network_ip;}
   String networkMask(){return network_mask;}
