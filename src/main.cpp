@@ -23,6 +23,7 @@
 #include "mhdht.hpp"
 #include "mhbmp.hpp"
 #include "mhsgp30.hpp"
+#include "mhaht20.hpp"
 #include "mhvoltage.hpp"
 #include "manager.hpp"
 #include "leds.hpp"
@@ -42,6 +43,7 @@ Manager manager;  //! Portal and wific connection manager
 MeteoBoard board(&manager, &client);
 MHDHT dht(&board, &manager,DHTPIN, DHTTYPE); //! Initializes the DHT sensor.
 MHBMP bmp(&board, &manager); //! Bmp sensor object
+MHAHT20 aht20(&board, &manager); //! Bmp sensor object
 Leds leds; //! To mange the three LEDs
 MHSGP30 sgp30(&board, &manager,&leds); //! Air quality sensor. Leds is a dependency for showing the air quality state
 MHVoltage voltage(&board, &manager);
@@ -94,6 +96,10 @@ void setup() {
   //SGP30 sensor for air quality
   if (sgp30.begin()){
     board.addSensor(&sgp30);
+  }
+  //AHT20 sensor for humidity and temperature
+  if (aht20.begin()){
+    board.addSensor(&aht20);
   }
 
   if (first_boot_done != 1){

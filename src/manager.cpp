@@ -136,14 +136,15 @@ void Manager::setup_wifi(){
     //read updated parameters
     IPAddress ip,gateway,mask;
     Serial.println("[Manager] " + network_ip + " " + network_gateway + " " + network_mask + " " + WiFi.macAddress());
-    ip.fromString(network_ip.c_str());
-    gateway.fromString(network_gateway.c_str());
-    mask.fromString(network_mask.c_str());
+    ip.fromString(network_ip);
+    gateway.fromString(network_gateway);
+    mask.fromString(network_mask);
 
     String hostname = "Meteo-home_";
     hostname.concat(WiFi.macAddress());
     WiFi.mode(WIFI_STA);
     WiFi.config(ip, gateway,mask);
+    Serial.printf("\n[Manager] Configuring network parameters (%s %s %s).\n",ip.toString().c_str(),gateway.toString().c_str(),mask.toString().c_str());  
     WiFi.hostname(hostname.c_str());
     while (WiFi.status() != WL_CONNECTED){
       wifiTimeStart = millis();
@@ -170,9 +171,10 @@ void Manager::setup_wifi(){
     
     Serial.println("\n[Manager] WiFi connected.");
     Serial.println("[Manager] Network configuration:" + WiFi.localIP().toString() + " " + WiFi.gatewayIP().toString() + " " + WiFi.subnetMask().toString() + " " + WiFi.hostname());
-
   }else {
+        shouldSaveConfig=true;
         wifiManager.setTimeout(300);
+        //wifiManager.setSaveConnect(false);
         wifiManager.startConfigPortal("Meteo-home");
   }
      
@@ -201,6 +203,9 @@ void Manager::setup_wifi(){
     serializeJson(json, Serial);    
     serializeJson(json, configFile);
     configFile.close();
+
+    Serial.println("[Manager] \nRestarting...");
+    ESP.restart();
     //end save
   }
  
