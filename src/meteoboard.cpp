@@ -96,9 +96,11 @@ void MeteoBoard::sendDiscoveryMessage(String discoveryTopic, String message){
       for (unsigned int i = 0; i <= message.length() + 1; i++) {
         client->write(buf[i]);
       }
-      client->endPublish();
+      if (!client->endPublish()){
+        Serial.println(String("[Board] Error publishing discovery message to ") + discoveryTopic);    
+      }
     } else {
-      Serial.println(String("[Sensor] Error sending discovery message to ") + discoveryTopic);
+      Serial.println(String("[Board] Error sending discovery message to ") + discoveryTopic);
     }
     client->disconnect();
 }
