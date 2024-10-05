@@ -21,6 +21,7 @@
 #include "connection.hpp"
 #include "meteoboard.hpp"
 #include "mhdht.hpp"
+#include "mhanalog.hpp"
 #include "mhbmp.hpp"
 #include "mhsgp30.hpp"
 #include "mhaht20.hpp"
@@ -47,17 +48,41 @@ MHAHT20 aht20(&board, &manager); //! Bmp sensor object
 Leds leds; //! To mange the three LEDs
 MHSGP30 sgp30(&board, &manager,&leds); //! Air quality sensor. Leds is a dependency for showing the air quality state
 MHVoltage voltage(&board, &manager);
+MHAnalog analog(&board, &manager); //! Analog sensor attached to the board
 
 long t_elapsed;
 
 bool useSleepMode=false;
+bool useAnalogSensor=false; //! In ESP8266 we cannot use an analog sensor and meassure VCC input at the same time. This variable is used to block the VCC mode.
 uint32_t first_boot_done=0; //! Used with deepsleep mode. Send the discovery messages only in the first boot and not after sleeping.
 
-ADC_MODE(ADC_VCC); // (https://arduino-esp8266.readthedocs.io/en/latest/libraries.html) Add the following line to the top of your sketch to use getVcc:
+typedef struct {
+  bool useAnalogSensor=false;
+  uint32_t first_boot_done=0 ;
+} rtcStore;
+
+int get_ADC(){
+  rtcStore rtcMem; 
+  system_rtc_mem_read(0, &rtcMem, sizeof(rtcMem));
+  first_boot_done=rtcMem.first_boot_done;
+  useAnalogSensor=rtcMem.useAnalogSensor;
+
+  if (useAnalogSensor==0){
+    return ADC_VCC;
+  }else{
+    return ADC_TOUT;
+  }
+}
+
+ADC_MODE(get_ADC()); // Normally ADC_MODE(ADC_VCC) is used but we want to select between VCC and TOUT (https://arduino-esp8266.readthedocs.io/en/latest/libraries.html) Add the following line to the top of your sketch to use getVcc:
+
 
 void setup() {
   // Check if this is the first boot (Usefull if using deep sleep mode)
-  ESP.rtcUserMemoryRead(0,&first_boot_done,sizeof(first_boot_done)); // Read from persistent RAM memory
+  rtcStore rtcMem; 
+  system_rtc_mem_read(0, &rtcMem, sizeof(rtcMem)); // Read from persistent RAM memory
+  first_boot_done=rtcMem.first_boot_done;
+  useAnalogSensor=rtcMem.useAnalogSensor;
 
   //Serial port speed
   t_elapsed = millis();
@@ -81,10 +106,7 @@ void setup() {
 
   //ESP board
   board.begin();
-  //Builtin voltage sensor for humidity and temperature
-  if (voltage.begin()){
-    board.addSensor(&voltage);
-  }
+  
   //DHT sensor for humidity and temperature
   if (dht.begin()){
     board.addSensor(&dht);
@@ -102,9 +124,25 @@ void setup() {
     board.addSensor(&aht20);
   }
 
+  if (useAnalogSensor){ //! If we use the analog input we will avoid to meassure the VCC input.
+    //Analog sensor 
+    if (analog.begin()){
+      board.addSensor(&analog);
+    }
+  }
+  else{
+    //Builtin voltage sensor 
+    if (voltage.begin()){
+      board.addSensor(&voltage);
+    }
+  }
+
   if (first_boot_done != 1){
     first_boot_done = 1;
-    ESP.rtcUserMemoryWrite(0,&first_boot_done,sizeof(first_boot_done)); // Write to persistent RAM memory
+    manager.useAnalogSensor().toLowerCase();
+    rtcMem.first_boot_done=first_boot_done;
+    rtcMem.useAnalogSensor=manager.useAnalogSensor()=="true";
+    system_rtc_mem_write(0, &rtcMem, sizeof(rtcMem)); // Write to persistent RAM memory
     
     board.autodiscover(); 
   }

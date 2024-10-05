@@ -76,6 +76,10 @@ void Manager::setup_config_data(){
           use_sleep_mode = (const char *)json["use_sleep_mode"];
           device_name = (const char *)json["device_name"];
 
+          use_analog_sensor = (const char *)json["use_analog_sensor"];
+          analog_min_value = (const char *)json["analog_min_value"];
+          analog_max_value = (const char *)json["analog_max_value"];
+
         } else {
           Serial.println("[Manager] Failed to load json config");
         }
@@ -104,8 +108,15 @@ void Manager::setup_wifi(){
    
   WiFiManagerParameter custom_paramenters_group("<p>Device parameters</p>");
   WiFiManagerParameter custom_device_name("name","device name or location",device_name.c_str(),40);
-  const char* custom_sleepmode_checkbox_str = "type='checkbox'";
+  const char* custom_sleepmode_checkbox_str = "type='checkbox'";  
   WiFiManagerParameter custom_use_sleep_mode("sleepmode", "Sleep mode", "true", 4,custom_sleepmode_checkbox_str,WFM_LABEL_AFTER);
+
+  const char* custom_analogsensor_checkbox_str = "type='checkbox'";
+  WiFiManagerParameter custom_analog_group("<p>Analog sensor settings</p>");
+  WiFiManagerParameter custom_use_analog_sensor("analogsensor", "Analog sensor</p>", "true", 4,custom_analogsensor_checkbox_str,WFM_LABEL_AFTER);
+  WiFiManagerParameter custom_analog_min_value("minvalue", "analog min value", "0", 15);
+  WiFiManagerParameter custom_analog_max_value("maxvalue", "analog max value", "1024", 15);
+  
 
   WiFiManager wifiManager;
 
@@ -129,6 +140,10 @@ void Manager::setup_wifi(){
   wifiManager.addParameter(&custom_paramenters_group);
   wifiManager.addParameter(&custom_device_name);
   wifiManager.addParameter(&custom_use_sleep_mode);
+
+  wifiManager.addParameter(&custom_use_analog_sensor);
+  wifiManager.addParameter(&custom_analog_min_value);
+  wifiManager.addParameter(&custom_analog_max_value);
 
   long wifiTimeStart = millis();
 
@@ -194,6 +209,10 @@ void Manager::setup_wifi(){
     
     json["use_sleep_mode"] = custom_use_sleep_mode.getValue();
     json["device_name"] = custom_device_name.getValue();
+
+    json["use_analog_sensor"] = custom_use_analog_sensor.getValue();
+    json["analog_min_value"] = custom_analog_min_value.getValue();
+    json["analog_max_value"] = custom_analog_max_value.getValue();
     
     File configFile = LittleFS.open("/config.json", "w");
     if (!configFile) {

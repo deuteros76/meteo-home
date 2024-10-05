@@ -60,8 +60,12 @@ public:
   String mqttUser(){return mqtt_user;}
   String mqttPassword(){return mqtt_password;}
   
-  String useSleepMode(){return use_sleep_mode;}
+  String useSleepMode(){return use_sleep_mode;}  
   String deviceName(){return device_name;}
+
+  String useAnalogSensor(){return use_analog_sensor;} 
+  String analogMinValue(){return analog_min_value;}
+  String analogMaxValue(){return analog_max_value;}
   
 private:
   //MQTT  server
@@ -76,6 +80,9 @@ private:
   String mqtt_password;
   
   String use_sleep_mode;
+  String use_analog_sensor;
+  String analog_min_value;
+  String analog_max_value;
   String device_name; //! Device (or location) name used to generate the MQTT topics
 
 };
