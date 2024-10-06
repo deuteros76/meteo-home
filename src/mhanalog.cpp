@@ -28,9 +28,6 @@ MHAnalog::MHAnalog(MeteoBoard *p, Manager *m){
 bool MHAnalog::begin(){
   bool returnValue=true;
 
-  delay(50);
-  read(); // this reading is to make available() work from the begining
-
   if (manager == nullptr){
     returnValue = false;
   }else if (available()){
@@ -38,25 +35,15 @@ bool MHAnalog::begin(){
   }else{
     returnValue=false;
   }
-  return returnValue; //! TODO: think about this boolean functio
+  return returnValue;
 }
 
 bool MHAnalog::available(){
   bool returnValue=true;
 
+  //! A0 will always return a value between 0 and 1024 so the return value only depends on the configuration parameter useAnalogSensor
   manager->useAnalogSensor().toLowerCase();
-  if (manager->useAnalogSensor().equals("true")){
-    if (isnan(value)){
-      if (values_read){
-        returnValue=false;
-      }else{
-        values_read= true;
-        returnValue = (!isnan(value));
-      }
-
-    }
-  }
-  else{
+  if (!manager->useAnalogSensor().equals("true")){
     returnValue= false;
   }
 
@@ -73,10 +60,12 @@ void MHAnalog::read(){
   int minValue = manager->analogMinValue().toInt();
   int maxValue = manager->analogMaxValue().toInt();
 
-  Serial.println(rawValue);
-  if (!values_read && (minValue>0 && maxValue>0)){    
-    //value = map(rawValue, max_callibration_value, min_callibration_value, 0, 100);  
-    value = map(rawValue, maxValue, minValue, 0, 100);  
+  if (!values_read && (minValue>0 && maxValue>0)){   
+    if ((minValue<=rawValue) && (rawValue<=maxValue)) {
+      value = map(rawValue, maxValue, minValue, 0, 100);  
+    }else{
+      value = -1;
+    }
   }
 
   parent->getClient()->publish(getValueTopic().c_str(), String(getValue()).c_str(), true);

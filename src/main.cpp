@@ -57,7 +57,7 @@ bool useAnalogSensor=true; //! In ESP8266 we cannot use an analog sensor and mea
 uint32_t first_boot_done=0; //! Used with deepsleep mode. Send the discovery messages only in the first boot and not after sleeping.
 
 typedef struct {
-  bool useAnalogSensor=false;
+  bool useAnalogSensor=true;
   uint32_t first_boot_done=0 ;
 } rtcStore;
 
@@ -66,8 +66,10 @@ int get_ADC(){
   system_rtc_mem_read(0, &rtcMem, sizeof(rtcMem));
   first_boot_done=rtcMem.first_boot_done;
   useAnalogSensor=rtcMem.useAnalogSensor;
-
-  if (useAnalogSensor==0){
+  
+  //! When is booting for the first time after pluging the power wire, we assume the memory is filled with 0s. If we press reset the memory will keep its values but
+  //! is prefearable to let ADC_TOUT when first_boot_done is 0 
+  if (useAnalogSensor==false && first_boot_done==1){ 
     return ADC_VCC;
   }else{
     return ADC_TOUT;
@@ -85,17 +87,8 @@ void setup() {
 
   //Serial port speed
   t_elapsed = millis();
-  Serial.begin(115200);
+  Serial.begin(9600);
   Serial.println("[Main] Confifuring device...");
-
-  leds.begin();
-
-  // Turn on the LEDs to show the device is configureing. In sleep mode, we don't want to use the LEDs everytime the device wakes up
-  if (first_boot_done != 1){  
-    leds.setLEDs(HIGH,HIGH,HIGH);
-    delay(1000); // Just one second to show that the process has started    
-    leds.setLEDs(LOW,LOW,LOW);
-  }
 
   // WiFi setup
   manager.setup_config_data();
@@ -104,6 +97,19 @@ void setup() {
   //! At this poing we need to know if the analog sensor was selected by the user
   manager.useAnalogSensor().toLowerCase();
   useAnalogSensor=manager.useAnalogSensor()=="true"; 
+
+  leds.begin();
+
+  // Turn on the LEDs to show the device is configureing. In sleep mode, we don't want to use the LEDs everytime the device wakes up
+  if (first_boot_done != 1){  
+    leds.setLEDs(HIGH,HIGH,HIGH);
+    delay(1000); // Just one second to show that the process has started    
+    leds.setLEDs(LOW,LOW,LOW);
+
+    rtcMem.first_boot_done=1; //! Warnig! We write 1 to rtcmem but we still need the global first_boot_done be 0
+    rtcMem.useAnalogSensor=useAnalogSensor;
+    system_rtc_mem_write(0, &rtcMem, sizeof(rtcMem)); // Write to persistent RAM memory
+  }
 
   Wire.begin();
 
@@ -142,9 +148,6 @@ void setup() {
 
   if (first_boot_done != 1){
     first_boot_done = 1;
-    rtcMem.first_boot_done=first_boot_done;
-    rtcMem.useAnalogSensor=useAnalogSensor;
-    system_rtc_mem_write(0, &rtcMem, sizeof(rtcMem)); // Write to persistent RAM memory
     
     board.autodiscover(); 
   }
