@@ -53,7 +53,7 @@ MHAnalog analog(&board, &manager); //! Analog sensor attached to the board
 long t_elapsed;
 
 bool useSleepMode=false;
-bool useAnalogSensor=false; //! In ESP8266 we cannot use an analog sensor and meassure VCC input at the same time. This variable is used to block the VCC mode.
+bool useAnalogSensor=true; //! In ESP8266 we cannot use an analog sensor and meassure VCC input at the same time. This variable is used to block the VCC mode.
 uint32_t first_boot_done=0; //! Used with deepsleep mode. Send the discovery messages only in the first boot and not after sleeping.
 
 typedef struct {
@@ -82,7 +82,6 @@ void setup() {
   rtcStore rtcMem; 
   system_rtc_mem_read(0, &rtcMem, sizeof(rtcMem)); // Read from persistent RAM memory
   first_boot_done=rtcMem.first_boot_done;
-  useAnalogSensor=rtcMem.useAnalogSensor;
 
   //Serial port speed
   t_elapsed = millis();
@@ -101,6 +100,10 @@ void setup() {
   // WiFi setup
   manager.setup_config_data();
   manager.setup_wifi();
+  
+  //! At this poing we need to know if the analog sensor was selected by the user
+  manager.useAnalogSensor().toLowerCase();
+  useAnalogSensor=manager.useAnalogSensor()=="true"; 
 
   Wire.begin();
 
@@ -139,9 +142,8 @@ void setup() {
 
   if (first_boot_done != 1){
     first_boot_done = 1;
-    manager.useAnalogSensor().toLowerCase();
     rtcMem.first_boot_done=first_boot_done;
-    rtcMem.useAnalogSensor=manager.useAnalogSensor()=="true";
+    rtcMem.useAnalogSensor=useAnalogSensor;
     system_rtc_mem_write(0, &rtcMem, sizeof(rtcMem)); // Write to persistent RAM memory
     
     board.autodiscover(); 
@@ -162,10 +164,10 @@ void loop() {
   board.processSensors();
   
   if (useSleepMode){
-    Serial.print("[Main] Going to sleep after " + String((millis()-t_elapsed)/1000));
-    ESP.deepSleep(DEEP_SLEEP_TIME * 1000000);
+    Serial.print("[Main] Going to sleep for " + manager.sleepMinutes()+" minutes after " + String((millis()-t_elapsed)/1000.0)+ " seconds");
+    ESP.deepSleep(manager.sleepMinutes().toInt() * 60 * 1000000);
   }else{
-    delay(DEEP_SLEEP_TIME * 1000);
+    delay(manager.sleepMinutes().toInt() * 60 * 1000);
   }
 }
 

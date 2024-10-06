@@ -74,6 +74,7 @@ void Manager::setup_config_data(){
           mqtt_password = (const char *)json["mqtt_password"];
           
           use_sleep_mode = (const char *)json["use_sleep_mode"];
+          sleep_minutes= (const char *)json["sleep_minutes"];
           device_name = (const char *)json["device_name"];
 
           use_analog_sensor = (const char *)json["use_analog_sensor"];
@@ -108,14 +109,18 @@ void Manager::setup_wifi(){
    
   WiFiManagerParameter custom_paramenters_group("<p>Device parameters</p>");
   WiFiManagerParameter custom_device_name("name","device name or location",device_name.c_str(),40);
-  const char* custom_sleepmode_checkbox_str = "type='checkbox'";  
+  const char* custom_sleepmode_checkbox_str = "type='checkbox' onchange=\"document.getElementById('minutes').disabled = !this.checked;\"";  
   WiFiManagerParameter custom_use_sleep_mode("sleepmode", "Sleep mode", "true", 4,custom_sleepmode_checkbox_str,WFM_LABEL_AFTER);
+  WiFiManagerParameter custom_sleep_minutes("minutes", "sleep minutes", "1", 2,"disabled type='range' step='1' min='1' max='60' oninput=\"document.getElementById('outminutes').value = this.value;\"");
+  WiFiManagerParameter custom_sleep_minutes_output("<output id=\"outminutes\">1</output></p>");
 
-  const char* custom_analogsensor_checkbox_str = "type='checkbox'";
+  const char* custom_analogsensor_checkbox_str = "type='checkbox' onchange=\"document.getElementById('minvalue').disabled = !this.checked; document.getElementById('maxvalue').disabled = !this.checked;\"";
   WiFiManagerParameter custom_analog_group("<p>Analog sensor settings</p>");
-  WiFiManagerParameter custom_use_analog_sensor("analogsensor", "Analog sensor</p>", "true", 4,custom_analogsensor_checkbox_str,WFM_LABEL_AFTER);
-  WiFiManagerParameter custom_analog_min_value("minvalue", "analog min value", "0", 15);
-  WiFiManagerParameter custom_analog_max_value("maxvalue", "analog max value", "1024", 15);
+  WiFiManagerParameter custom_use_analog_sensor("analogsensor", "<p>Analog sensor</p>", "true", 4,custom_analogsensor_checkbox_str,WFM_LABEL_AFTER);
+  WiFiManagerParameter custom_analog_min_value("minvalue", "analog min value", "0", 4,"disabled type='range'  step='16' min='0' max='1024' oninput=\"document.getElementById('outminvalue').value = this.value;\"");
+  WiFiManagerParameter custom_min_value_output("<output id=\"outminvalue\">0</output></p>");
+  WiFiManagerParameter custom_analog_max_value("maxvalue", "analog max value", "1024", 4,"disabled type='range' step='16' min='0' max='1024' oninput=\"document.getElementById('outmaxvalue').value = this.value;\"");
+  WiFiManagerParameter custom_max_value_output("<output id=\"outmaxvalue\">1024</output></p>");
   
 
   WiFiManager wifiManager;
@@ -139,11 +144,16 @@ void Manager::setup_wifi(){
   
   wifiManager.addParameter(&custom_paramenters_group);
   wifiManager.addParameter(&custom_device_name);
+  
   wifiManager.addParameter(&custom_use_sleep_mode);
+  wifiManager.addParameter(&custom_sleep_minutes);
+  wifiManager.addParameter(&custom_sleep_minutes_output);
 
   wifiManager.addParameter(&custom_use_analog_sensor);
   wifiManager.addParameter(&custom_analog_min_value);
+  wifiManager.addParameter(&custom_min_value_output);
   wifiManager.addParameter(&custom_analog_max_value);
+  wifiManager.addParameter(&custom_max_value_output);
 
   long wifiTimeStart = millis();
 
@@ -181,7 +191,7 @@ void Manager::setup_wifi(){
     }
     if (WiFi.status() != WL_CONNECTED){
       Serial.println("\n[Manager] It was unable to connect to the WiFi network. Going to sleep");
-      ESP.deepSleep(DEEP_SLEEP_TIME * 1000000);      
+      ESP.deepSleep(60  * 1000000);      
     }
     
     Serial.println("\n[Manager] WiFi connected.");
@@ -208,6 +218,8 @@ void Manager::setup_wifi(){
     json["mqtt_password"] = custom_mqtt_password.getValue();
     
     json["use_sleep_mode"] = custom_use_sleep_mode.getValue();
+    json["sleep_minutes"] = custom_sleep_minutes.getValue();
+    
     json["device_name"] = custom_device_name.getValue();
 
     json["use_analog_sensor"] = custom_use_analog_sensor.getValue();
