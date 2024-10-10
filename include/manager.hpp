@@ -60,10 +60,12 @@ public:
   String mqttPassword(){return mqtt_password;}
   
   String useSleepMode(){return use_sleep_mode;}  
-  String sleepMinutes(){return sleep_minutes;}  
+  int sleepMinutes(){if (sleep_minutes<1) return 1; else return sleep_minutes;}  
   String deviceName(){return device_name;}
 
-  String useAnalogSensor(){return use_analog_sensor;} 
+  bool useAnalogSensor(){return use_analog_sensor;} 
+  String sensorClass(){return sensor_class;} 
+  bool useArduinoMapFunction(){return use_arduino_map_function;}
   String analogMinValue(){return analog_min_value;}
   String analogMaxValue(){return analog_max_value;}
   
@@ -80,9 +82,11 @@ private:
   String mqtt_password;
   
   String use_sleep_mode;
-  String sleep_minutes;
+  int sleep_minutes;
 
-  String use_analog_sensor;
+  bool use_analog_sensor;
+  String sensor_class;
+  bool use_arduino_map_function;
   String analog_min_value;
   String analog_max_value;
 

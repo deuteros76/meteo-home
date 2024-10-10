@@ -42,8 +42,7 @@ bool MHAnalog::available(){
   bool returnValue=true;
 
   //! A0 will always return a value between 0 and 1024 so the return value only depends on the configuration parameter useAnalogSensor
-  manager->useAnalogSensor().toLowerCase();
-  if (!manager->useAnalogSensor().equals("true")){
+  if (!manager->useAnalogSensor()){
     returnValue= false;
   }
 
@@ -57,14 +56,15 @@ bool MHAnalog::available(){
 void MHAnalog::read(){
    //read Analog value
   int rawValue=analogRead(A0);
-  int minValue = manager->analogMinValue().toInt();
-  int maxValue = manager->analogMaxValue().toInt();
+  if (manager->useAnalogSensor()){
+    int minValue = manager->analogMinValue().toInt();
+    int maxValue = manager->analogMaxValue().toInt();
 
-  if (!values_read && (minValue>0 && maxValue>0)){   
-    if ((minValue<=rawValue) && (rawValue<=maxValue)) {
-      value = map(rawValue, maxValue, minValue, 0, 100);  
-    }else{
-      value = -1;
+    if (!values_read && (minValue>=0 && maxValue>=0)){ 
+      value = map(rawValue, minValue, maxValue, 0, 100);  
+    }
+    if (value<0 || value>100) {    
+        value = -1;
     }
   }
 

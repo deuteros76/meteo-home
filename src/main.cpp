@@ -33,6 +33,8 @@
 #define DHTPIN 12 
 #define DHTTYPE DHT22 // DHT 22  (AM2302), AM2321
 
+#define RTC_FIRST_USABLE_ADDRESS 65 // Must be >64 as explained here https://github.com/esp8266/Arduino/blob/24c41524dc56c683d8926671bdd639d7411f2815/cores/esp8266/Esp.cpp#L154
+
 //Timeout connection for wifi or mqtt server
 #define CONNECTION_TIMEOUT 20000 //Timeout for connections. The idea is to prevent for continuous conection tries. This would cause battery drain
 
@@ -63,16 +65,19 @@ typedef struct {
 
 int get_ADC(){
   rtcStore rtcMem; 
-  system_rtc_mem_read(0, &rtcMem, sizeof(rtcMem));
+  system_rtc_mem_read(RTC_FIRST_USABLE_ADDRESS, &rtcMem, sizeof(rtcMem));
   first_boot_done=rtcMem.first_boot_done;
   useAnalogSensor=rtcMem.useAnalogSensor;
   
   //! When is booting for the first time after pluging the power wire, we assume the memory is filled with 0s. If we press reset the memory will keep its values but
   //! is prefearable to let ADC_TOUT when first_boot_done is 0 
-  if (useAnalogSensor==false && first_boot_done==1){ 
-    return ADC_VCC;
-  }else{
+  if (first_boot_done==0){ 
     return ADC_TOUT;
+  }
+  else if (useAnalogSensor){
+    return ADC_TOUT;
+  }else{
+    return ADC_VCC;
   }
 }
 
@@ -82,7 +87,7 @@ ADC_MODE(get_ADC()); // Normally ADC_MODE(ADC_VCC) is used but we want to select
 void setup() {
   // Check if this is the first boot (Usefull if using deep sleep mode)
   rtcStore rtcMem; 
-  system_rtc_mem_read(0, &rtcMem, sizeof(rtcMem)); // Read from persistent RAM memory
+  system_rtc_mem_read(RTC_FIRST_USABLE_ADDRESS, &rtcMem, sizeof(rtcMem)); // Read from persistent RAM memory
   first_boot_done=rtcMem.first_boot_done;
 
   //Serial port speed
@@ -95,8 +100,7 @@ void setup() {
   manager.setup_wifi();
   
   //! At this poing we need to know if the analog sensor was selected by the user
-  manager.useAnalogSensor().toLowerCase();
-  useAnalogSensor=manager.useAnalogSensor()=="true"; 
+  useAnalogSensor=manager.useAnalogSensor();
 
   leds.begin();
 
@@ -108,7 +112,7 @@ void setup() {
 
     rtcMem.first_boot_done=1; //! Warnig! We write 1 to rtcmem but we still need the global first_boot_done be 0
     rtcMem.useAnalogSensor=useAnalogSensor;
-    system_rtc_mem_write(0, &rtcMem, sizeof(rtcMem)); // Write to persistent RAM memory
+    system_rtc_mem_write(RTC_FIRST_USABLE_ADDRESS, &rtcMem, sizeof(rtcMem)); // Write to persistent RAM memory
   }
 
   Wire.begin();
@@ -167,10 +171,10 @@ void loop() {
   board.processSensors();
   
   if (useSleepMode){
-    Serial.print("[Main] Going to sleep for " + manager.sleepMinutes()+" minutes after " + String((millis()-t_elapsed)/1000.0)+ " seconds");
-    ESP.deepSleep(manager.sleepMinutes().toInt() * 60 * 1000000);
+    Serial.print("[Main] Going to sleep for " + String(manager.sleepMinutes())+" minutes after " + String((millis()-t_elapsed)/1000.0)+ " seconds");
+    ESP.deepSleep(manager.sleepMinutes() * 60 * 1000000);
   }else{
-    delay(manager.sleepMinutes().toInt() * 60 * 1000);
+    delay(manager.sleepMinutes() * 60 * 1000);
   }
 }
 
