@@ -156,8 +156,7 @@ void setup() {
     board.autodiscover(); 
   }
 
-  manager.useSleepMode().toLowerCase();
-  if (manager.useSleepMode().equals("true")){
+  if (manager.useSleepMode()){
     useSleepMode = true;
   } 
   

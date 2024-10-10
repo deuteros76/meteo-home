@@ -57,8 +57,8 @@ void MHAnalog::read(){
    //read Analog value
   int rawValue=analogRead(A0);
   if (manager->useAnalogSensor()){
-    int minValue = manager->analogMinValue().toInt();
-    int maxValue = manager->analogMaxValue().toInt();
+    int minValue = manager->analogMinValue();
+    int maxValue = manager->analogMaxValue();
 
     if (!values_read && (minValue>=0 && maxValue>=0)){ 
       value = map(rawValue, minValue, maxValue, 0, 100);  

@@ -73,19 +73,21 @@ void Manager::setup_config_data(){
           mqtt_user = (const char *)json["mqtt_user"];
           mqtt_password = (const char *)json["mqtt_password"];
           
-          use_sleep_mode = (const char *)json["use_sleep_mode"];
+          String aux = (const char *)json["use_sleep_mode"];
+          aux.toLowerCase();
+          use_sleep_mode = aux.equals("true");
           sleep_minutes= String((const char *)json["sleep_minutes"]).toInt();
           device_name = (const char *)json["device_name"];
 
-          String aux = (const char *)json["use_analog_sensor"];
+          aux = (const char *)json["use_analog_sensor"];
           aux.toLowerCase();
           use_analog_sensor = aux.equals("true");
           sensor_class = (const char *)json["sensor_class"];
           String map_function=(const char *)json["use_arduino_map_function"];
           map_function.toLowerCase();
           use_arduino_map_function = map_function.equals("true");
-          analog_min_value = (const char *)json["analog_min_value"];
-          analog_max_value = (const char *)json["analog_max_value"];
+          analog_min_value = String((const char *)json["analog_min_value"]).toInt();
+          analog_max_value = String((const char *)json["analog_max_value"]).toInt();
 
         } else {
           Serial.println("[Manager] Failed to load json config");

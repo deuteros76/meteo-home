@@ -59,15 +59,15 @@ public:
   String mqttUser(){return mqtt_user;}
   String mqttPassword(){return mqtt_password;}
   
-  String useSleepMode(){return use_sleep_mode;}  
+  bool useSleepMode(){return use_sleep_mode;}  
   int sleepMinutes(){if (sleep_minutes<1) return 1; else return sleep_minutes;}  
   String deviceName(){return device_name;}
 
   bool useAnalogSensor(){return use_analog_sensor;} 
   String sensorClass(){return sensor_class;} 
   bool useArduinoMapFunction(){return use_arduino_map_function;}
-  String analogMinValue(){return analog_min_value;}
-  String analogMaxValue(){return analog_max_value;}
+  int analogMinValue(){return analog_min_value;}
+  int analogMaxValue(){return analog_max_value;}
   
 private:
   //MQTT  server
@@ -81,14 +81,14 @@ private:
   String mqtt_user;
   String mqtt_password;
   
-  String use_sleep_mode;
+  bool use_sleep_mode;
   int sleep_minutes;
 
   bool use_analog_sensor;
   String sensor_class;
   bool use_arduino_map_function;
-  String analog_min_value;
-  String analog_max_value;
+  int analog_min_value;
+  int analog_max_value;
 
   String device_name; //! Device (or location) name used to generate the MQTT topics
 
