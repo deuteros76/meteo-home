@@ -79,7 +79,8 @@ String MHAnalog::getDiscoveryMsg(String deviceName, deviceClass dev_class){
   String topic, unit, className;
 
   switch (dev_class){
-    case analog_sensor: unit = "%"; className="moisture"; topic= deviceName+"/Analog/value"; break;
+    case moisture_sensor: unit = "%"; className="moisture"; topic= deviceName+"/moisture/value"; break;
+    case proximity_sensor: unit = "mm"; className="proximity"; topic= deviceName+"/proximity/value"; break;
     default: break;
   }
 
@@ -88,6 +89,15 @@ String MHAnalog::getDiscoveryMsg(String deviceName, deviceClass dev_class){
 
 void MHAnalog::autodiscover(){
   if (available()){
-     parent->sendDiscoveryMessage(getValueDiscoveryTopic(), getDiscoveryMsg(manager->deviceName(),MeteoSensor::deviceClass::analog_sensor));    
+     manager->sensorClass().toLowerCase();
+     if (manager->sensorClass().equals("moisture"))
+     {
+      parent->sendDiscoveryMessage(getValueDiscoveryTopic(), getDiscoveryMsg(manager->deviceName(),MeteoSensor::deviceClass::moisture_sensor));    
+     }else if (manager->sensorClass().equals("proximity"))
+     {
+      parent->sendDiscoveryMessage(getValueDiscoveryTopic(), getDiscoveryMsg(manager->deviceName(),MeteoSensor::deviceClass::proximity_sensor));    
+     }else{
+      Serial.println("[Analog] Error identifying an analog sensor");
+     }     
   }
 }
