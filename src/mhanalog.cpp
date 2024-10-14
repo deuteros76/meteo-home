@@ -13,15 +13,18 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */ 
-
 #include "mhanalog.hpp"
 
 MHAnalog::MHAnalog(MeteoBoard *p, Manager *m){
+  if (p == nullptr || m == nullptr) {
+        throw std::invalid_argument("[Analog] MeteoBoard or Manager pointer is null");
+  }
+  
   manager = m;
   parent = p;
   value_discovery_topic = "homeassistant/sensor/ESP-" + String(ESP.getChipId()) +"/Analog-value/config";
 
-  value=0;
+  value = 0;
   values_read = false;
 }
 
@@ -29,6 +32,7 @@ bool MHAnalog::begin(){
   bool returnValue=true;
 
   if (manager == nullptr){
+    Serial.println("[Analog] Error: Manager is null");
     returnValue = false;
   }else if (available()){
     value_topic = manager->deviceName() + "/Analog/value";
