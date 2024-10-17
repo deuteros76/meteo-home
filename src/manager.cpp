@@ -16,6 +16,7 @@ limitations under the License.
 
 #include "manager.hpp"
 #include <string>
+#include <front/css.hpp>
 
 /*
 template class std::basic_string<char>;
@@ -102,21 +103,23 @@ void Manager::setup_config_data(){
   }
 }
 
-
 void Manager::setup_wifi(){
   WiFiManagerParameter custom_show_hide_function= "<script>function changeVisibility(element) {var x = document.getElementById(element);if (x.style.display === \"none\") {    x.style.display = \"block\";  } else {    x.style.display = \"none\";}}</script>";
-  WiFiManagerParameter custom_network_group("<p>Network settings</p>");
+  WiFiManagerParameter custom_network_group("<div class='four'><h1>Network settings</h1></div>");
   WiFiManagerParameter custom_network_ip("IP", "IP", network_ip.c_str(), 15);
   WiFiManagerParameter custom_network_mask("mask", "Mask", network_mask.c_str(), 15);
   WiFiManagerParameter custom_network_gateway("gateway", "Gateway", network_gateway.c_str(), 15);
   
-  WiFiManagerParameter custom_server_group("<p>MQTT Server settings</p>");
+  
+  WiFiManagerParameter custom_panel("<div class='panel'>");
+  WiFiManagerParameter custom_server_group("<div class='four'><h1>MQTT Server settings</h1></div>");
   WiFiManagerParameter custom_mqtt_server("server", "MQTT server", mqtt_server.c_str(), 15);
   WiFiManagerParameter custom_mqtt_port("port", "MQTT port", mqtt_port.c_str(), 6);
   WiFiManagerParameter custom_mqtt_password("password", "MQTT password", mqtt_password.c_str(), 30);
   WiFiManagerParameter custom_mqtt_username("username", "User name", mqtt_user.c_str(), 30);
-   
-  WiFiManagerParameter custom_paramenters_group("<p>Device parameters</p>");
+  WiFiManagerParameter custom_panel_end("</div>");
+
+  WiFiManagerParameter custom_paramenters_group("<div class='four'><h1>Device parameters</h1></div>");
   WiFiManagerParameter custom_device_name("name","Device name or location",device_name.c_str(),40);
   
   const char* custom_sleepmode_checkbox_str = "type='checkbox'";  
@@ -151,18 +154,25 @@ void Manager::setup_wifi(){
 
   //reset settings - for testing
   //wifiManager.resetSettings();
+  wifiManager.setCustomHeadElement(CSS_CODE.c_str());
+
   wifiManager.addParameter(&custom_show_hide_function);
+  wifiManager.addParameter(&custom_panel);
   wifiManager.addParameter(&custom_network_group);
   wifiManager.addParameter(&custom_network_ip);
   wifiManager.addParameter(&custom_network_mask);
   wifiManager.addParameter(&custom_network_gateway);
+  wifiManager.addParameter(&custom_panel_end);
  
+  wifiManager.addParameter(&custom_panel);
   wifiManager.addParameter(&custom_server_group);
   wifiManager.addParameter(&custom_mqtt_server);
   wifiManager.addParameter(&custom_mqtt_port);
   wifiManager.addParameter(&custom_mqtt_username);
   wifiManager.addParameter(&custom_mqtt_password);
-  
+  wifiManager.addParameter(&custom_panel_end);  
+
+  wifiManager.addParameter(&custom_panel);
   wifiManager.addParameter(&custom_paramenters_group);
   wifiManager.addParameter(&custom_device_name);
   
@@ -183,6 +193,7 @@ void Manager::setup_wifi(){
   wifiManager.addParameter(&custom_analog_max_value);
   wifiManager.addParameter(&custom_analog_group_end);
   wifiManager.addParameter(&custom_analog_config_group_end);
+  wifiManager.addParameter(&custom_panel_end);
 
   long wifiTimeStart = millis();
 
