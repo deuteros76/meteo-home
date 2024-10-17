@@ -17,15 +17,16 @@ limitations under the License.
 
 MHAnalog::MHAnalog(MeteoBoard *p, Manager *m){
   if (p == nullptr || m == nullptr) {
-        throw std::invalid_argument("[Analog] MeteoBoard or Manager pointer is null");
-  }
+        Serial.println("[Analog] MeteoBoard or Manager pointer is null");
+  }else {
   
-  manager = m;
-  parent = p;
-  value_discovery_topic = "homeassistant/sensor/ESP-" + String(ESP.getChipId()) +"/Analog-value/config";
+    manager = m;
+    parent = p;
+    value_discovery_topic = "homeassistant/sensor/ESP-" + String(ESP.getChipId()) +"/Analog-value/config";
 
-  value = 0;
-  values_read = false;
+    value = 0;
+    values_read = false;
+  }
 }
 
 bool MHAnalog::begin(){
