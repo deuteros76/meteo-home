@@ -81,15 +81,15 @@ void MHAnalog::read(){
 }
 
 String MHAnalog::getDiscoveryMsg(String deviceName, deviceClass dev_class){
-  String topic, unit, className;
+  String unit, className;
 
   switch (dev_class){
-    case moisture_sensor: unit = "%"; className="moisture"; topic= deviceName+"/moisture/value"; break;
-    case proximity_sensor: unit = "mm"; className="proximity"; topic= deviceName+"/proximity/value"; break;
+    case moisture_sensor: unit = "%"; className="moisture"; value_topic= deviceName+"/moisture/value"; break;
+    case proximity_sensor: unit = "mm"; className="proximity"; value_topic= deviceName+"/proximity/value"; break;
     default: break;
   }
 
-  return createDiscoveryMsg(topic, className, unit);
+  return createDiscoveryMsg(value_topic, className, unit);
 }
 
 void MHAnalog::autodiscover(){
