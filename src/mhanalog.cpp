@@ -31,15 +31,21 @@ MHAnalog::MHAnalog(MeteoBoard *p, Manager *m){
 
 bool MHAnalog::begin(){
   bool returnValue=true;
+  if (manager->sensorClass().equals("moisture"))
+  {
+    value_topic= manager->deviceName()+"/moisture/value";
+  }else if (manager->sensorClass().equals("proximity")){
+    value_topic= manager->deviceName()+"/moisture/value";
+  }else{
+    Serial.println("[Analog] Error: unknown sensor class");
+    returnValue = false;
+  }
 
   if (manager == nullptr){
     Serial.println("[Analog] Error: Manager is null");
     returnValue = false;
-  }else if (available()){
-    value_topic = manager->deviceName() + "/Analog/value";
-  }else{
-    returnValue=false;
   }
+
   return returnValue;
 }
 
@@ -76,7 +82,7 @@ void MHAnalog::read(){
   parent->getClient()->publish(getValueTopic().c_str(), String(getValue()).c_str(), true);
   delay(50);
      
-  Serial.println("[Analog] Value = " + String(getValue()) + "% ("+String(rawValue)+")");
+  Serial.println("[Analog] Value = " + String(getValue()) + "% ("+String(rawValue)+")" );
   values_read= false;
 }
 
@@ -84,12 +90,12 @@ String MHAnalog::getDiscoveryMsg(String deviceName, deviceClass dev_class){
   String unit, className;
 
   switch (dev_class){
-    case moisture_sensor: unit = "%"; className="moisture"; value_topic= deviceName+"/moisture/value"; break;
-    case proximity_sensor: unit = "mm"; className="proximity"; value_topic= deviceName+"/proximity/value"; break;
+    case moisture_sensor: unit = "%"; className="moisture"; break;
+    case proximity_sensor: unit = "mm"; className="proximity"; break;
     default: break;
   }
 
-  return createDiscoveryMsg(value_topic, className, unit);
+  return createDiscoveryMsg(getValueTopic(), className, unit);
 }
 
 void MHAnalog::autodiscover(){
