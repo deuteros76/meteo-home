@@ -16,6 +16,7 @@ limitations under the License.
 
 #include "manager.hpp"
 #include <string>
+#include <front/css.hpp>
 
 /*
 template class std::basic_string<char>;
@@ -73,8 +74,21 @@ void Manager::setup_config_data(){
           mqtt_user = (const char *)json["mqtt_user"];
           mqtt_password = (const char *)json["mqtt_password"];
           
-          use_sleep_mode = (const char *)json["use_sleep_mode"];
+          String aux = (const char *)json["use_sleep_mode"];
+          aux.toLowerCase();
+          use_sleep_mode = aux.equals("true");
+          sleep_minutes= String((const char *)json["sleep_minutes"]).toInt();
           device_name = (const char *)json["device_name"];
+
+          aux = (const char *)json["use_analog_sensor"];
+          aux.toLowerCase();
+          use_analog_sensor = aux.equals("true");
+          sensor_class = (const char *)json["sensor_class"];
+          String map_function=(const char *)json["use_arduino_map_function"];
+          map_function.toLowerCase();
+          use_arduino_map_function = map_function.equals("true");
+          analog_min_value = String((const char *)json["analog_min_value"]).toInt();
+          analog_max_value = String((const char *)json["analog_max_value"]).toInt();
 
         } else {
           Serial.println("[Manager] Failed to load json config");
@@ -89,23 +103,48 @@ void Manager::setup_config_data(){
   }
 }
 
-
 void Manager::setup_wifi(){
-  WiFiManagerParameter custom_network_group("<p>Network settings</p>");
+  WiFiManagerParameter custom_show_hide_function= "<script>function changeVisibility(element) {var x = document.getElementById(element);if (x.style.display === \"none\") {    x.style.display = \"block\";  } else {    x.style.display = \"none\";}}</script>";
+  WiFiManagerParameter custom_network_group("<div class='four'><h1>Network settings</h1></div>");
   WiFiManagerParameter custom_network_ip("IP", "IP", network_ip.c_str(), 15);
-  WiFiManagerParameter custom_network_mask("mask", "mask", network_mask.c_str(), 15);
-  WiFiManagerParameter custom_network_gateway("gateway", "gateway", network_gateway.c_str(), 15);
+  WiFiManagerParameter custom_network_mask("mask", "Mask", network_mask.c_str(), 15);
+  WiFiManagerParameter custom_network_gateway("gateway", "Gateway", network_gateway.c_str(), 15);
   
-  WiFiManagerParameter custom_server_group("<p>MQTT Sercer settings</p>");
-  WiFiManagerParameter custom_mqtt_server("server", "mqtt server", mqtt_server.c_str(), 15);
-  WiFiManagerParameter custom_mqtt_port("port", "mqtt port", mqtt_port.c_str(), 6);
-  WiFiManagerParameter custom_mqtt_password("password", "mqtt password", mqtt_password.c_str(), 30);
-  WiFiManagerParameter custom_mqtt_username("username", "user name", mqtt_user.c_str(), 30);
-   
-  WiFiManagerParameter custom_paramenters_group("<p>Device parameters</p>");
-  WiFiManagerParameter custom_device_name("name","device name or location",device_name.c_str(),40);
-  const char* custom_sleepmode_checkbox_str = "type='checkbox'";
-  WiFiManagerParameter custom_use_sleep_mode("sleepmode", "Sleep mode", "true", 4,custom_sleepmode_checkbox_str,WFM_LABEL_AFTER);
+  
+  WiFiManagerParameter custom_panel("<div class='panel'>");
+  WiFiManagerParameter custom_server_group("<div class='four'><h1>MQTT Server settings</h1></div>");
+  WiFiManagerParameter custom_mqtt_server("server", "MQTT server", mqtt_server.c_str(), 15);
+  WiFiManagerParameter custom_mqtt_port("port", "MQTT port", mqtt_port.c_str(), 6);
+  WiFiManagerParameter custom_mqtt_password("password", "MQTT password", mqtt_password.c_str(), 30);
+  WiFiManagerParameter custom_mqtt_username("username", "User name", mqtt_user.c_str(), 30);
+  WiFiManagerParameter custom_panel_end("</div>");
+
+  WiFiManagerParameter custom_paramenters_group("<div class='four'><h1>Device parameters</h1></div>");
+  WiFiManagerParameter custom_device_name("name","Device name or location",device_name.c_str(),40);
+  
+  const char* custom_sleepmode_checkbox_str = "type='checkbox'";  
+  WiFiManagerParameter custom_use_sleep_mode("sleepmode", "Use deepsleep mode (for battery powered projects)", "true", 5,custom_sleepmode_checkbox_str, WFM_LABEL_AFTER);
+  WiFiManagerParameter custom_sleep_group("<div id='sleepgrp'>");
+  WiFiManagerParameter custom_sleep_minutes_lbl ("<br/><label for='minutes'>Minutes between data gathering: </label><output id='outminutes'>1</output>");
+  const char* custom_sleep_minutes_str="type='range'  value='1' step='1' min='1' max='60' oninput=\"document.getElementById('outminutes').value = this.value;\"";  
+  WiFiManagerParameter custom_sleep_minutes("minutes","","1",2,custom_sleep_minutes_str,WFM_NO_LABEL);
+  WiFiManagerParameter custom_sleep_group_end("</div>");  
+
+  const char* custom_analogsensor_checkbox_str = "type='checkbox' onchange=\"changeVisibility('analogconfig');\"";
+  WiFiManagerParameter custom_use_analog_sensor("analogsensor", "Read analog input (when an analog sensor is connected)" , "true", 5,custom_analogsensor_checkbox_str, WFM_LABEL_AFTER);
+  WiFiManagerParameter custom_analog_config_group("<div id='analogconfig' style=\"display:none\">");
+  WiFiManagerParameter custom_sensor_class("sensorclass", "Sensor class name (see <a href=\"https://developers.home-assistant.io/docs/core/entity/sensor/#available-device-classes\">HA device classes</a>)","moisture",20);
+  const char* custom_use_map_function_str = "type='checkbox' onchange=\"changeVisibility('analoggrp'); document.getElementById('minvalue').disabled = !this.checked; document.getElementById('maxvalue').disabled = !this.checked;\"";
+  WiFiManagerParameter custom_use_map_function("mapfunction", "Use Arduino map function to scale values between 0 and 100%","true",5,custom_use_map_function_str,WFM_LABEL_AFTER);
+  WiFiManagerParameter custom_analog_group("<div id='analoggrp' style=\"display:none\">");
+  WiFiManagerParameter custom_analog_min_value_lbl ("<br/><label for='minvalue'>Min value (used for 0%): </label><output id='outminvalue'>0</output>");
+  const char* custom_analog_min_value_str = "type='range' disabled step='1' min='0' max='1024' oninput=\"document.getElementById('outminvalue').value = this.value;\"";  
+  WiFiManagerParameter custom_analog_min_value("minvalue","","0",5,custom_analog_min_value_str,WFM_NO_LABEL);  
+  WiFiManagerParameter custom_analog_max_value_lbl ("<br/><label for='maxvalue'>Max value (used for 100%): </label><output id='outmaxvalue'>1024</output>");
+  const char* custom_analog_max_value_str = "type='range' disabled step='1' min='0' max='1024' oninput=\"document.getElementById('outmaxvalue').value = this.value;\"";  
+  WiFiManagerParameter custom_analog_max_value("maxvalue", "","1024",5,custom_analog_max_value_str,WFM_NO_LABEL);
+  WiFiManagerParameter custom_analog_group_end("</div>");  
+  WiFiManagerParameter custom_analog_config_group_end("</div>");  
 
   WiFiManager wifiManager;
 
@@ -115,20 +154,46 @@ void Manager::setup_wifi(){
 
   //reset settings - for testing
   //wifiManager.resetSettings();
+  wifiManager.setCustomHeadElement(CSS_CODE.c_str());
+
+  wifiManager.addParameter(&custom_show_hide_function);
+  wifiManager.addParameter(&custom_panel);
   wifiManager.addParameter(&custom_network_group);
   wifiManager.addParameter(&custom_network_ip);
   wifiManager.addParameter(&custom_network_mask);
   wifiManager.addParameter(&custom_network_gateway);
+  wifiManager.addParameter(&custom_panel_end);
  
+  wifiManager.addParameter(&custom_panel);
   wifiManager.addParameter(&custom_server_group);
   wifiManager.addParameter(&custom_mqtt_server);
   wifiManager.addParameter(&custom_mqtt_port);
   wifiManager.addParameter(&custom_mqtt_username);
   wifiManager.addParameter(&custom_mqtt_password);
-  
+  wifiManager.addParameter(&custom_panel_end);  
+
+  wifiManager.addParameter(&custom_panel);
   wifiManager.addParameter(&custom_paramenters_group);
   wifiManager.addParameter(&custom_device_name);
+  
   wifiManager.addParameter(&custom_use_sleep_mode);
+  wifiManager.addParameter(&custom_sleep_group);
+  wifiManager.addParameter(&custom_sleep_minutes_lbl);
+  wifiManager.addParameter(&custom_sleep_minutes);
+  wifiManager.addParameter(&custom_sleep_group_end);
+
+  wifiManager.addParameter(&custom_use_analog_sensor);
+  wifiManager.addParameter(&custom_analog_config_group);
+  wifiManager.addParameter(&custom_sensor_class);
+  wifiManager.addParameter(&custom_use_map_function);
+  wifiManager.addParameter(&custom_analog_group);
+  wifiManager.addParameter(&custom_analog_min_value_lbl);
+  wifiManager.addParameter(&custom_analog_min_value);
+  wifiManager.addParameter(&custom_analog_max_value_lbl);
+  wifiManager.addParameter(&custom_analog_max_value);
+  wifiManager.addParameter(&custom_analog_group_end);
+  wifiManager.addParameter(&custom_analog_config_group_end);
+  wifiManager.addParameter(&custom_panel_end);
 
   long wifiTimeStart = millis();
 
@@ -166,7 +231,7 @@ void Manager::setup_wifi(){
     }
     if (WiFi.status() != WL_CONNECTED){
       Serial.println("\n[Manager] It was unable to connect to the WiFi network. Going to sleep");
-      ESP.deepSleep(DEEP_SLEEP_TIME * 1000000);      
+      ESP.deepSleep(60  * 1000000);      
     }
     
     Serial.println("\n[Manager] WiFi connected.");
@@ -193,7 +258,16 @@ void Manager::setup_wifi(){
     json["mqtt_password"] = custom_mqtt_password.getValue();
     
     json["use_sleep_mode"] = custom_use_sleep_mode.getValue();
+    json["sleep_minutes"] = custom_sleep_minutes.getValue();
+    
     json["device_name"] = custom_device_name.getValue();
+
+    json["use_analog_sensor"] = custom_use_analog_sensor.getValue();
+    json["sensor_class"] = custom_sensor_class.getValue();
+    json["use_arduino_map_function"] = custom_use_map_function.getValue();
+    json["use_analog_sensor"] = custom_use_analog_sensor.getValue();
+    json["analog_min_value"] = custom_analog_min_value.getValue();
+    json["analog_max_value"] = custom_analog_max_value.getValue();
     
     File configFile = LittleFS.open("/config.json", "w");
     if (!configFile) {

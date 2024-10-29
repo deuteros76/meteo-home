@@ -50,7 +50,7 @@ bool MHAHT20::available(){
 }
 
 void MHAHT20::read(){
-    //read dht22 value
+    //read MHAHT20 value
   if (sensorReady){
     getEvent(&humidity_event, &temperature_event);
     temperature = temperature_event.temperature; 

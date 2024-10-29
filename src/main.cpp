@@ -21,6 +21,7 @@
 #include "connection.hpp"
 #include "meteoboard.hpp"
 #include "mhdht.hpp"
+#include "mhanalog.hpp"
 #include "mhbmp.hpp"
 #include "mhsgp30.hpp"
 #include "mhaht20.hpp"
@@ -31,6 +32,8 @@
 //Temperature sensor settings
 #define DHTPIN 12 
 #define DHTTYPE DHT22 // DHT 22  (AM2302), AM2321
+
+#define RTC_FIRST_USABLE_ADDRESS 65 // Must be >64 as explained here https://github.com/esp8266/Arduino/blob/24c41524dc56c683d8926671bdd639d7411f2815/cores/esp8266/Esp.cpp#L154
 
 //Timeout connection for wifi or mqtt server
 #define CONNECTION_TIMEOUT 20000 //Timeout for connections. The idea is to prevent for continuous conection tries. This would cause battery drain
@@ -47,22 +50,57 @@ MHAHT20 aht20(&board, &manager); //! Bmp sensor object
 Leds leds; //! To mange the three LEDs
 MHSGP30 sgp30(&board, &manager,&leds); //! Air quality sensor. Leds is a dependency for showing the air quality state
 MHVoltage voltage(&board, &manager);
+MHAnalog analog(&board, &manager); //! Analog sensor attached to the board
 
 long t_elapsed;
 
 bool useSleepMode=false;
+bool useAnalogSensor=true; //! In ESP8266 we cannot use an analog sensor and meassure VCC input at the same time. This variable is used to block the VCC mode.
 uint32_t first_boot_done=0; //! Used with deepsleep mode. Send the discovery messages only in the first boot and not after sleeping.
 
-ADC_MODE(ADC_VCC); // (https://arduino-esp8266.readthedocs.io/en/latest/libraries.html) Add the following line to the top of your sketch to use getVcc:
+typedef struct {
+  bool useAnalogSensor=true;
+  uint32_t first_boot_done=0 ;
+} rtcStore;
+
+int get_ADC(){
+  rtcStore rtcMem; 
+  system_rtc_mem_read(RTC_FIRST_USABLE_ADDRESS, &rtcMem, sizeof(rtcMem));
+  first_boot_done=rtcMem.first_boot_done;
+  useAnalogSensor=rtcMem.useAnalogSensor;
+  
+  //! When is booting for the first time after pluging the power wire, we assume the memory is filled with 0s. If we press reset the memory will keep its values but
+  //! is prefearable to let ADC_TOUT when first_boot_done is 0 
+  if (first_boot_done==0){ 
+    return ADC_TOUT;
+  }
+  else if (useAnalogSensor){
+    return ADC_TOUT;
+  }else{
+    return ADC_VCC;
+  }
+}
+
+ADC_MODE(get_ADC()); // Normally ADC_MODE(ADC_VCC) is used but we want to select between VCC and TOUT (https://arduino-esp8266.readthedocs.io/en/latest/libraries.html) Add the following line to the top of your sketch to use getVcc:
+
 
 void setup() {
   // Check if this is the first boot (Usefull if using deep sleep mode)
-  ESP.rtcUserMemoryRead(0,&first_boot_done,sizeof(first_boot_done)); // Read from persistent RAM memory
+  rtcStore rtcMem; 
+  system_rtc_mem_read(RTC_FIRST_USABLE_ADDRESS, &rtcMem, sizeof(rtcMem)); // Read from persistent RAM memory
+  first_boot_done=rtcMem.first_boot_done;
 
   //Serial port speed
   t_elapsed = millis();
-  Serial.begin(115200);
+  Serial.begin(9600);
   Serial.println("[Main] Confifuring device...");
+
+  // WiFi setup
+  manager.setup_config_data();
+  manager.setup_wifi();
+  
+  //! At this poing we need to know if the analog sensor was selected by the user
+  useAnalogSensor=manager.useAnalogSensor();
 
   leds.begin();
 
@@ -71,20 +109,17 @@ void setup() {
     leds.setLEDs(HIGH,HIGH,HIGH);
     delay(1000); // Just one second to show that the process has started    
     leds.setLEDs(LOW,LOW,LOW);
-  }
 
-  // WiFi setup
-  manager.setup_config_data();
-  manager.setup_wifi();
+    rtcMem.first_boot_done=1; //! Warnig! We write 1 to rtcmem but we still need the global first_boot_done be 0
+    rtcMem.useAnalogSensor=useAnalogSensor;
+    system_rtc_mem_write(RTC_FIRST_USABLE_ADDRESS, &rtcMem, sizeof(rtcMem)); // Write to persistent RAM memory
+  }
 
   Wire.begin();
 
   //ESP board
   board.begin();
-  //Builtin voltage sensor for humidity and temperature
-  if (voltage.begin()){
-    board.addSensor(&voltage);
-  }
+  
   //DHT sensor for humidity and temperature
   if (dht.begin()){
     board.addSensor(&dht);
@@ -102,15 +137,26 @@ void setup() {
     board.addSensor(&aht20);
   }
 
+  if (useAnalogSensor){ //! If we use the analog input we will avoid to meassure the VCC input.
+    //Analog sensor 
+    if (analog.begin()){
+      board.addSensor(&analog);
+    }
+  }
+  else{
+    //Builtin voltage sensor 
+    if (voltage.begin()){
+      board.addSensor(&voltage);
+    }
+  }
+
   if (first_boot_done != 1){
     first_boot_done = 1;
-    ESP.rtcUserMemoryWrite(0,&first_boot_done,sizeof(first_boot_done)); // Write to persistent RAM memory
     
     board.autodiscover(); 
   }
 
-  manager.useSleepMode().toLowerCase();
-  if (manager.useSleepMode().equals("true")){
+  if (manager.useSleepMode()){
     useSleepMode = true;
   } 
   
@@ -124,10 +170,10 @@ void loop() {
   board.processSensors();
   
   if (useSleepMode){
-    Serial.print("[Main] Going to sleep after " + String((millis()-t_elapsed)/1000));
-    ESP.deepSleep(DEEP_SLEEP_TIME * 1000000);
+    Serial.print("[Main] Going to sleep for " + String(manager.sleepMinutes())+" minutes after " + String((millis()-t_elapsed)/1000.0)+ " seconds");
+    ESP.deepSleep(manager.sleepMinutes() * 60 * 1000000);
   }else{
-    delay(DEEP_SLEEP_TIME * 1000);
+    delay(manager.sleepMinutes() * 60 * 1000);
   }
 }
 

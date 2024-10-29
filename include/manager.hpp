@@ -25,7 +25,6 @@ limitations under the License.
 #include <LittleFS.h> 
 
 //Deep sleep
-#define DEEP_SLEEP_TIME 60 //time in seconds
 #define WIFI_CONNECTION_TIMEOUT 20000 //Timeout for WIFI connections. The idea is to prevent for continuous conection tries. This would cause battery drain
 
 #ifndef ARDUINOJSON_ENABLE_STD_STREAM
@@ -60,8 +59,15 @@ public:
   String mqttUser(){return mqtt_user;}
   String mqttPassword(){return mqtt_password;}
   
-  String useSleepMode(){return use_sleep_mode;}
+  bool useSleepMode(){return use_sleep_mode;}  
+  int sleepMinutes(){if (sleep_minutes<1) return 1; else return sleep_minutes;}  
   String deviceName(){return device_name;}
+
+  bool useAnalogSensor(){return use_analog_sensor;} 
+  String sensorClass(){return sensor_class;} 
+  bool useArduinoMapFunction(){return use_arduino_map_function;}
+  int analogMinValue(){return analog_min_value;}
+  int analogMaxValue(){return analog_max_value;}
   
 private:
   //MQTT  server
@@ -75,7 +81,15 @@ private:
   String mqtt_user;
   String mqtt_password;
   
-  String use_sleep_mode;
+  bool use_sleep_mode;
+  int sleep_minutes;
+
+  bool use_analog_sensor;
+  String sensor_class;
+  bool use_arduino_map_function;
+  int analog_min_value;
+  int analog_max_value;
+
   String device_name; //! Device (or location) name used to generate the MQTT topics
 
 };
