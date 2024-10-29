@@ -30,6 +30,7 @@ During boot:
 - Green LED indicates successful boot and connection
 
 During operation with SGP30 air quality monitoring:
+
 - Green LED: Indicates good air quality (CO2 < 600 ppm)
 - Yellow LED: Indicates moderate air quality (CO2 600-800 ppm)
 - Red LED: Indicates poor air quality (CO2 > 800 ppm)
@@ -71,16 +72,24 @@ The hardware has been designed in Kicad. All the source files are available unde
 
 Below the current BOM is shown. There are no sensors included, as the idea is to plug any of the supported and are not considered part of the hardware design:
 
-|#  |Reference|Qty|Value                     |Footprint                                                     |
-|---|---------|---|--------------------------|--------------------------------------------------------------|
-|1  |D1       |1  |Red                       |LEDs:LED_D5.0mm                                               |
-|2  |D2       |1  |Yellow                    |LEDs:LED_D5.0mm                                               |
-|3  |D3       |1  |Green                     |LEDs:LED_D5.0mm                                               |
-|4  |R1, R2   |2  |160                       |Resistors_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal|
-|5  |R3       |1  |90                        |Resistors_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal|
-|6  |R4       |1  |10K                       |Resistors_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal|
-|8  |U1       |1  |WeMos_D1_mini             |wemos-d1-mini:wemos-d1-mini-with-pin-header                   |
-
+|#  |Reference|Qty|Value                     |LibPart                                                     |Footprint|
+|---|---------|---|--------------------------|------------------------------------------------------------|----|
+|1  |A1       |1  |Analog Sensor            |Connector:Conn_01x03_Socket                                 |Connector_PinSocket_2.54mm:PinSocket_1x03_P2.54mm_Vertical|
+|2  |D1       |1  |Red                      |meteo-home-rescue:LED-meteo-home-rescue-co2-detector-rescue |LED_THT:LED_D3.0mm|
+|3  |D2       |1  |Yellow                   |meteo-home-rescue:LED-meteo-home-rescue-co2-detector-rescue |LED_THT:LED_D3.0mm|
+|4  |D3       |1  |Green                    |meteo-home-rescue:LED-meteo-home-rescue-co2-detector-rescue |LED_THT:LED_D3.0mm|
+|5  |DHT22    |1  |DHT22_Temperature_Humidity|meteo-home-rescue:DHT22_Temperature_Humidity-sensors-meteo-home-rescue-co2-detector-rescue|Sensors:DHT22_Temperature_Humidity|
+|6  |I2C1     |1  |I2C 1                    |Connector:Conn_01x04_Socket                                |Connector_PinSocket_2.54mm:PinSocket_1x04_P2.54mm_Vertical|
+|7  |I2C2     |1  |I2C 2                    |Connector:Conn_01x04_Socket                                |Connector_PinSocket_2.54mm:PinSocket_1x04_P2.54mm_Vertical|
+|8  |I2C3     |1  |I2C 3                    |Connector:Conn_01x04_Socket                                |Connector_PinSocket_1.00mm:PinSocket_1x04_P1.00mm_Vertical|
+|9  |I2C4     |1  |I2C 4                    |Connector:Conn_01x04_Socket                                |Connector_PinSocket_1.00mm:PinSocket_1x04_P1.00mm_Vertical|
+|10 |J1       |1  |S 4                      |Connector:Conn_01x04_Socket                                |Connector_PinSocket_2.54mm:PinSocket_1x04_P2.54mm_Vertical|
+|11 |MCU1     |1  |WeMos_D1_mini            |meteo-home-rescue:WeMos_D1_mini-wemos_mini-meteo-home-rescue-co2-detector-rescue|Module:WEMOS_D1_mini_light|
+|12 |PWR1     |1  |Power connector          |Connector:Conn_01x02_Socket                                |Connector_Molex:Molex_SL_171971-0002_1x02_P2.54mm_Vertical|
+|13 |R1, R2   |2  |160                      |meteo-home-rescue:R-meteo-home-rescue-co2-detector-rescue  |Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P5.08mm_Horizontal|
+|14 |R3       |1  |90                       |meteo-home-rescue:R-meteo-home-rescue-co2-detector-rescue  |Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P5.08mm_Horizontal|
+|15 |R4       |1  |10K                      |meteo-home-rescue:R-meteo-home-rescue-co2-detector-rescue  |Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P5.08mm_Horizontal|
+|16 |Tx1      |1  |Rx                       |Connector:Conn_01x02_Socket                                |Connector_PinSocket_2.54mm:PinSocket_1x02_P2.54mm_Vertical|
 
 
 ![Real hardware](pics/meteo-home-wemos.png) 
@@ -98,14 +107,17 @@ Now you have to configure your network settings. Below, the fields related to yo
 
 ![Settings](pics/parameter-settings.png) 
 
-### Analog Sensor Configuration
 The device supports analog sensors connected to the A0 pin. Through the captive portal, you can:
+
 - Enable/disable analog sensor reading
 - Select sensor class (moisture or proximity)
 - Configure value mapping between raw analog readings (0-1024) to percentage (0-100%)
 - Set minimum and maximum thresholds for the mapping function
 
+![Settings](pics/meteo-home-analog-settings.png) 
+
 The improved captive portal now features:
+
 - Grouped settings panels for better organization
 - Dynamic show/hide of configuration options
 - Real-time value preview using range sliders
