@@ -207,27 +207,21 @@ void Manager::setup_wifi(){
 
     String hostname = "Meteo-home_";
     hostname.concat(WiFi.macAddress());
-    WiFi.mode(WIFI_STA);
-    WiFi.config(ip, gateway,mask);
     Serial.printf("\n[Manager] Configuring network parameters (%s %s %s).\n",ip.toString().c_str(),gateway.toString().c_str(),mask.toString().c_str());  
-    WiFi.hostname(hostname.c_str());
-    while (WiFi.status() != WL_CONNECTED){
-      wifiTimeStart = millis();
-      if (strlen(WiFi.psk().c_str())==0){
-        WiFi.begin(WiFi.SSID().c_str());
-        Serial.printf("\n[Manager] Connecting to an open network (%s).\n",WiFi.SSID().c_str());  
-      }
-      else {
-        WiFi.begin(WiFi.SSID().c_str(), WiFi.psk().c_str());
-        Serial.printf("\n[Manager] Connecting to an encrypted network (%s).\n",WiFi.SSID().c_str());  
-      }
-      
-      while (WiFi.status() != WL_CONNECTED && (millis() - wifiTimeStart < WIFI_CONNECTION_TIMEOUT)) {
+
+    wifiManager.setTimeout(WIFI_CONNECTION_TIMEOUT);
+    wifiManager.setSTAStaticIPConfig(ip,gateway,mask);
+    wifiManager.setHostname("Meteohome");
+    if (wifiManager.getWiFiPass().length()==0){
+      Serial.printf("\n[Manager] Connecting to an open network (%s).\n",wifiManager.getWiFiSSID());  
+    }
+    else {
+      Serial.printf("\n[Manager] Connecting to an encrypted network (%s).\n",wifiManager.getWiFiSSID());  
+    }
+      wifiTimeStart = millis();      
+    while (!wifiManager.autoConnect() && (millis() - wifiTimeStart < WIFI_CONNECTION_TIMEOUT)){
         delay(500);
-        Serial.print(".");
-      }
-      
-      Serial.println("\n[Manager] Unable to connect to the WiFi network. Trying again.");   
+        Serial.print(".");      
     }
     if (WiFi.status() != WL_CONNECTED){
       Serial.println("\n[Manager] It was unable to connect to the WiFi network. Going to sleep");
@@ -235,7 +229,7 @@ void Manager::setup_wifi(){
     }
     
     Serial.println("\n[Manager] WiFi connected.");
-    Serial.println("[Manager] Network configuration:" + WiFi.localIP().toString() + " " + WiFi.gatewayIP().toString() + " " + WiFi.subnetMask().toString() + " " + WiFi.hostname());
+    Serial.println("[Manager] Network configuration:" + ip.toString() + " " + gateway.toString() + " " + mask.toString() + " " + hostname);
   }else {
         shouldSaveConfig=true;
         wifiManager.setTimeout(300);

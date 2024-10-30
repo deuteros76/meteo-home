@@ -17,8 +17,6 @@ limitations under the License.
 #ifndef _MANAGER_
 #define _MANAGER_
 #include <DNSServer.h>
-#include <ESP8266WiFi.h>
-#include <ESP8266WebServer.h>
 #include "WiFiManager.h"      
 
 #include <ArduinoJson.h> 

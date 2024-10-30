@@ -15,7 +15,6 @@
 */
 #ifndef PIO_UNIT_TESTING
 
-#include <ESP8266WiFi.h>
 #include <Wire.h>
 #include <PubSubClient.h>
 #include "connection.hpp"
