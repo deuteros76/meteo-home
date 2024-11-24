@@ -3,3 +3,9 @@ description: MeteoHome was born as a weather station project using a NodeMCU ESP
 show_downloads: true
 google_analytics:
 theme: jekyll-theme-cayman
+
+
+collections:
+  blocks:
+    output: true
+

@@ -1,0 +1,19 @@
+            <!-- Sidebar -->
+            <div id="sidebar" class="4u">
+                <section>
+                  <header>
+                      <h2>Latests posts</h2>
+                  </header>
+
+                  <ul class="style">
+                  {% for post in site.posts %}
+                    <li>
+                        <p class="posted">{{ post.date }}</p>
+                        <img src="images/pic04.jpg" alt="" width="70" height="70">
+                      <p class="text"><a href="{{ post.url }}">{{ post.title }}</a>
+                        {{ post.excerpt }}</p>
+                    </li>
+                  {% endfor %}
+                </ul>
+                </section>
+            </div>

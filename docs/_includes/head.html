@@ -1,0 +1,28 @@
+<head>
+    <meta charset="UTF-8">
+      <title>{{ page.title | default: site.title | default: site.github.repository_name }}</title>
+
+{% seo %}
+      <meta http-equiv="content-type" content="text/html; charset=utf-8">
+      <meta name="description" content="">
+      <meta name="keywords" content="">
+      <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+      <link href="//fonts.googleapis.com/css?family=Arimo:400,700" rel="stylesheet" type="text/css">
+      <!--[if lte IE 8]><script src="js/html5shiv.js"></script><![endif]-->
+      <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+      <script src="{{ "/js/skel.min.js" | prepend: site.url }}"></script>
+      <script src="{{ "/js/skel-panels.min.js" | prepend: site.url }}"></script>
+      <script src="{{ "/js/init.js" | prepend: site.url }}"></script>
+
+          <link rel="stylesheet" href="{{ "/css/skel-noscript.css" | prepend: site.url }}">
+          <link rel="stylesheet" href="{{ "/css/style.css" | prepend: site.url }}">
+          <link rel="stylesheet" href="{{ "/css/style-desktop.css" | prepend: site.url }}">
+
+
+      <!--[if lte IE 8]>
+      <link rel="stylesheet" href="assets/css/ie/v8.css" />
+      <![endif]--><!--[if lte IE 9]>
+      <link rel="stylesheet" href="assets/css/ie/v9.css" />
+      <![endif]-->
+    {% include head-custom.html %}
+   </head>

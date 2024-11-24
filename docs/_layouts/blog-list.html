@@ -8,7 +8,7 @@
 
    {% include head.html %}
 
-   <body class="homepage">
+   <body class="no-sidebar">
     <a id="skip-to-content" href="#content">Skip to the content.</a>
 
     {% include header.html %}
@@ -18,24 +18,21 @@
       <div class="container">
           <div class="row">
             <!-- Content -->
-            <div id="content" class="8u skel-cell-important">
+            <div id="content" class="12u skel-cell-important">
                 <section>
                   <header>
                       <h2>{{ page.title | default: site.title | default: site.github.repository_name }}</h2>
                       <span class="byline">Integer sit amet pede vel arcu aliquet pretium</span>
                   </header>
 
-                  {{ content }}
+                {% include blog-list.html %}
                 </section>
             </div>
 
-            {% include sidebar.html %}
 
           </div>
       </div>
     </div>
-
-    {% include home-featured.html %}
 
     {% include footer.html %}
 
