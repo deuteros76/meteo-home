@@ -1,0 +1,24 @@
+title: Meteo-Home
+description: A customizable IoT weather station
+show_downloads: true
+google_analytics:
+theme: jekyll-theme-cayman
+
+plugins:
+  - jekyll-paginate-v2
+
+collections:
+  blocks:
+    output: true
+
+# Pagination Settings
+pagination:
+  enabled: true
+  per_page: 2
+  permalink: '/:num/'
+  title: ' - page :num'
+  limit: 0 
+  sort_field: 'date'
+  sort_reverse: true
+  extension: 'html'
+  indexpage: 'index'
