@@ -1,11 +1,24 @@
 title: Meteo-Home
-description: MeteoHome was born as a weather station project using a NodeMCU ESP8266 devboard with DHT22 and BMPP180 sensors. Now, the concept has changed and the board (currently a Wemos D1 Lite) and the source are being redesigned to allow the use of different type of sensors. One of the main features of MeteoHome is the configuration using a captive web portal and the use of MQTT to send the information to a server. Additionally, it has been designed to be connected to a machine running Home Assistant. In this case, this software could be used to show the current status of the sensors and display graphs.
+description: A customizable IoT weather station
 show_downloads: true
 google_analytics:
 theme: jekyll-theme-cayman
 
+plugins:
+  - jekyll-paginate-v2
 
 collections:
   blocks:
     output: true
 
+# Pagination Settings
+pagination:
+  enabled: true
+  per_page: 2
+  permalink: '/:num/'
+  title: ' - page :num'
+  limit: 0 
+  sort_field: 'date'
+  sort_reverse: true
+  extension: 'html'
+  indexpage: 'index'

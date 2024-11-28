@@ -2,15 +2,14 @@
 layout: page
 title: Hardware
 ---
-
 The hardware has been designed in Kicad. All the source files are available under the Kicad directory of this repository.
 
 ![](pics/meteo-home-kicad.png)
 
 ### Hardware components
-- Wemos D1 Mini Lite (the board is designed to use this microcontroller)
-- One or more sensors (DHT22, BMPP180, SGP-30)
-- Wires, tools...
+- {:  .list} Wemos D1 Mini Lite (the board is designed to use this microcontroller)
+- {:  .list} One or more sensors (DHT22, BMPP180, SGP-30)
+- {:  .list} Wires, tools...
 
 Below the current BOM is shown. There are no sensors included, as the idea is to plug any of the supported and are not considered part of the hardware design:
 

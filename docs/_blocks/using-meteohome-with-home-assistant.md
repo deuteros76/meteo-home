@@ -2,7 +2,6 @@
 layout: page
 title: Using MeteoHome with Home Assistant
 ---
-
 A MeteoHome device publishes the data it collects to a MQTT broker. The topics used follow the specifications made by Home Assistant project and it is possible to use this software to store and use MeteoHome produced data. When a MeteoHome board is connected to a power source, it sends Home Assisant autodiscovery messages making it available through the MQTT integration.
 
 

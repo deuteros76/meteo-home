@@ -6,7 +6,7 @@
                   </header>
 
                   <ul class="style">
-                  {% for post in site.posts %}
+                  {% for post in site.posts limit:5 %}
                     <li>
                         <p class="posted">{{ post.date }}</p>
                         <img src="images/pic04.jpg" alt="" width="70" height="70">

@@ -3,7 +3,7 @@
       <div class="container">
           <!-- Logo -->
           <div id="logo">
-            <h1><a href="#">{{ page.title | default: site.title | default: site.github.repository_name }}</a></h1>
+            <h1><a href="#">{{ site.title | default: site.title | default: site.github.repository_name }}</a></h1>
             <span>{{ page.description | default: site.description | default: site.github.project_tagline }}</span>
           </div>
           <!-- Nav -->

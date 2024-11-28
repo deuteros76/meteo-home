@@ -9,7 +9,6 @@
    {% include head.html %}
 
    <body class="no-sidebar">
-    <a id="skip-to-content" href="#content">Skip to the content.</a>
 
     {% include header.html %}
 
@@ -24,10 +23,10 @@
                       <h2>{{ page.title | default: site.title | default: site.github.repository_name }}</h2>
                       <span class="byline">Integer sit amet pede vel arcu aliquet pretium</span>
                   </header>
-
-                {% include blog-list.html %}
+ {{ content }}
                 </section>
             </div>
+
 
 
           </div>

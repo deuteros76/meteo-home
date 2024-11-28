@@ -257,7 +257,11 @@
 			padding-top: 0px;
 			border-top: none;
 		}
-							
+
+		li.list{
+			list-style-type: square;
+			margin-left: 20px;
+		}
 
 	/* Buttons */
 		

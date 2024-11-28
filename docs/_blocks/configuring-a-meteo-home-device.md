@@ -2,7 +2,6 @@
 layout: page
 title: Configuring a meteo-home device
 ---
-
 After uploading the sketch and the first execution the device will run as an Access Point. Check the available networks for you computer and connect with "meteo-home". After that, point your browser to http://192.168.4.1 and the captive portal will be displayed. 
 
 ![Home](pics/home.png) 

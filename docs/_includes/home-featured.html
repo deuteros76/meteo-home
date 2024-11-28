@@ -6,14 +6,14 @@
                 {% assign feature =  site.blocks | find: "title", "Features"  %}
                 <h2>{{ feature.title }}</h2>
                 <a href="#" class="image full"><img src="assets/images/meteo-home-v2-small.png" alt="" width="314" height="144"></a>
-                <p> {{ feature.content  | markdownify }}</p>
+                <p> {{ feature.content  | markdownify | truncatewords: 50 }}</p>
                 <p><a href="{{ feature.url }}" class="button">More Details</a></p>
             </div>
             <div class="4u">
                 {% assign future =  site.blocks | find: "title", "Future"  %}
                 <h2>{{ future.title }}</h2>
                 <a href="#" class="image full"><img src="assets/images/meteo-home-v2-small.png" alt="" width="314" height="144"></a>
-                <p> {{ future.content  | markdownify }}</p>
+                <p> {{ future.content  | truncatewords: 50 }}</p>
                 <p><a href="{{ future.url }}" class="button">More Details</a></p>
             </div>
             <div class="4u">
