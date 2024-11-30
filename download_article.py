@@ -56,11 +56,38 @@ def download_and_convert(url):
                 
                 if not os.path.exists('docs/assets/images/blog'):
                     os.makedirs('docs/assets/images/blog')
-                
                 img_path = os.path.join('docs/assets/images/blog', img_name)
                 with open(img_path, 'wb') as img_file:
                     img_file.write(img_response.content)
                 downloaded_images.append(img_path)
+                if len(downloaded_images) == 1:  # For the first image only
+                    try:
+                        # Open the original image
+                        with Image.open(img_path) as img:
+                            # Convert to RGB if needed
+                            if img.mode != 'RGB':
+                                img = img.convert('RGB')
+                            
+                            # Calculate center crop coordinates for region of interest
+                            width, height = img.size
+                            crop_size = min(width, height)
+                            left = (width - crop_size) // 2
+                            top = (height - crop_size) // 2
+                            right = left + crop_size
+                            bottom = top + crop_size
+                            
+                            # Crop and resize
+                            thumbnail = img.crop((left, top, right, bottom))
+                            thumbnail.thumbnail((70, 70), Image.Resampling.LANCZOS)
+                            
+                            # Create filename from title
+                            thumb_filename = f"{slug}-thumb.jpg"
+                            thumb_path = os.path.join('docs/assets/images/blog', thumb_filename)
+                            thumbnail.save(thumb_path, 'JPEG', quality=85)
+                            print(f"Thumbnail created: {thumb_path}")
+                    
+                    except Exception as e:
+                        print(f"Warning: Could not create thumbnail: {str(e)}")
         except Exception as e:
             print(f"Warning: Could not process figure image: {str(e)}")
     
