@@ -100,6 +100,7 @@ def download_and_convert(url):
         f.write('layout: post\n')
         f.write(f'title: "{title}"\n')
         f.write(f'date: {datetime.now().strftime("%Y-%m-%d %H:%M:%S +0100")}\n')
+        f.write(f'description: "{h.handle(content)[0:200]}..."\n')
         f.write('---\n\n')
         
         for img_path in downloaded_images:
