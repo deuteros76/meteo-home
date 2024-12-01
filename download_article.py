@@ -107,11 +107,13 @@ def download_and_convert(url):
         f.write('layout: post\n')
         f.write(f'title: "{title}"\n')
         f.write(f'date: {pub_date.strftime("%Y-%m-%d %H:%M:%S +0100")}\n')
-        f.write(f'description: "{h.handle(content)[0:200]}..."\n')
-        f.write('---\n\n')
+        f.write(f'description: "{h.handle(content)[0:200]}..."\n')      
         
-        for img_path in downloaded_images:
-            f.write(f'![{os.path.basename(img_path)}]({img_path})\n\n')
+        img_path=downloaded_images[0]
+        post_image_path = os.path.join('/assets/images/blog',os.path.basename(img_path))
+        f.write(f'image: "{post_image_path}"\n')
+        f.write('---\n\n')
+
         f.write(h.handle(content))
     
     print(f"Article successfully converted and saved to {full_path}")
