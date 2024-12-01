@@ -14,6 +14,13 @@ def download_and_convert(url):
     response = requests.get(url)
     soup = BeautifulSoup(response.text, 'html.parser')
     
+    # Get publication date from article
+    pub_date_element = soup.find('dd', class_='published').find('time')
+    if pub_date_element and pub_date_element.get('datetime'):
+        pub_date = datetime.fromisoformat(pub_date_element['datetime'].replace('Z', '+00:00'))
+    else:
+        pub_date = datetime.now()  # Fallback to current date if not found
+
     # Get title from h1
     h1_tag = soup.find('h1')
     title = h1_tag.text.strip() if h1_tag else "Untitled"
@@ -27,7 +34,7 @@ def download_and_convert(url):
     current_date = datetime.now().strftime('%Y-%m-%d')
     
     # Create filename with date and slug
-    md_filename = f"{current_date}-{slug}.md"
+    md_filename = f"{pub_date.strftime('%Y-%m-%d')}-{slug}.md"
     
     # Ensure docs/_posts directory exists
     if not os.path.exists('docs/_posts'):
@@ -99,7 +106,7 @@ def download_and_convert(url):
         f.write('---\n')
         f.write('layout: post\n')
         f.write(f'title: "{title}"\n')
-        f.write(f'date: {datetime.now().strftime("%Y-%m-%d %H:%M:%S +0100")}\n')
+        f.write(f'date: {pub_date.strftime("%Y-%m-%d %H:%M:%S +0100")}\n')
         f.write(f'description: "{h.handle(content)[0:200]}..."\n')
         f.write('---\n\n')
         
@@ -115,3 +122,4 @@ if __name__ == "__main__":
         sys.exit(1)
         
     download_and_convert(sys.argv[1])
+
