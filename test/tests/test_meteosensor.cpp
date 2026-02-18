@@ -23,7 +23,7 @@ void test_createDHTDiscoveryMsg() {
 
     MeteoBoard board(&manager, &client);
     MHDHT sensor(&board, &manager,DHTPIN, DHTTYPE); 
-    String test_message("{\"name\":\"sensor.meteohome-test_topic-DHT22-temperature\",\"stat_cla\":\"measurement\",\"dev_cla\":\"temperature\",\"stat_t\":\"test_topic/DHT22/temperature\",\"unit_of_meas\":\"ºC\",\"frc_upd\":true,\"uniq_id\":\"test_topic/DHT22/temperature\"}");
+    String test_message("{\"name\":\"sensor.meteohome-test_topic-DHT22-temperature\",\"stat_cla\":\"measurement\",\"dev_cla\":\"temperature\",\"stat_t\":\"test_topic/DHT22/temperature\",\"unit_of_meas\":\"°C\",\"frc_upd\":true,\"uniq_id\":\"test_topic/DHT22/temperature\"}");
     TEST_ASSERT_TRUE(test_message.equals(sensor.getDiscoveryMsg("test_topic",MeteoSensor::deviceClass::temperature_sensor)));
 }
 
@@ -54,7 +54,7 @@ void test_objectIteration() {
     sensors.emplace_back(&bmp);
     sensors.emplace_back(&sgp30);
 
-    String test_message("{\"name\":\"sensor.meteohome-test_topic-DHT22-temperature\",\"stat_cla\":\"measurement\",\"dev_cla\":\"temperature\",\"stat_t\":\"test_topic/DHT22/temperature\",\"unit_of_meas\":\"ºC\",\"frc_upd\":true,\"uniq_id\":\"test_topic/DHT22/temperature\"}");
+    String test_message("{\"name\":\"sensor.meteohome-test_topic-DHT22-temperature\",\"stat_cla\":\"measurement\",\"dev_cla\":\"temperature\",\"stat_t\":\"test_topic/DHT22/temperature\",\"unit_of_meas\":\"°C\",\"frc_upd\":true,\"uniq_id\":\"test_topic/DHT22/temperature\"}");
     TEST_ASSERT_TRUE(test_message.equals(sensors.at(0)->getDiscoveryMsg("test_topic",MeteoSensor::deviceClass::temperature_sensor)));
  
     test_message="{\"name\":\"sensor.meteohome-test_topic-BMP180-pressure\",\"stat_cla\":\"measurement\",\"dev_cla\":\"atmospheric_pressure\",\"stat_t\":\"test_topic/BMP180/pressure\",\"unit_of_meas\":\"Pa\",\"frc_upd\":true,\"uniq_id\":\"test_topic/BMP180/pressure\"}";

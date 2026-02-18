@@ -83,7 +83,7 @@ String MHDHT::getDiscoveryMsg(String deviceName, deviceClass dev_class){
   String topic, unit, className;
 
   switch (dev_class){
-    case temperature_sensor: unit = "ºC"; className="temperature"; topic= deviceName+"/DHT22/temperature"; break;
+    case temperature_sensor: unit = "°C"; className="temperature"; topic= deviceName+"/DHT22/temperature"; break;
     case humidity_sensor: unit = "%"; className="humidity"; topic= deviceName+"/DHT22/humidity"; break;
     default: break;
   }

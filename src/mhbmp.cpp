@@ -65,7 +65,7 @@ String MHBMP::getDiscoveryMsg(String deviceName, deviceClass dev_class){
   String topic, unit, className;
 
   switch (dev_class){
-    case temperature_sensor: unit = "ºC"; className="temperature"; topic= deviceName+"/BMP180/temperature"; break;
+    case temperature_sensor: unit = "°C"; className="temperature"; topic= deviceName+"/BMP180/temperature"; break;
     case pressure_sensor: unit = "Pa"; className="atmospheric_pressure"; topic= deviceName+"/BMP180/pressure"; break;
     default: break;
   }

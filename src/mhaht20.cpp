@@ -69,7 +69,7 @@ String MHAHT20::getDiscoveryMsg(String deviceName, deviceClass dev_class){
   String topic, unit, className;
 
   switch (dev_class){
-    case MeteoSensor::temperature_sensor: unit = "ºC"; className="temperature"; topic= deviceName+"/AHT20/temperature"; break;
+    case MeteoSensor::temperature_sensor: unit = "°C"; className="temperature"; topic= deviceName+"/AHT20/temperature"; break;
     case MeteoSensor::humidity_sensor: unit = "%"; className="humidity"; topic= deviceName+"/AHT20/humidity"; break;
     default: break;
   }
