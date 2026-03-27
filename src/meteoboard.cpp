@@ -16,15 +16,19 @@ limitations under the License.
 
 #include "meteoboard.hpp"
 
+MeteoBoard* MeteoBoard::instance = nullptr;
+
 MeteoBoard::MeteoBoard(Manager *m, PubSubClient *c){
   manager = m;
+  instance = this;
 
   client = c;
   
   //Setup mqtt
   IPAddress addr;
   addr.fromString(manager->mqttServer());
-  client->setServer(addr, atoi(manager->mqttPort().c_str())); 
+  client->setServer(addr, atoi(manager->mqttPort().c_str()));
+  client->setCallback(mqttCallback);
 }
 
 bool MeteoBoard::begin(){
@@ -77,6 +81,8 @@ bool MeteoBoard::connectToMQTT(){
     Serial.println(clientName.c_str());
     if (client->connect(clientName.c_str())) {
       Serial.println("[Board] Connected to mqtt");
+      // Subscribe to Home Assistant birth topic to resend discovery on HASS restart
+      client->subscribe("homeassistant/status");
     } else {
       Serial.println("[Board] Failed to connect to mqtt");
       returnValue = false;
@@ -87,20 +93,30 @@ bool MeteoBoard::connectToMQTT(){
   return returnValue;
 }
 
-void MeteoBoard::sendDiscoveryMessage(String discoveryTopic, String message){
-    char buf[256];
+void MeteoBoard::mqttCallback(char* topic, byte* payload, unsigned int length) {
+  String message;
+  for (unsigned int i = 0; i < length; i++) {
+    message += (char)payload[i];
+  }
+  Serial.println("[Board] MQTT message received on " + String(topic) + ": " + message);
 
+  // When Home Assistant sends its birth message, resend discovery
+  if (String(topic) == "homeassistant/status" && message == "online") {
+    Serial.println("[Board] Home Assistant is online, resending discovery messages");
+    if (instance != nullptr) {
+      instance->autodiscover();
+    }
+  }
+}
+
+void MeteoBoard::sendDiscoveryMessage(String discoveryTopic, String message){
     connectToMQTT();
-    message.toCharArray(buf, message.length() + 1);
-    if (client->beginPublish (discoveryTopic.c_str(), message.length(), true)) {
-      for (unsigned int i = 0; i <= message.length() + 1; i++) {
-        client->write(buf[i]);
-      }
+    if (client->beginPublish(discoveryTopic.c_str(), message.length(), true)) {
+      client->print(message);
       if (!client->endPublish()){
         Serial.println(String("[Board] Error publishing discovery message to ") + discoveryTopic);    
       }
     } else {
       Serial.println(String("[Board] Error sending discovery message to ") + discoveryTopic);
     }
-    client->disconnect();
 }

@@ -106,11 +106,11 @@ void setup() {
     board.addSensor(&aht20);
   }
 
+  board.autodiscover();
+
   if (first_boot_done != 1){
     first_boot_done = 1;
     ESP.rtcUserMemoryWrite(0,&first_boot_done,sizeof(first_boot_done)); // Write to persistent RAM memory
-    
-    board.autodiscover(); 
   }
 
   manager.useSleepMode().toLowerCase();

@@ -41,6 +41,7 @@ String MeteoSensor::createDiscoveryMsg(String topic,  String dev_class, String u
   doc["unit_of_meas"] = unit;
   doc["frc_upd"] = true;
   doc["uniq_id"] =  topic;
+  doc["exp_aft"] = 300;
 
   serializeJson(doc, buffer);
 

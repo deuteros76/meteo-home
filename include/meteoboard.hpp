@@ -43,6 +43,8 @@ class MeteoBoard: public EspClass{
     bool connectToMQTT(); //! Connect to mqtt server
     PubSubClient *getClient(){return client;}
     void sendDiscoveryMessage(String discoveryTopic, String message);
+    static void mqttCallback(char* topic, byte* payload, unsigned int length); //! MQTT callback for incoming messages
+    static MeteoBoard* instance; //! Static instance for callback access
 
   private:    
     Manager *manager;
