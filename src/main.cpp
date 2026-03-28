@@ -161,9 +161,15 @@ void loop() {
   
   if (useSleepMode){
     Serial.print("[Main] Going to sleep after " + String((millis()-t_elapsed)/1000));
+    client.disconnect();
     ESP.deepSleep(DEEP_SLEEP_TIME * 1000000);
   }else{
-    delay(DEEP_SLEEP_TIME * 1000);
+    unsigned long waitStart = millis();
+    while (millis() - waitStart < DEEP_SLEEP_TIME * 1000UL) {
+      client.loop();
+      ArduinoOTA.handle();
+      delay(100);
+    }
   }
 }
 

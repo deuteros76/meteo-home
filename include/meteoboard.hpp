@@ -16,6 +16,8 @@ limitations under the License.
 #ifndef _METEOBOARD_
 #define _METEOBOARD_
 
+#define MQTT_AVAILABILITY_TOPIC "meteohome/status"
+
 #include <Arduino.h>
 #include <ArduinoJson.h> 
 #include <vector>

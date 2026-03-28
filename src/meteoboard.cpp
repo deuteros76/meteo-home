@@ -79,8 +79,9 @@ bool MeteoBoard::connectToMQTT(){
     clientName.concat(ESP.getChipId());
     Serial.print("[Board] Attempting MQTT connection... ");
     Serial.println(clientName.c_str());
-    if (client->connect(clientName.c_str())) {
+    if (client->connect(clientName.c_str(), MQTT_AVAILABILITY_TOPIC, 0, true, "offline")) {
       Serial.println("[Board] Connected to mqtt");
+      client->publish(MQTT_AVAILABILITY_TOPIC, "online", true);
       // Subscribe to Home Assistant birth topic to resend discovery on HASS restart
       client->subscribe("homeassistant/status");
     } else {
@@ -89,7 +90,11 @@ bool MeteoBoard::connectToMQTT(){
     }
   }
   client->loop();
-  
+
+  if (client->connected()) {
+    client->publish(MQTT_AVAILABILITY_TOPIC, "online", true);
+  }
+
   return returnValue;
 }
 
