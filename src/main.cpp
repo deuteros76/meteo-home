@@ -62,6 +62,7 @@ ADC_MODE(ADC_VCC); // (https://arduino-esp8266.readthedocs.io/en/latest/librarie
 void setup() {
   // Check if this is the first boot (Usefull if using deep sleep mode)
   ESP.rtcUserMemoryRead(0,&first_boot_done,sizeof(first_boot_done)); // Read from persistent RAM memory
+  bool firstBoot = (first_boot_done != 1); // Cold boot (power-on) vs wake from deep sleep. Captured before first_boot_done is overwritten below.
 
   //Serial port speed
   t_elapsed = millis();
@@ -142,14 +143,20 @@ void setup() {
   });
   ArduinoOTA.begin();
 
-  // OTA wait window: wait for OTA updates before starting normal operation
-  Serial.println("[OTA] Waiting for OTA updates for " + String(OTA_WAIT_TIME / 1000) + " seconds...");
-  unsigned long otaStart = millis();
-  while (millis() - otaStart < OTA_WAIT_TIME) {
-    ArduinoOTA.handle();
-    delay(100);
+  // OTA wait window. Skip it when waking from deep sleep to save battery on
+  // solar/battery setups: in sleep mode the window only runs on a cold boot
+  // (power-on), so OTA updates remain possible by power-cycling the device.
+  if (firstBoot || !useSleepMode) {
+    Serial.println("[OTA] Waiting for OTA updates for " + String(OTA_WAIT_TIME / 1000) + " seconds...");
+    unsigned long otaStart = millis();
+    while (millis() - otaStart < OTA_WAIT_TIME) {
+      ArduinoOTA.handle();
+      delay(100);
+    }
+    Serial.println("[OTA] OTA window closed, continuing normal operation");
+  } else {
+    Serial.println("[OTA] Deep sleep wake, skipping OTA window to save battery");
   }
-  Serial.println("[OTA] OTA window closed, continuing normal operation");
 
   digitalWrite(GREEN_PIN, HIGH);  
   Serial.println("[Main] Configured!!");
