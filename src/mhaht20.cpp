@@ -41,12 +41,13 @@ bool MHAHT20::begin(){
 }
 
 bool MHAHT20::available(){
-  bool returnValue=true;
-
-  if (!sensorReady){   
-    returnValue=false;  
+  if (!sensorReady){
+    return false;
   }
-  return returnValue;
+  // Re-probe the sensor on the I2C bus so a runtime disconnection makes read()
+  // stop publishing, letting Home Assistant mark it unavailable via expire_after.
+  Wire.beginTransmission(AHTX0_I2CADDR_DEFAULT);
+  return (Wire.endTransmission() == 0);
 }
 
 void MHAHT20::read(){

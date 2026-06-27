@@ -38,12 +38,14 @@ bool MHBMP::begin(){
 }
 
 bool MHBMP::available(){
-  bool returnValue=true;
-
-  if (!sensorReady){   
-    returnValue=false;  
+  if (!sensorReady){
+    return false;
   }
-  return returnValue;
+  // Re-probe the sensor on the I2C bus so a runtime disconnection (loose wiring
+  // or power loss to the sensor) makes read() stop publishing, letting Home
+  // Assistant mark it unavailable via expire_after.
+  Wire.beginTransmission(BMP085_I2CADDR);
+  return (Wire.endTransmission() == 0);
 }
 
 void MHBMP::read(){

@@ -35,10 +35,11 @@ bool MHVoltage::begin(){
 }
 
 bool MHVoltage::available(){
-  bool returnValue=true;
-
-   //! TODO: think about this boolean function
-  return returnValue;
+  // The supply-voltage reading is internal (no external wiring to fail), but
+  // guard against an implausible value so a bad ADC read is not reported as a
+  // valid measurement. The ESP8266 runs at ~3.3 V; allow a generous range.
+  uint16_t millivolts = getVcc();
+  return (millivolts > 0 && millivolts < 4500);
 }
 
 void MHVoltage::read(){

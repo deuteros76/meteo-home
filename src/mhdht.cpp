@@ -22,8 +22,6 @@ MHDHT::MHDHT(MeteoBoard *p, Manager *m, uint8_t pin, uint8_t type): DHT(pin, typ
   temperature_discovery_topic = "homeassistant/sensor/ESP-" + String(ESP.getChipId()) +"/DHT22-temperature/config";
   humidity_discovery_topic = "homeassistant/sensor/ESP-" + String(ESP.getChipId()) + "/DHT22-humidity/config";
   heatindex_discovery_topic = "homeassistant/sensor/ESP-" + String(ESP.getChipId()) + "/DHT22-heatindex/config";
-
-  values_read = false;
 }
 
 bool MHDHT::begin(){
@@ -31,11 +29,10 @@ bool MHDHT::begin(){
 
   DHT::begin();
   delay(50);
-  read(); // this reading is to make available() work from the begining
 
   if (manager == nullptr){
     returnValue = false;
-  }else if (available()){
+  }else if (available()){ // available() performs a fresh read and validates it
     temperature_topic = manager->deviceName() + "/DHT22/temperature";
     humidity_topic = manager->deviceName() + "/DHT22/humidity";
     heatindex_topic = manager->deviceName() + "/DHT22/heatindex";
@@ -46,27 +43,16 @@ bool MHDHT::begin(){
 }
 
 bool MHDHT::available(){
-  bool returnValue=true;
-
-  if (isnan(temperature) || isnan(humidity)){
-    if (values_read){
-      returnValue=false;
-    }else{
-      values_read= true;
-      returnValue = (!isnan(temperature) && !isnan(humidity));
-    }
-
-  }
-  return returnValue;
+  // Take a fresh measurement. The DHT is a 1-wire sensor, so a failure shows up
+  // as NaN readings. read() publishes these values without re-reading, so a
+  // failing sensor stops publishing and HA marks it unavailable via expire_after.
+  temperature = readTemperature();
+  humidity = readHumidity();
+  return (!isnan(temperature) && !isnan(humidity));
 }
 
 void MHDHT::read(){
-   //read dht22 value
-  if (!values_read){
-    temperature = readTemperature();    
-    humidity = readHumidity();
-    heatindex = computeHeatIndex(temperature, humidity, false);
-  }
+  heatindex = computeHeatIndex(temperature, humidity, false);
 
   parent->getClient()->publish(getTemperatureTopic().c_str(), String(getTemperature()).c_str(), true);
   delay(50);
@@ -74,9 +60,8 @@ void MHDHT::read(){
   delay(50);
   parent->getClient()->publish(getHeatindexTopic().c_str(), String(getHeatIndex()).c_str(), true);
   delay(50);
-      
+
   Serial.println("[DHT] Temperature = " + String(temperature) + " Humidity = " + String(humidity) +" HeatIndex = " + String(heatindex));
-  values_read= false;
 }
 
 String MHDHT::getDiscoveryMsg(String deviceName, deviceClass dev_class){

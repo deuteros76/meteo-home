@@ -50,11 +50,15 @@ bool MHSGP30::begin(TwoWire &wirePort){
 }
 
 bool MHSGP30::available(){
-  bool returnValue=true;
   if (!sensorReady){
-    returnValue=false;  
+    return false;
   }
-  return returnValue;
+  // Re-probe the sensor on the I2C bus to detect a runtime disconnection so the
+  // value stops being published and Home Assistant marks it unavailable via
+  // expire_after.
+  const uint8_t SGP30_I2C_ADDRESS = 0x58; // SGP30 fixed I2C address
+  Wire.beginTransmission(SGP30_I2C_ADDRESS);
+  return (Wire.endTransmission() == 0);
 }
 
 void MHSGP30::read(){
