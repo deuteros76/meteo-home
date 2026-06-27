@@ -140,8 +140,11 @@ void Manager::setup_wifi(){
     gateway.fromString(network_gateway);
     mask.fromString(network_mask);
 
-    String hostname = "Meteo-home_";
-    hostname.concat(WiFi.macAddress());
+    String hostname = "meteo-";
+    String nameLower = device_name;
+    nameLower.toLowerCase();
+    nameLower.replace(" ", "-");
+    hostname.concat(nameLower);
     WiFi.mode(WIFI_STA);
     WiFi.config(ip, gateway,mask);
     Serial.printf("\n[Manager] Configuring network parameters (%s %s %s).\n",ip.toString().c_str(),gateway.toString().c_str(),mask.toString().c_str());  

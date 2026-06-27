@@ -119,7 +119,10 @@ void setup() {
   } 
   
   // OTA setup
-  ArduinoOTA.setHostname("meteo-home");
+  String otaHostname = "meteo-" + manager.deviceName();
+  otaHostname.toLowerCase();
+  otaHostname.replace(" ", "-");
+  ArduinoOTA.setHostname(otaHostname.c_str());
   ArduinoOTA.onStart([]() {
     Serial.println("[OTA] Start updating");
   });
