@@ -42,8 +42,17 @@ String MeteoSensor::createDiscoveryMsg(String topic,  String dev_class, String u
   doc["frc_upd"] = true;
   doc["uniq_id"] =  topic;
 
+  // Mark the sensor as unavailable if no value is published within this window.
+  // The device publishes every DEEP_SLEEP_TIME seconds, so allow two cycles
+  // before Home Assistant considers the data stale. Without this, deep sleep
+  // closes the MQTT connection gracefully (no LWT) and HA would keep showing
+  // the last retained value indefinitely.
+  doc["expire_after"] = DEEP_SLEEP_TIME * 2;
+
   JsonObject avail = doc.createNestedObject("availability");
   avail["topic"] = MQTT_AVAILABILITY_TOPIC;
+  avail["payload_available"] = "online";
+  avail["payload_not_available"] = "offline";
 
   serializeJson(doc, buffer);
 
