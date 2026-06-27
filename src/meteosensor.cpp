@@ -50,7 +50,7 @@ String MeteoSensor::createDiscoveryMsg(String topic,  String dev_class, String u
   doc["expire_after"] = DEEP_SLEEP_TIME * 2;
 
   JsonObject avail = doc.createNestedObject("availability");
-  avail["topic"] = MQTT_AVAILABILITY_TOPIC;
+  avail["topic"] = manager->availabilityTopic();
   avail["payload_available"] = "online";
   avail["payload_not_available"] = "offline";
 

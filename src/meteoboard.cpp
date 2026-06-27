@@ -71,6 +71,10 @@ bool MeteoBoard::connectToMQTT(){
   bool returnValue=true;
   const int timeout = 20000;
 
+  // Per-device availability topic (LWT). Kept in a local so its c_str() stays
+  // valid for the duration of the connect() call.
+  String availabilityTopic = manager->availabilityTopic();
+
   // Loop until we're reconnected
   long t1 = millis();
 
@@ -79,9 +83,9 @@ bool MeteoBoard::connectToMQTT(){
     clientName.concat(ESP.getChipId());
     Serial.print("[Board] Attempting MQTT connection... ");
     Serial.println(clientName.c_str());
-    if (client->connect(clientName.c_str(), MQTT_AVAILABILITY_TOPIC, 0, true, "offline")) {
+    if (client->connect(clientName.c_str(), availabilityTopic.c_str(), 0, true, "offline")) {
       Serial.println("[Board] Connected to mqtt");
-      client->publish(MQTT_AVAILABILITY_TOPIC, "online", true);
+      client->publish(availabilityTopic.c_str(), "online", true);
       // Subscribe to Home Assistant birth topic to resend discovery on HASS restart
       client->subscribe("homeassistant/status");
     } else {
@@ -92,7 +96,7 @@ bool MeteoBoard::connectToMQTT(){
   client->loop();
 
   if (client->connected()) {
-    client->publish(MQTT_AVAILABILITY_TOPIC, "online", true);
+    client->publish(availabilityTopic.c_str(), "online", true);
   }
 
   return returnValue;

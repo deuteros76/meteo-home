@@ -23,14 +23,14 @@ void test_createDHTDiscoveryMsg() {
 
     MeteoBoard board(&manager, &client);
     MHDHT sensor(&board, &manager,DHTPIN, DHTTYPE); 
-    String test_message("{\"name\":\"sensor.meteohome-test_topic-DHT22-temperature\",\"stat_cla\":\"measurement\",\"dev_cla\":\"temperature\",\"stat_t\":\"test_topic/DHT22/temperature\",\"unit_of_meas\":\"°C\",\"frc_upd\":true,\"uniq_id\":\"test_topic/DHT22/temperature\",\"expire_after\":120,\"availability\":{\"topic\":\"meteohome/status\",\"payload_available\":\"online\",\"payload_not_available\":\"offline\"}}");
+    String test_message("{\"name\":\"sensor.meteohome-test_topic-DHT22-temperature\",\"stat_cla\":\"measurement\",\"dev_cla\":\"temperature\",\"stat_t\":\"test_topic/DHT22/temperature\",\"unit_of_meas\":\"°C\",\"frc_upd\":true,\"uniq_id\":\"test_topic/DHT22/temperature\",\"expire_after\":120,\"availability\":{\"topic\":\"meteohome/Terrace/status\",\"payload_available\":\"online\",\"payload_not_available\":\"offline\"}}");
     TEST_ASSERT_TRUE(test_message.equals(sensor.getDiscoveryMsg("test_topic",MeteoSensor::deviceClass::temperature_sensor)));
 }
 
 void test_createBMPDiscoveryMsg() {
     MeteoBoard board(&manager, &client);
     MHBMP sensor(&board, &manager);
-    String test_message("{\"name\":\"sensor.meteohome-test_topic-BMP180-pressure\",\"stat_cla\":\"measurement\",\"dev_cla\":\"atmospheric_pressure\",\"stat_t\":\"test_topic/BMP180/pressure\",\"unit_of_meas\":\"Pa\",\"frc_upd\":true,\"uniq_id\":\"test_topic/BMP180/pressure\",\"expire_after\":120,\"availability\":{\"topic\":\"meteohome/status\",\"payload_available\":\"online\",\"payload_not_available\":\"offline\"}}");
+    String test_message("{\"name\":\"sensor.meteohome-test_topic-BMP180-pressure\",\"stat_cla\":\"measurement\",\"dev_cla\":\"atmospheric_pressure\",\"stat_t\":\"test_topic/BMP180/pressure\",\"unit_of_meas\":\"Pa\",\"frc_upd\":true,\"uniq_id\":\"test_topic/BMP180/pressure\",\"expire_after\":120,\"availability\":{\"topic\":\"meteohome/Terrace/status\",\"payload_available\":\"online\",\"payload_not_available\":\"offline\"}}");
     TEST_ASSERT_TRUE(test_message.equals(sensor.getDiscoveryMsg("test_topic",MeteoSensor::deviceClass::pressure_sensor)));
 }
 
@@ -38,7 +38,7 @@ void test_createSGPDiscoveryMsg() {
     MeteoBoard board(&manager, &client);
     Leds leds; 
     MHSGP30 sensor(&board, &manager, &leds);
-    String test_message("{\"name\":\"sensor.meteohome-test_topic-SGP30-co2\",\"stat_cla\":\"measurement\",\"dev_cla\":\"carbon_dioxide\",\"stat_t\":\"test_topic/SGP30/co2\",\"unit_of_meas\":\"ppm\",\"frc_upd\":true,\"uniq_id\":\"test_topic/SGP30/co2\",\"expire_after\":120,\"availability\":{\"topic\":\"meteohome/status\",\"payload_available\":\"online\",\"payload_not_available\":\"offline\"}}");
+    String test_message("{\"name\":\"sensor.meteohome-test_topic-SGP30-co2\",\"stat_cla\":\"measurement\",\"dev_cla\":\"carbon_dioxide\",\"stat_t\":\"test_topic/SGP30/co2\",\"unit_of_meas\":\"ppm\",\"frc_upd\":true,\"uniq_id\":\"test_topic/SGP30/co2\",\"expire_after\":120,\"availability\":{\"topic\":\"meteohome/Terrace/status\",\"payload_available\":\"online\",\"payload_not_available\":\"offline\"}}");
     TEST_ASSERT_TRUE(test_message.equals(sensor.getDiscoveryMsg("test_topic",MeteoSensor::deviceClass::co2_sensor)));
 }
 
@@ -54,16 +54,16 @@ void test_objectIteration() {
     sensors.emplace_back(&bmp);
     sensors.emplace_back(&sgp30);
 
-    String test_message("{\"name\":\"sensor.meteohome-test_topic-DHT22-temperature\",\"stat_cla\":\"measurement\",\"dev_cla\":\"temperature\",\"stat_t\":\"test_topic/DHT22/temperature\",\"unit_of_meas\":\"°C\",\"frc_upd\":true,\"uniq_id\":\"test_topic/DHT22/temperature\",\"expire_after\":120,\"availability\":{\"topic\":\"meteohome/status\",\"payload_available\":\"online\",\"payload_not_available\":\"offline\"}}");
+    String test_message("{\"name\":\"sensor.meteohome-test_topic-DHT22-temperature\",\"stat_cla\":\"measurement\",\"dev_cla\":\"temperature\",\"stat_t\":\"test_topic/DHT22/temperature\",\"unit_of_meas\":\"°C\",\"frc_upd\":true,\"uniq_id\":\"test_topic/DHT22/temperature\",\"expire_after\":120,\"availability\":{\"topic\":\"meteohome/Terrace/status\",\"payload_available\":\"online\",\"payload_not_available\":\"offline\"}}");
     TEST_ASSERT_TRUE(test_message.equals(sensors.at(0)->getDiscoveryMsg("test_topic",MeteoSensor::deviceClass::temperature_sensor)));
  
-    test_message="{\"name\":\"sensor.meteohome-test_topic-BMP180-pressure\",\"stat_cla\":\"measurement\",\"dev_cla\":\"atmospheric_pressure\",\"stat_t\":\"test_topic/BMP180/pressure\",\"unit_of_meas\":\"Pa\",\"frc_upd\":true,\"uniq_id\":\"test_topic/BMP180/pressure\",\"expire_after\":120,\"availability\":{\"topic\":\"meteohome/status\",\"payload_available\":\"online\",\"payload_not_available\":\"offline\"}}";
+    test_message="{\"name\":\"sensor.meteohome-test_topic-BMP180-pressure\",\"stat_cla\":\"measurement\",\"dev_cla\":\"atmospheric_pressure\",\"stat_t\":\"test_topic/BMP180/pressure\",\"unit_of_meas\":\"Pa\",\"frc_upd\":true,\"uniq_id\":\"test_topic/BMP180/pressure\",\"expire_after\":120,\"availability\":{\"topic\":\"meteohome/Terrace/status\",\"payload_available\":\"online\",\"payload_not_available\":\"offline\"}}";
     TEST_ASSERT_TRUE(test_message.equals(sensors.at(1)->getDiscoveryMsg("test_topic",MeteoSensor::deviceClass::pressure_sensor)));
 
-    test_message="{\"name\":\"sensor.meteohome-test_topic-SGP30-co2\",\"stat_cla\":\"measurement\",\"dev_cla\":\"carbon_dioxide\",\"stat_t\":\"test_topic/SGP30/co2\",\"unit_of_meas\":\"ppm\",\"frc_upd\":true,\"uniq_id\":\"test_topic/SGP30/co2\",\"expire_after\":120,\"availability\":{\"topic\":\"meteohome/status\",\"payload_available\":\"online\",\"payload_not_available\":\"offline\"}}";
+    test_message="{\"name\":\"sensor.meteohome-test_topic-SGP30-co2\",\"stat_cla\":\"measurement\",\"dev_cla\":\"carbon_dioxide\",\"stat_t\":\"test_topic/SGP30/co2\",\"unit_of_meas\":\"ppm\",\"frc_upd\":true,\"uniq_id\":\"test_topic/SGP30/co2\",\"expire_after\":120,\"availability\":{\"topic\":\"meteohome/Terrace/status\",\"payload_available\":\"online\",\"payload_not_available\":\"offline\"}}";
     TEST_ASSERT_TRUE(test_message.equals(sensors.at(2)->getDiscoveryMsg("test_topic",MeteoSensor::deviceClass::co2_sensor)));
 
-    test_message="{\"name\":\"sensor.meteohome-test_topic\",\"stat_cla\":\"measurement\",\"dev_cla\":\"test\",\"stat_t\":\"test_topic\",\"unit_of_meas\":\"%\",\"frc_upd\":true,\"uniq_id\":\"test_topic\",\"expire_after\":120,\"availability\":{\"topic\":\"meteohome/status\",\"payload_available\":\"online\",\"payload_not_available\":\"offline\"}}";
+    test_message="{\"name\":\"sensor.meteohome-test_topic\",\"stat_cla\":\"measurement\",\"dev_cla\":\"test\",\"stat_t\":\"test_topic\",\"unit_of_meas\":\"%\",\"frc_upd\":true,\"uniq_id\":\"test_topic\",\"expire_after\":120,\"availability\":{\"topic\":\"meteohome/Terrace/status\",\"payload_available\":\"online\",\"payload_not_available\":\"offline\"}}";
 
     for (auto &sensor : sensors) {
         TEST_ASSERT_TRUE(test_message.equals(sensor->createDiscoveryMsg("test_topic","test","%")));

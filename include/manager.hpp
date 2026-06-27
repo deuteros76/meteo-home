@@ -62,6 +62,10 @@ public:
   
   String useSleepMode(){return use_sleep_mode;}
   String deviceName(){return device_name;}
+
+  //! Per-device MQTT availability (LWT) topic. Keeps each device's online/offline
+  //! status independent so one device going offline does not mark the others.
+  String availabilityTopic(){return "meteohome/" + device_name + "/status";}
   
 private:
   //MQTT  server
