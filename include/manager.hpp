@@ -27,6 +27,7 @@ limitations under the License.
 //Deep sleep
 #define DEEP_SLEEP_TIME 60 //time in seconds
 #define WIFI_CONNECTION_TIMEOUT 20000 //Timeout for WIFI connections. The idea is to prevent for continuous conection tries. This would cause battery drain
+#define WIFI_MAX_CONNECTION_RETRIES 3 //Max WiFi connection attempts before giving up and deep sleeping. Prevents draining the battery (e.g. solar setups) by retrying the radio forever when it cannot connect
 
 #ifndef ARDUINOJSON_ENABLE_STD_STREAM
 #define ARDUINOJSON_ENABLE_STD_STREAM
