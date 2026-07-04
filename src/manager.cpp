@@ -210,22 +210,25 @@ void Manager::setup_wifi(){
     nameLower.toLowerCase();
     nameLower.replace(" ", "-");
     hostname.concat(nameLower);
-    Serial.printf("\n[Manager] Configuring network parameters (%s %s %s).\n",ip.toString().c_str(),gateway.toString().c_str(),mask.toString().c_str());  
-
+    WiFi.mode(WIFI_STA);
+    WiFi.config(ip, gateway,mask);
+    Serial.printf("\n[Manager] Configuring network parameters (%s %s %s).\n",ip.toString().c_str(),gateway.toString().c_str(),mask.toString().c_str());
+    WiFi.hostname(hostname.c_str());
     for (int retries = 0; WiFi.status() != WL_CONNECTED && retries < WIFI_MAX_CONNECTION_RETRIES; retries++){
-    wifiManager.setSTAStaticIPConfig(ip,gateway,mask);
-    wifiManager.setHostname("Meteohome");
-    if (wifiManager.getWiFiPass().length()==0){
+      wifiTimeStart = millis();
+      if (strlen(WiFi.psk().c_str())==0){
+        WiFi.begin(WiFi.SSID().c_str());
         Serial.printf("\n[Manager] Connecting to an open network (%s). Attempt %d/%d.\n",WiFi.SSID().c_str(), retries + 1, WIFI_MAX_CONNECTION_RETRIES);
-    }
-    else {
-      Serial.printf("\n[Manager] Connecting to an encrypted network (%s).\n",wifiManager.getWiFiSSID());  
+      }
+      else {
+        WiFi.begin(WiFi.SSID().c_str(), WiFi.psk().c_str());
         Serial.printf("\n[Manager] Connecting to an encrypted network (%s). Attempt %d/%d.\n",WiFi.SSID().c_str(), retries + 1, WIFI_MAX_CONNECTION_RETRIES);
-    }
+      }
 
-    while (!wifiManager.autoConnect() && (millis() - wifiTimeStart < WIFI_CONNECTION_TIMEOUT)){
+      while (WiFi.status() != WL_CONNECTED && (millis() - wifiTimeStart < WIFI_CONNECTION_TIMEOUT)) {
         delay(500);
-        Serial.print(".");      
+        Serial.print(".");
+      }
     }
     if (WiFi.status() != WL_CONNECTED){
       Serial.println("\n[Manager] It was unable to connect to the WiFi network. Going to sleep");

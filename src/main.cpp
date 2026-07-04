@@ -15,6 +15,7 @@
 */
 #ifndef PIO_UNIT_TESTING
 
+#include <ESP8266WiFi.h>
 #include <ArduinoOTA.h>
 #include <Wire.h>
 #include <PubSubClient.h>
@@ -89,8 +90,13 @@ ADC_MODE(get_ADC()); // Normally ADC_MODE(ADC_VCC) is used but we want to select
 
 void setup() {
   // Check if this is the first boot (Usefull if using deep sleep mode)
-  rtcStore rtcMem; 
-  bool firstBoot = (first_boot_done != 1); // Cold boot (power-on) vs wake from deep sleep. Captured before first_boot_done is overwritten below.
+  // get_ADC() (the ADC_MODE static init) already populated first_boot_done and
+  // useAnalogSensor from RTC memory, so capture cold boot (power-on) vs wake from
+  // deep sleep now, before first_boot_done is overwritten below.
+  bool firstBoot = (first_boot_done != 1);
+
+  rtcStore rtcMem;
+  system_rtc_mem_read(RTC_FIRST_USABLE_ADDRESS, &rtcMem, sizeof(rtcMem)); // Read from persistent RAM memory
   first_boot_done=rtcMem.first_boot_done;
 
   //Serial port speed
@@ -140,19 +146,23 @@ void setup() {
     board.addSensor(&aht20);
   }
 
+  if (useAnalogSensor){ //! If we use the analog input we will avoid to meassure the VCC input.
+    //Analog sensor
     if (analog.begin()){
       board.addSensor(&analog);
     }
   }
   else{
-    //Builtin voltage sensor 
+    //Builtin voltage sensor
     if (voltage.begin()){
       board.addSensor(&voltage);
     }
   }
 
+  //! Send Home Assistant autodiscovery only on a cold boot, not after waking from deep sleep
   if (first_boot_done != 1){
     first_boot_done = 1;
+    board.autodiscover();
   }
 
   if (manager.useSleepMode()){
@@ -210,10 +220,13 @@ void loop() {
   board.processSensors();
   
   if (useSleepMode){
-    Serial.print("[Main] Going to sleep for " + String(manager.sleepMinutes())+" minutes after " + String((millis()-t_elapsed)/1000.0)+ " seconds");
+    Serial.print("[Main] Going to sleep for " + String(manager.sleepMinutes()) + " minutes after " + String((millis()-t_elapsed)/1000.0) + " seconds");
+    client.disconnect();
+    ESP.deepSleep((uint64_t)manager.sleepMinutes() * 60 * 1000000);
   }else{
-    delay(DEEP_SLEEP_TIME * 1000);
-    while (millis() - waitStart < DEEP_SLEEP_TIME * 1000UL) {
+    // Stay awake between readings, servicing MQTT and OTA.
+    unsigned long waitStart = millis();
+    while (millis() - waitStart < (unsigned long)manager.sleepMinutes() * 60UL * 1000UL) {
       client.loop();
       ArduinoOTA.handle();
       delay(100);
