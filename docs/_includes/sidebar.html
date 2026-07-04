@@ -1,0 +1,19 @@
+            <!-- Sidebar -->
+            <div id="sidebar" class="4u">
+                <section>
+                  <header>
+                      <h2>Latests posts</h2>
+                  </header>
+
+                  <ul class="style">
+                  {% for post in site.posts limit:5 %}
+                    <li>
+                        <p class="posted">{{ post.date }}</p>
+                        <img src="/assets/images/blog/{{ post.title | slugify }}-thumb.jpg" alt="" width="70" height="70">
+                      <p class="text"><a href="{{ post.url }}">{{ post.title }}</a>
+                        {{ post.description }}</p>
+                    </li>
+                  {% endfor %}
+                </ul>
+                </section>
+            </div>

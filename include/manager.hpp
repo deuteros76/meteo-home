@@ -17,15 +17,12 @@ limitations under the License.
 #ifndef _MANAGER_
 #define _MANAGER_
 #include <DNSServer.h>
-#include <ESP8266WiFi.h>
-#include <ESP8266WebServer.h>
 #include "WiFiManager.h"      
 
 #include <ArduinoJson.h> 
 #include <LittleFS.h> 
 
 //Deep sleep
-#define DEEP_SLEEP_TIME 60 //time in seconds
 #define WIFI_CONNECTION_TIMEOUT 20000 //Timeout for WIFI connections. The idea is to prevent for continuous conection tries. This would cause battery drain
 #define WIFI_MAX_CONNECTION_RETRIES 3 //Max WiFi connection attempts before giving up and deep sleeping. Prevents draining the battery (e.g. solar setups) by retrying the radio forever when it cannot connect
 
@@ -61,12 +58,19 @@ public:
   String mqttUser(){return mqtt_user;}
   String mqttPassword(){return mqtt_password;}
   
-  String useSleepMode(){return use_sleep_mode;}
+  bool useSleepMode(){return use_sleep_mode;}  
+  int sleepMinutes(){if (sleep_minutes<1) return 1; else return sleep_minutes;}  
   String deviceName(){return device_name;}
 
   //! Per-device MQTT availability (LWT) topic. Keeps each device's online/offline
   //! status independent so one device going offline does not mark the others.
   String availabilityTopic(){return "meteohome/" + device_name + "/status";}
+
+  bool useAnalogSensor(){return use_analog_sensor;} 
+  String sensorClass(){return sensor_class;} 
+  bool useArduinoMapFunction(){return use_arduino_map_function;}
+  int analogMinValue(){return analog_min_value;}
+  int analogMaxValue(){return analog_max_value;}
   
 private:
   //MQTT  server
@@ -80,7 +84,15 @@ private:
   String mqtt_user;
   String mqtt_password;
   
-  String use_sleep_mode;
+  bool use_sleep_mode;
+  int sleep_minutes;
+
+  bool use_analog_sensor;
+  String sensor_class;
+  bool use_arduino_map_function;
+  int analog_min_value;
+  int analog_max_value;
+
   String device_name; //! Device (or location) name used to generate the MQTT topics
 
 };

@@ -1,0 +1,27 @@
+    <!-- Featured -->
+    <div id="featured">
+      <div class="container">
+          <div class="row">
+            <div class="4u">
+                {% assign feature =  site.blocks | find: "title", "Features"  %}
+                <h2>{{ feature.title }}</h2>
+                <a href="#" class="image full"><img src="assets/images/meteo-home-v2-small.png" alt="" width="314" height="144"></a>
+                <p> {{ feature.content  | markdownify | truncatewords: 50 }}</p>
+                <p><a href="{{ feature.url }}" class="button">More Details</a></p>
+            </div>
+            <div class="4u">
+                {% assign future =  site.blocks | find: "title", "Future"  %}
+                <h2>{{ future.title }}</h2>
+                <a href="#" class="image full"><img src="assets/images/meteo-home-v2-small.png" alt="" width="314" height="144"></a>
+                <p> {{ future.content  | truncatewords: 50 }}</p>
+                <p><a href="{{ future.url }}" class="button">More Details</a></p>
+            </div>
+            <div class="4u">
+                <h2>Using in Home Assistant</h2>
+                <a href="#" class="image full"><img src="assets/images/pic03.jpg" alt="" width="314" height="144"></a>
+                <p>Nullam non wisi a sem semper eleifend. Donec mattis libero eget urna. Donec leo, vivamus fermentum nibh in augue praesent a lacus at urna congue rutrum. Quisque dictum. Pellentesque viverra vulputate enim.</p>
+                <p><a href="#" class="button">More Details</a></p>
+            </div>
+          </div>
+      </div>
+    </div>
