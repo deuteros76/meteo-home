@@ -160,6 +160,91 @@ void Manager::persistConfig(){
   configFile.close();
 }
 
+RemoteConfigOutcome Manager::applyRemoteConfig(JsonDocument &doc){
+  RemoteConfigOutcome outcome;
+
+  if (!doc.containsKey("token") || String((const char *)doc["token"]) != config_token) {
+    outcome.reason = "invalid_token";
+    return outcome;
+  }
+
+  // --- Validation pass: nothing is mutated until every present field is valid ---
+  if (doc.containsKey("sleep_minutes")) {
+    int v = doc["sleep_minutes"].as<int>();
+    if (v < 1 || v > 60) {
+      outcome.reason = "invalid_field:sleep_minutes";
+      return outcome;
+    }
+  }
+
+  if (doc.containsKey("analog_min_value") || doc.containsKey("analog_max_value")) {
+    int minV = doc.containsKey("analog_min_value") ? doc["analog_min_value"].as<int>() : analog_min_value;
+    int maxV = doc.containsKey("analog_max_value") ? doc["analog_max_value"].as<int>() : analog_max_value;
+    if (minV < 0 || minV > 1024 || maxV < 0 || maxV > 1024 || minV >= maxV) {
+      outcome.reason = "invalid_field:analog_min_value";
+      return outcome;
+    }
+  }
+
+  if (doc.containsKey("sensor_class") && String((const char *)doc["sensor_class"]).length() == 0) {
+    outcome.reason = "invalid_field:sensor_class";
+    return outcome;
+  }
+
+  if (doc.containsKey("device_name") && String((const char *)doc["device_name"]).length() == 0) {
+    outcome.reason = "invalid_field:device_name";
+    return outcome;
+  }
+
+  const char *boolFields[] = {"use_sleep_mode", "use_analog_sensor", "use_arduino_map_function"};
+  for (const char *field : boolFields) {
+    if (doc.containsKey(field) && !doc[field].is<bool>()) {
+      outcome.reason = String("invalid_field:") + field;
+      return outcome;
+    }
+  }
+
+  // --- Apply pass: every present field is now known-valid ---
+  if (doc.containsKey("device_name")) {
+    device_name = (const char *)doc["device_name"];
+    outcome.appliedFields.push_back("device_name");
+  }
+  if (doc.containsKey("use_sleep_mode")) {
+    use_sleep_mode = doc["use_sleep_mode"].as<bool>();
+    outcome.appliedFields.push_back("use_sleep_mode");
+  }
+  if (doc.containsKey("sleep_minutes")) {
+    sleep_minutes = doc["sleep_minutes"].as<int>();
+    outcome.appliedFields.push_back("sleep_minutes");
+  }
+  if (doc.containsKey("use_analog_sensor")) {
+    use_analog_sensor = doc["use_analog_sensor"].as<bool>();
+    outcome.appliedFields.push_back("use_analog_sensor");
+  }
+  if (doc.containsKey("sensor_class")) {
+    sensor_class = (const char *)doc["sensor_class"];
+    outcome.appliedFields.push_back("sensor_class");
+  }
+  if (doc.containsKey("use_arduino_map_function")) {
+    use_arduino_map_function = doc["use_arduino_map_function"].as<bool>();
+    outcome.appliedFields.push_back("use_arduino_map_function");
+  }
+  if (doc.containsKey("analog_min_value")) {
+    analog_min_value = doc["analog_min_value"].as<int>();
+    outcome.appliedFields.push_back("analog_min_value");
+  }
+  if (doc.containsKey("analog_max_value")) {
+    analog_max_value = doc["analog_max_value"].as<int>();
+    outcome.appliedFields.push_back("analog_max_value");
+  }
+
+  persistConfig();
+
+  outcome.success = true;
+  outcome.reason = "applied";
+  return outcome;
+}
+
 void Manager::setup_wifi(){
   WiFiManagerParameter custom_show_hide_function= "<script>function changeVisibility(element) {var x = document.getElementById(element);if (x.style.display === \"none\") {    x.style.display = \"block\";  } else {    x.style.display = \"none\";}}</script>";
   WiFiManagerParameter custom_network_group("<div class='four'><h1>Network settings</h1></div>");

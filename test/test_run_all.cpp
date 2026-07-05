@@ -29,6 +29,12 @@ void setup(void) {
     RUN_TEST(test_setupConfigData);
     RUN_TEST(test_persistConfigRoundTrip);
     RUN_TEST(test_configTokenGeneratedWhenMissing);
+    RUN_TEST(test_applyRemoteConfigValidPartialUpdate);
+    RUN_TEST(test_applyRemoteConfigInvalidToken);
+    RUN_TEST(test_applyRemoteConfigMissingToken);
+    RUN_TEST(test_applyRemoteConfigInvalidSleepMinutes);
+    RUN_TEST(test_applyRemoteConfigInvalidAnalogRange);
+    RUN_TEST(test_applyRemoteConfigEmptyDeviceName);
 
     UNITY_END();
     delay(1000);

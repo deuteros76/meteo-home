@@ -19,8 +19,9 @@ limitations under the License.
 #include <DNSServer.h>
 #include "WiFiManager.h"      
 
-#include <ArduinoJson.h> 
-#include <LittleFS.h> 
+#include <ArduinoJson.h>
+#include <LittleFS.h>
+#include <vector>
 
 //Deep sleep
 #define WIFI_CONNECTION_TIMEOUT 20000 //Timeout for WIFI connections. The idea is to prevent for continuous conection tries. This would cause battery drain
@@ -33,6 +34,13 @@ limitations under the License.
 //using namespace std;
 
 extern bool shouldSaveConfig;//flag for saving data
+
+//! Outcome of a remote (MQTT) configuration attempt via Manager::applyRemoteConfig.
+struct RemoteConfigOutcome {
+  bool success = false;
+  String reason;                        // "applied", "invalid_token", "invalid_payload", "invalid_field:<name>"
+  std::vector<String> appliedFields;     // solo relevante cuando success == true
+};
 
 class Manager{
 
@@ -83,6 +91,10 @@ public:
   void setUseArduinoMapFunction(bool value){use_arduino_map_function = value;}
   void setAnalogMinValue(int value){analog_min_value = value;}
   void setAnalogMaxValue(int value){analog_max_value = value;}
+
+  //! Validates and applies a remote (MQTT) configuration payload. Transactional:
+  //! either every present field is valid and gets applied, or nothing changes.
+  RemoteConfigOutcome applyRemoteConfig(JsonDocument &doc);
 
 #ifdef PIO_UNIT_TESTING
   void persistConfigForTest(){persistConfig();}
