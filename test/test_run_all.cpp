@@ -27,6 +27,7 @@ void setup(void) {
 
     RUN_TEST(test_fileCreation);
     RUN_TEST(test_setupConfigData);
+    RUN_TEST(test_persistConfigRoundTrip);
 
     UNITY_END();
     delay(1000);

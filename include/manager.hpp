@@ -72,6 +72,22 @@ public:
   int analogMinValue(){return analog_min_value;}
   int analogMaxValue(){return analog_max_value;}
   
+  String configToken(){return config_token;}
+
+  // Setters used by remote config flow (Task 4) and by this test.
+  void setDeviceName(String name){device_name = name;}
+  void setUseSleepMode(bool value){use_sleep_mode = value;}
+  void setSleepMinutes(int value){sleep_minutes = value;}
+  void setUseAnalogSensor(bool value){use_analog_sensor = value;}
+  void setSensorClass(String value){sensor_class = value;}
+  void setUseArduinoMapFunction(bool value){use_arduino_map_function = value;}
+  void setAnalogMinValue(int value){analog_min_value = value;}
+  void setAnalogMaxValue(int value){analog_max_value = value;}
+
+#ifdef PIO_UNIT_TESTING
+  void persistConfigForTest(){persistConfig();}
+#endif
+
 private:
   //MQTT  server
   String network_ip;
@@ -94,6 +110,10 @@ private:
   int analog_max_value;
 
   String device_name; //! Device (or location) name used to generate the MQTT topics
+
+  String config_token;
+
+  void persistConfig(); //! Serializes all current members to /config.json
 
 };
 

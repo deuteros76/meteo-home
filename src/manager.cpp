@@ -39,6 +39,8 @@ Manager::Manager(){
   //flag for saving data
   shouldSaveConfig = false;
   configFileExists = false;
+  
+  config_token = "";
 }
 
 void Manager::setup_config_data(){
@@ -90,6 +92,8 @@ void Manager::setup_config_data(){
           analog_min_value = String((const char *)json["analog_min_value"]).toInt();
           analog_max_value = String((const char *)json["analog_max_value"]).toInt();
 
+          config_token = (const char *)json["config_token"];
+
         } else {
           Serial.println("[Manager] Failed to load json config");
         }
@@ -101,6 +105,42 @@ void Manager::setup_config_data(){
   } else {
     Serial.println("[Manager] Failed to mount FS");
   }
+}
+
+void Manager::persistConfig(){
+  DynamicJsonDocument json(1024);
+
+  json["network_ip"] = network_ip;
+  json["network_mask"] = network_mask;
+  json["network_gateway"] = network_gateway;
+
+  json["mqtt_server"] = mqtt_server;
+  json["mqtt_port"] = mqtt_port;
+  json["mqtt_user"] = mqtt_user;
+  json["mqtt_password"] = mqtt_password;
+
+  json["use_sleep_mode"] = use_sleep_mode ? "true" : "false";
+  json["sleep_minutes"] = String(sleep_minutes);
+
+  json["device_name"] = device_name;
+
+  json["use_analog_sensor"] = use_analog_sensor ? "true" : "false";
+  json["sensor_class"] = sensor_class;
+  json["use_arduino_map_function"] = use_arduino_map_function ? "true" : "false";
+  json["analog_min_value"] = String(analog_min_value);
+  json["analog_max_value"] = String(analog_max_value);
+
+  json["config_token"] = config_token;
+
+  File configFile = LittleFS.open("/config.json", "w");
+  if (!configFile) {
+    Serial.println("[Manager] Failed to open config file for writing");
+    return;
+  }
+
+  serializeJson(json, Serial);
+  serializeJson(json, configFile);
+  configFile.close();
 }
 
 void Manager::setup_wifi(){
@@ -247,37 +287,34 @@ void Manager::setup_wifi(){
   //save the custom parameters to FS
   if (shouldSaveConfig) {
     Serial.println("[Manager] Saving configuration");
-    DynamicJsonDocument json(1024);
 
-    json["network_ip"] = custom_network_ip.getValue();
-    json["network_mask"] = custom_network_mask.getValue();
-    json["network_gateway"] = custom_network_gateway.getValue();
-    
-    json["mqtt_server"] = custom_mqtt_server.getValue();
-    json["mqtt_port"] = custom_mqtt_port.getValue();
-    json["mqtt_user"] = custom_mqtt_username.getValue();
-    json["mqtt_password"] = custom_mqtt_password.getValue();
-    
-    json["use_sleep_mode"] = custom_use_sleep_mode.getValue();
-    json["sleep_minutes"] = custom_sleep_minutes.getValue();
-    
-    json["device_name"] = custom_device_name.getValue();
+    network_ip = custom_network_ip.getValue();
+    network_mask = custom_network_mask.getValue();
+    network_gateway = custom_network_gateway.getValue();
 
-    json["use_analog_sensor"] = custom_use_analog_sensor.getValue();
-    json["sensor_class"] = custom_sensor_class.getValue();
-    json["use_arduino_map_function"] = custom_use_map_function.getValue();
-    json["use_analog_sensor"] = custom_use_analog_sensor.getValue();
-    json["analog_min_value"] = custom_analog_min_value.getValue();
-    json["analog_max_value"] = custom_analog_max_value.getValue();
-    
-    File configFile = LittleFS.open("/config.json", "w");
-    if (!configFile) {
-      Serial.println("[Manager] Failed to open config file for writing");
-    }
+    mqtt_server = custom_mqtt_server.getValue();
+    mqtt_port = custom_mqtt_port.getValue();
+    mqtt_user = custom_mqtt_username.getValue();
+    mqtt_password = custom_mqtt_password.getValue();
 
-    serializeJson(json, Serial);    
-    serializeJson(json, configFile);
-    configFile.close();
+    String sleepAux = custom_use_sleep_mode.getValue();
+    sleepAux.toLowerCase();
+    use_sleep_mode = sleepAux.equals("true");
+    sleep_minutes = String(custom_sleep_minutes.getValue()).toInt();
+
+    device_name = custom_device_name.getValue();
+
+    String analogAux = custom_use_analog_sensor.getValue();
+    analogAux.toLowerCase();
+    use_analog_sensor = analogAux.equals("true");
+    sensor_class = custom_sensor_class.getValue();
+    String mapAux = custom_use_map_function.getValue();
+    mapAux.toLowerCase();
+    use_arduino_map_function = mapAux.equals("true");
+    analog_min_value = String(custom_analog_min_value.getValue()).toInt();
+    analog_max_value = String(custom_analog_max_value.getValue()).toInt();
+
+    persistConfig();
 
     Serial.println("[Manager] \nRestarting...");
     ESP.restart();
