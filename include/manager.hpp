@@ -114,6 +114,7 @@ private:
   String config_token;
 
   void persistConfig(); //! Serializes all current members to /config.json
+  String generateToken(); //! Generates a random 32-hex-char config token
 
 };
 

@@ -93,6 +93,11 @@ void Manager::setup_config_data(){
           analog_max_value = String((const char *)json["analog_max_value"]).toInt();
 
           config_token = (const char *)json["config_token"];
+          if (config_token.length() == 0) {
+            config_token = generateToken();
+            Serial.println("[Manager] No config token found. Generated a new one: " + config_token);
+            persistConfig();
+          }
 
         } else {
           Serial.println("[Manager] Failed to load json config");
@@ -105,6 +110,18 @@ void Manager::setup_config_data(){
   } else {
     Serial.println("[Manager] Failed to mount FS");
   }
+  if (config_token.length() == 0) {
+    config_token = generateToken();
+  }
+}
+
+String Manager::generateToken(){
+  const char hexChars[] = "0123456789abcdef";
+  String token;
+  for (int i = 0; i < 32; i++){
+    token += hexChars[secureRandom(0, 16)];
+  }
+  return token;
 }
 
 void Manager::persistConfig(){
@@ -161,7 +178,12 @@ void Manager::setup_wifi(){
 
   WiFiManagerParameter custom_paramenters_group("<div class='four'><h1>Device parameters</h1></div>");
   WiFiManagerParameter custom_device_name("name","Device name or location",device_name.c_str(),40);
-  
+
+  String tokenDisplayHtml = "<p><b>Config token:</b> " + config_token +
+    "<br/><small>Copia y guarda este valor: lo necesitarás para reconfigurar el "
+    "dispositivo remotamente por MQTT sin acceso físico.</small></p>";
+  WiFiManagerParameter custom_config_token_display(tokenDisplayHtml.c_str());
+
   const char* custom_sleepmode_checkbox_str = "type='checkbox'";  
   WiFiManagerParameter custom_use_sleep_mode("sleepmode", "Use deepsleep mode (for battery powered projects)", "true", 5,custom_sleepmode_checkbox_str, WFM_LABEL_AFTER);
   WiFiManagerParameter custom_sleep_group("<div id='sleepgrp'>");
@@ -215,7 +237,8 @@ void Manager::setup_wifi(){
   wifiManager.addParameter(&custom_panel);
   wifiManager.addParameter(&custom_paramenters_group);
   wifiManager.addParameter(&custom_device_name);
-  
+  wifiManager.addParameter(&custom_config_token_display);
+
   wifiManager.addParameter(&custom_use_sleep_mode);
   wifiManager.addParameter(&custom_sleep_group);
   wifiManager.addParameter(&custom_sleep_minutes_lbl);

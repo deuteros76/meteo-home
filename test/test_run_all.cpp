@@ -28,6 +28,7 @@ void setup(void) {
     RUN_TEST(test_fileCreation);
     RUN_TEST(test_setupConfigData);
     RUN_TEST(test_persistConfigRoundTrip);
+    RUN_TEST(test_configTokenGeneratedWhenMissing);
 
     UNITY_END();
     delay(1000);

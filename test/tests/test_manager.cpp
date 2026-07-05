@@ -90,3 +90,32 @@ void test_persistConfigRoundTrip() {
     TEST_ASSERT_EQUAL(900, reloaded.analogMaxValue());
     TEST_ASSERT_EQUAL_STRING("deadbeef", reloaded.configToken().c_str());
 }
+
+void test_configTokenGeneratedWhenMissing() {
+    DynamicJsonDocument json(1024);
+    json["network_ip"] = "192.168.1.50";
+    json["network_mask"] = "255.255.255.0";
+    json["network_gateway"] = "192.168.1.1";
+    json["mqtt_server"] = "192.168.1.100";
+    json["mqtt_port"] = "1883";
+    json["mqtt_user"] = "user";
+    json["mqtt_password"] = "pass";
+    json["use_sleep_mode"] = "false";
+    json["device_name"] = "no_token_device";
+    // config_token intencionadamente ausente: simula un config.json de antes de este feature
+
+    File configFile = LittleFS.open("/config.json", "w");
+    serializeJson(json, configFile);
+    configFile.close();
+
+    Manager manager;
+    manager.setup_config_data();
+
+    TEST_ASSERT_EQUAL(32, manager.configToken().length());
+
+    // Debe haberse persistido: al recargar, el mismo token se mantiene (no se regenera cada vez)
+    String firstToken = manager.configToken();
+    Manager reloaded;
+    reloaded.setup_config_data();
+    TEST_ASSERT_EQUAL_STRING(firstToken.c_str(), reloaded.configToken().c_str());
+}
