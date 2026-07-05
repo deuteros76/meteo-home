@@ -90,6 +90,12 @@ limitations under the License.
   <label>Valor máximo analógico, 0-1024 (analog_max_value)
     <input id="field-analog_max_value" type="number" min="0" max="1024">
   </label>
+  <button id="apply-btn" type="button">Aplicar cambios</button>
+</section>
+
+<section id="result-section">
+  <h2>Resultado</h2>
+  <pre id="result-output">(sin resultados todavía)</pre>
 </section>
 
 <script>
@@ -146,7 +152,10 @@ safe-buffer/index.js:
     fieldSensorClass: document.getElementById('field-sensor_class'),
     fieldUseArduinoMapFunction: document.getElementById('field-use_arduino_map_function'),
     fieldAnalogMinValue: document.getElementById('field-analog_min_value'),
-    fieldAnalogMaxValue: document.getElementById('field-analog_max_value')
+    fieldAnalogMaxValue: document.getElementById('field-analog_max_value'),
+    applyBtn: document.getElementById('apply-btn'),
+
+    resultOutput: document.getElementById('result-output')
   };
 
   function setConnectionStatus(text) {
@@ -185,6 +194,11 @@ safe-buffer/index.js:
     }
   }
 
+  function saveTokenForDevice(deviceName, token) {
+    if (!deviceName || !token) return;
+    localStorage.setItem(STORAGE_TOKEN_PREFIX + deviceName, token);
+  }
+
   function populateForm(state) {
     els.fieldDeviceName.value = state.device_name || '';
     els.fieldUseSleepMode.checked = !!state.use_sleep_mode;
@@ -211,7 +225,14 @@ safe-buffer/index.js:
       }
       populateForm(JSON.parse(payload));
       setReadStateStatus('Estado leído correctamente.');
+    } else if (topic === 'meteohome/' + currentDevice + '/config/result') {
+      if (payload.length === 0) return;
+      showResult(JSON.parse(payload));
     }
+  }
+
+  function showResult(result) {
+    els.resultOutput.textContent = JSON.stringify(result, null, 2);
   }
 
   function connect() {
@@ -280,8 +301,47 @@ safe-buffer/index.js:
     }, READ_STATE_TIMEOUT_MS);
   }
 
+  function applyConfig() {
+    if (!client || !client.connected) {
+      setReadStateStatus('Conecta primero al broker.');
+      return;
+    }
+    var deviceName = els.deviceName.value.trim();
+    if (!deviceName) {
+      setReadStateStatus('Introduce el nombre del dispositivo.');
+      return;
+    }
+    var token = els.deviceToken.value.trim();
+    if (!token) {
+      setReadStateStatus('Introduce el token del dispositivo.');
+      return;
+    }
+
+    if (currentDevice !== deviceName) {
+      subscribeToDevice(deviceName);
+    }
+
+    saveTokenForDevice(deviceName, token);
+
+    var payload = {
+      token: token,
+      device_name: els.fieldDeviceName.value,
+      use_sleep_mode: els.fieldUseSleepMode.checked,
+      sleep_minutes: parseInt(els.fieldSleepMinutes.value, 10),
+      use_analog_sensor: els.fieldUseAnalogSensor.checked,
+      sensor_class: els.fieldSensorClass.value,
+      use_arduino_map_function: els.fieldUseArduinoMapFunction.checked,
+      analog_min_value: parseInt(els.fieldAnalogMinValue.value, 10),
+      analog_max_value: parseInt(els.fieldAnalogMaxValue.value, 10)
+    };
+
+    client.publish('meteohome/' + deviceName + '/config/set', JSON.stringify(payload), { retain: true });
+    els.resultOutput.textContent = 'Comando enviado. Si el dispositivo está en deep-sleep, se procesará en su próximo ciclo de conexión.';
+  }
+
   els.connectBtn.addEventListener('click', connect);
   els.readStateBtn.addEventListener('click', readState);
+  els.applyBtn.addEventListener('click', applyConfig);
   els.deviceName.addEventListener('change', function () {
     loadTokenForDevice(els.deviceName.value.trim());
   });
