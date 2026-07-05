@@ -323,7 +323,13 @@ automation:
 - Si renombras un dispositivo cambiando `device_name` desde este formulario, el dispositivo
   pasa a publicar todo (estado, resultado, sensores, disponibilidad) bajo el nuevo nombre a
   partir del siguiente reinicio; actualiza el "slug" en la plantilla YAML de este dispositivo
-  a mano tras el cambio.
+  a mano tras el cambio. El `config/state` retenido bajo el nombre antiguo queda huérfano; si
+  quieres limpiarlo, publica un mensaje vacío retenido en ese tópico (p. ej.
+  `mosquitto_pub -h <broker> -r -n -t 'meteohome/<nombre-antiguo>/config/state'`).
+- `config/result` no es retenido, así que la notificación de resultado solo llega si Home
+  Assistant está suscrito en el momento en que se publica (el dispositivo se reinicia unos
+  200 ms después de un cambio aplicado con éxito). Si HA está caído en ese instante, no verás
+  la notificación, aunque el cambio sí se haya aplicado.
 - `mode: password` en el helper del token solo lo oculta en la interfaz; Home Assistant lo
   guarda igual que cualquier otro estado, con el mismo nivel de confianza que ya tienen las
   credenciales MQTT de tu propio `configuration.yaml`.

@@ -104,7 +104,7 @@ public:
   //! either every present field is valid and gets applied, or nothing changes.
   RemoteConfigOutcome applyRemoteConfig(JsonDocument &doc);
 
-  //! Builds the JSON payload for config/state: the 7 remotely-configurable fields with
+  //! Builds the JSON payload for config/state: the 8 remotely-configurable fields with
   //! native JSON types (not text), and no token.
   String buildConfigStatePayload();
 
