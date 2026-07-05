@@ -89,6 +89,20 @@ bool MeteoBoard::connectToMQTT(){
       // Subscribe to Home Assistant birth topic to resend discovery on HASS restart
       client->subscribe("homeassistant/status");
       client->subscribe(manager->configSetTopic().c_str());
+
+      // Publish current config as retained state, so external clients (e.g. Home
+      // Assistant) can read it back before issuing a config/set command. Streamed via
+      // beginPublish/print/endPublish (same pattern as sendDiscoveryMessage) because the
+      // payload can approach PubSubClient's default 256-byte MQTT_MAX_PACKET_SIZE with a
+      // long device_name/sensor_class, and publish() would silently fail past that limit.
+      String stateTopic = manager->configStateTopic();
+      String statePayload = manager->buildConfigStatePayload();
+      if (client->beginPublish(stateTopic.c_str(), statePayload.length(), true)) {
+        client->print(statePayload);
+        client->endPublish();
+      } else {
+        Serial.println("[Board] Error publishing config/state");
+      }
     } else {
       Serial.println("[Board] Failed to connect to mqtt");
       returnValue = false;
