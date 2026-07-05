@@ -97,6 +97,8 @@ Below the current BOM is shown. There are no sensors included, as the idea is to
 ## Configuring a meteo-home device
 After uploading the sketch and the first execution the device will run as an Access Point. Check the available networks for you computer and connect with "meteo-home". After that, point your browser to http://192.168.4.1 and the captive portal will be displayed. 
 
+> **Note:** on some Android phones, the system's captive-portal-login popup can show a stale or incomplete cached version of the page (e.g. missing the "Network settings"/"MQTT Server settings"/"Device parameters" fields on the "Configure WiFi" page). If that happens, open a regular browser (Chrome, Firefox, etc.) and navigate to http://192.168.4.1 manually instead of using the auto-launched popup.
+
 ![Home](pics/home.png) 
 
 Choose the first option ("Configure WiFi") and select your home WiFi network from the list of detected APs and introduce its password. 
