@@ -74,6 +74,11 @@ public:
   //! status independent so one device going offline does not mark the others.
   String availabilityTopic(){return "meteohome/" + device_name + "/status";}
 
+  //! Topic where an external client publishes a retained remote-configuration command.
+  String configSetTopic(){return "meteohome/" + device_name + "/config/set";}
+  //! Topic where this device publishes the result of processing a configuration command.
+  String configResultTopic(){return "meteohome/" + device_name + "/config/result";}
+
   bool useAnalogSensor(){return use_analog_sensor;} 
   String sensorClass(){return sensor_class;} 
   bool useArduinoMapFunction(){return use_arduino_map_function;}
