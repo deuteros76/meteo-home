@@ -59,7 +59,12 @@ void Manager::setup_config_data(){
 
         configFile.readBytes(buf.get(), size);
         DynamicJsonDocument json(1024);
-        deserializeJson(json,buf.get());
+        // buf is exactly `size` bytes with no null terminator, so it must be
+        // parsed with an explicit length. The unbounded char* overload of
+        // deserializeJson assumes a null-terminated string and will read past
+        // the end of the allocation looking for one, which is undefined
+        // behavior (observed as a LoadProhibited crash on-device).
+        deserializeJson(json, buf.get(), size);
         serializeJson(json, Serial);
         if (!json.isNull()) {
           configFileExists=true;
