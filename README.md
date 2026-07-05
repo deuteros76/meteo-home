@@ -161,6 +161,177 @@ El dispositivo responde en `meteohome/<device>/config/result` (no retenido):
 Tras procesar el comando (con éxito o error), el dispositivo limpia el retained de
 `config/set` para no reprocesarlo en la siguiente reconexión.
 
+Además, en cada conexión al broker el dispositivo publica su configuración actual (sin el
+token) como retenido en `meteohome/<device>/config/state`:
+
+```json
+{
+  "device_name": "attic",
+  "use_sleep_mode": true,
+  "sleep_minutes": 15,
+  "use_analog_sensor": false,
+  "sensor_class": "moisture",
+  "use_arduino_map_function": true,
+  "analog_min_value": 0,
+  "analog_max_value": 1024
+}
+```
+
+Este tópico permite construir un formulario (por ejemplo, en Home Assistant) que se
+autorrellena con los valores reales del dispositivo antes de enviar un cambio.
+
+### Formulario en Home Assistant
+
+Con `config/state` y `config/set`/`config/result` se puede montar un formulario en Home
+Assistant que lee el estado real del dispositivo y aplica cambios con un botón, sin
+componer JSON a mano. Por cada dispositivo (usando su `device_name` como identificador,
+p. ej. `attic`), añade estos helpers en Ajustes → Dispositivos y servicios → Ayudantes, o
+directamente en `configuration.yaml`:
+
+```yaml
+input_text:
+  meteohome_attic_device_name:
+    name: "Attic - nombre"
+  meteohome_attic_sensor_class:
+    name: "Attic - clase de sensor"
+  meteohome_attic_token:
+    name: "Attic - token"
+    mode: password
+
+input_boolean:
+  meteohome_attic_use_sleep_mode:
+    name: "Attic - modo sleep"
+  meteohome_attic_use_analog_sensor:
+    name: "Attic - sensor analógico"
+  meteohome_attic_use_arduino_map_function:
+    name: "Attic - usar map()"
+
+input_number:
+  meteohome_attic_sleep_minutes:
+    name: "Attic - minutos de sleep"
+    min: 1
+    max: 60
+    step: 1
+  meteohome_attic_analog_min_value:
+    name: "Attic - valor mínimo analógico"
+    min: 0
+    max: 1024
+  meteohome_attic_analog_max_value:
+    name: "Attic - valor máximo analógico"
+    min: 0
+    max: 1024
+```
+
+Automatización que mantiene los helpers sincronizados con el estado real del dispositivo:
+
+```yaml
+automation:
+  - alias: "MeteoHome attic - sincronizar estado"
+    trigger:
+      - platform: mqtt
+        topic: "meteohome/attic/config/state"
+    action:
+      - service: input_text.set_value
+        target: {entity_id: input_text.meteohome_attic_device_name}
+        data: {value: "{{ trigger.payload_json.device_name }}"}
+      - service: "input_boolean.turn_{{ 'on' if trigger.payload_json.use_sleep_mode else 'off' }}"
+        target: {entity_id: input_boolean.meteohome_attic_use_sleep_mode}
+      - service: input_number.set_value
+        target: {entity_id: input_number.meteohome_attic_sleep_minutes}
+        data: {value: "{{ trigger.payload_json.sleep_minutes }}"}
+      - service: "input_boolean.turn_{{ 'on' if trigger.payload_json.use_analog_sensor else 'off' }}"
+        target: {entity_id: input_boolean.meteohome_attic_use_analog_sensor}
+      - service: input_text.set_value
+        target: {entity_id: input_text.meteohome_attic_sensor_class}
+        data: {value: "{{ trigger.payload_json.sensor_class }}"}
+      - service: "input_boolean.turn_{{ 'on' if trigger.payload_json.use_arduino_map_function else 'off' }}"
+        target: {entity_id: input_boolean.meteohome_attic_use_arduino_map_function}
+      - service: input_number.set_value
+        target: {entity_id: input_number.meteohome_attic_analog_min_value}
+        data: {value: "{{ trigger.payload_json.analog_min_value }}"}
+      - service: input_number.set_value
+        target: {entity_id: input_number.meteohome_attic_analog_max_value}
+        data: {value: "{{ trigger.payload_json.analog_max_value }}"}
+```
+
+Script que aplica los cambios (arma el JSON con los valores actuales de los helpers y lo
+publica en `config/set`):
+
+```yaml
+script:
+  meteohome_attic_apply_config:
+    alias: "MeteoHome attic - aplicar configuración"
+    sequence:
+      - service: mqtt.publish
+        data:
+          topic: "meteohome/attic/config/set"
+          retain: true
+          payload: >
+            {{ {
+              "token": states('input_text.meteohome_attic_token'),
+              "device_name": states('input_text.meteohome_attic_device_name'),
+              "use_sleep_mode": is_state('input_boolean.meteohome_attic_use_sleep_mode', 'on'),
+              "sleep_minutes": states('input_number.meteohome_attic_sleep_minutes') | int,
+              "use_analog_sensor": is_state('input_boolean.meteohome_attic_use_analog_sensor', 'on'),
+              "sensor_class": states('input_text.meteohome_attic_sensor_class'),
+              "use_arduino_map_function": is_state('input_boolean.meteohome_attic_use_arduino_map_function', 'on'),
+              "analog_min_value": states('input_number.meteohome_attic_analog_min_value') | int,
+              "analog_max_value": states('input_number.meteohome_attic_analog_max_value') | int
+            } | tojson }}
+```
+
+Tarjeta Lovelace con el formulario y el botón de aplicar:
+
+```yaml
+type: entities
+title: MeteoHome - attic
+entities:
+  - input_text.meteohome_attic_device_name
+  - input_boolean.meteohome_attic_use_sleep_mode
+  - input_number.meteohome_attic_sleep_minutes
+  - input_boolean.meteohome_attic_use_analog_sensor
+  - input_text.meteohome_attic_sensor_class
+  - input_boolean.meteohome_attic_use_arduino_map_function
+  - input_number.meteohome_attic_analog_min_value
+  - input_number.meteohome_attic_analog_max_value
+  - input_text.meteohome_attic_token
+  - entity: script.meteohome_attic_apply_config
+    name: "Aplicar cambios"
+```
+
+Y una automatización que notifica el resultado en la propia UI de Home Assistant:
+
+```yaml
+automation:
+  - alias: "MeteoHome attic - notificar resultado"
+    trigger:
+      - platform: mqtt
+        topic: "meteohome/attic/config/result"
+    action:
+      - service: persistent_notification.create
+        data:
+          title: "MeteoHome attic"
+          message: >
+            {{ 'Configuración aplicada: ' ~ trigger.payload_json.fields | join(', ')
+               if trigger.payload_json.status == 'applied'
+               else 'Error: ' ~ trigger.payload_json.reason }}
+```
+
+**Notas:**
+- Repite esta plantilla por cada dispositivo, cambiando `attic` por el `device_name` real en
+  los IDs de entidad y en los tópicos.
+- Si renombras un dispositivo cambiando `device_name` desde este formulario, el dispositivo
+  pasa a publicar todo (estado, resultado, sensores, disponibilidad) bajo el nuevo nombre a
+  partir del siguiente reinicio; actualiza el "slug" en la plantilla YAML de este dispositivo
+  a mano tras el cambio.
+- `mode: password` en el helper del token solo lo oculta en la interfaz; Home Assistant lo
+  guarda igual que cualquier otro estado, con el mismo nivel de confianza que ya tienen las
+  credenciales MQTT de tu propio `configuration.yaml`.
+- Si tu broker no persiste mensajes retenidos en disco (p. ej. Mosquitto con
+  `persistence false`), un reinicio del broker hace que se pierda el último `config/state`
+  hasta que el dispositivo se reconecte en su siguiente ciclo (más notable con intervalos de
+  deep-sleep largos).
+
 ## Using MeteoHome with Home Assistant
 A MeteoHome device publishes the data it collects to a MQTT broker. The topics used follow the specifications made by Home Assistant project and it is possible to use this software to store and use MeteoHome produced data. When a MeteoHome board is connected to a power source, it sends Home Assisant autodiscovery messages making it available through the MQTT integration.
 
