@@ -123,9 +123,28 @@ void MeteoBoard::sendDiscoveryMessage(String discoveryTopic, String message){
     if (client->beginPublish(discoveryTopic.c_str(), message.length(), true)) {
       client->print(message);
       if (!client->endPublish()){
-        Serial.println(String("[Board] Error publishing discovery message to ") + discoveryTopic);    
+        Serial.println(String("[Board] Error publishing discovery message to ") + discoveryTopic);
       }
     } else {
       Serial.println(String("[Board] Error sending discovery message to ") + discoveryTopic);
     }
+}
+
+String MeteoBoard::buildConfigResultPayload(const RemoteConfigOutcome &outcome){
+  DynamicJsonDocument doc(512);
+  String buffer;
+
+  if (outcome.success) {
+    doc["status"] = "applied";
+    JsonArray fields = doc.createNestedArray("fields");
+    for (const String &field : outcome.appliedFields) {
+      fields.add(field);
+    }
+  } else {
+    doc["status"] = "error";
+    doc["reason"] = outcome.reason;
+  }
+
+  serializeJson(doc, buffer);
+  return buffer;
 }

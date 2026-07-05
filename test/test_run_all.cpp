@@ -9,6 +9,7 @@
 
 #include "tests/test_manager.cpp"
 #include "tests/test_meteosensor.cpp"
+#include "tests/test_meteoboard_config.cpp"
 
 void setup(void) {
     // set stuff up here
@@ -35,6 +36,9 @@ void setup(void) {
     RUN_TEST(test_applyRemoteConfigInvalidSleepMinutes);
     RUN_TEST(test_applyRemoteConfigInvalidAnalogRange);
     RUN_TEST(test_applyRemoteConfigEmptyDeviceName);
+
+    RUN_TEST(test_buildConfigResultAppliedPayload);
+    RUN_TEST(test_buildConfigResultErrorPayload);
 
     UNITY_END();
     delay(1000);
