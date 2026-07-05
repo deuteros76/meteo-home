@@ -90,7 +90,7 @@ limitations under the License.
   <label>Valor máximo analógico, 0-1024 (analog_max_value)
     <input id="field-analog_max_value" type="number" min="0" max="1024">
   </label>
-  <button id="apply-btn" type="button">Aplicar cambios</button>
+  <button id="apply-btn" type="button" disabled>Aplicar cambios</button>
 </section>
 
 <section id="result-section">
@@ -223,11 +223,26 @@ safe-buffer/index.js:
         setReadStateStatus('El dispositivo no tiene estado retenido todavía.');
         return;
       }
-      populateForm(JSON.parse(payload));
+      var state;
+      try {
+        state = JSON.parse(payload);
+      } catch (e) {
+        setReadStateStatus('Estado recibido con formato inválido.');
+        return;
+      }
+      populateForm(state);
+      els.applyBtn.disabled = false;
       setReadStateStatus('Estado leído correctamente.');
     } else if (topic === 'meteohome/' + currentDevice + '/config/result') {
       if (payload.length === 0) return;
-      showResult(JSON.parse(payload));
+      var result;
+      try {
+        result = JSON.parse(payload);
+      } catch (e) {
+        showResult({ status: 'error', reason: 'invalid_result_payload' });
+        return;
+      }
+      showResult(result);
     }
   }
 
@@ -290,6 +305,7 @@ safe-buffer/index.js:
       return;
     }
 
+    els.applyBtn.disabled = true;
     loadTokenForDevice(deviceName);
     subscribeToDevice(deviceName);
 
