@@ -123,6 +123,42 @@ The improved captive portal now features:
 - Real-time value preview using range sliders
 - Enhanced visual styling and layout
 
+## Reconfiguración remota
+
+Una vez configurado, un dispositivo MeteoHome puede reconfigurarse sin acceso físico
+publicando un comando MQTT. Solo se pueden cambiar parámetros de dispositivo/sensores (no
+red ni credenciales MQTT, que siguen requiriendo borrar `config.json` y repetir el portal).
+
+Cada dispositivo tiene un token secreto de 32 caracteres (`config_token`), generado
+automáticamente. En un dispositivo nuevo se muestra en la página del portal cautivo, junto
+al nombre del dispositivo. En un dispositivo actualizado desde una versión de firmware
+anterior a esta funcionalidad, el token se genera en el primer arranque tras la
+actualización y se imprime una única vez por el puerto serie (9600 baudios) — revísalo
+antes de que se pierda, o borra `config.json` para volver a pasar por el portal y verlo ahí.
+
+Para reconfigurar, publica un JSON con `retain=true` en `meteohome/<device>/config/set`,
+incluyendo el token y solo los campos que quieras cambiar:
+
+```shell
+mosquitto_pub -h <broker> -t 'meteohome/attic/config/set' -r \
+  -m '{"token":"<config_token>","sleep_minutes":10,"device_name":"attic"}'
+```
+
+Campos aceptados: `device_name`, `use_sleep_mode`, `sleep_minutes` (1-60),
+`use_analog_sensor`, `sensor_class`, `use_arduino_map_function`, `analog_min_value` y
+`analog_max_value` (0-1024, con `analog_min_value < analog_max_value`).
+
+El dispositivo responde en `meteohome/<device>/config/result` (no retenido):
+
+- `{"status":"applied","fields":[...]}` — cambio aplicado; el dispositivo se reinicia.
+- `{"status":"error","reason":"invalid_token"}` — token ausente o incorrecto.
+- `{"status":"error","reason":"invalid_payload"}` — JSON malformado.
+- `{"status":"error","reason":"invalid_field:<nombre>"}` — un campo fuera de rango o de
+  tipo incorrecto; no se aplica ningún cambio (validación transaccional).
+
+Tras procesar el comando (con éxito o error), el dispositivo limpia el retained de
+`config/set` para no reprocesarlo en la siguiente reconexión.
+
 ## Using MeteoHome with Home Assistant
 A MeteoHome device publishes the data it collects to a MQTT broker. The topics used follow the specifications made by Home Assistant project and it is possible to use this software to store and use MeteoHome produced data. When a MeteoHome board is connected to a power source, it sends Home Assisant autodiscovery messages making it available through the MQTT integration.
 
