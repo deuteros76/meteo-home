@@ -78,6 +78,9 @@ public:
   String configSetTopic(){return "meteohome/" + device_name + "/config/set";}
   //! Topic where this device publishes the result of processing a configuration command.
   String configResultTopic(){return "meteohome/" + device_name + "/config/result";}
+  //! Topic where this device publishes its current configuration (retained), for
+  //! external clients (e.g. Home Assistant) to read back before issuing a config/set command.
+  String configStateTopic(){return "meteohome/" + device_name + "/config/state";}
 
   bool useAnalogSensor(){return use_analog_sensor;} 
   String sensorClass(){return sensor_class;} 
@@ -100,6 +103,10 @@ public:
   //! Validates and applies a remote (MQTT) configuration payload. Transactional:
   //! either every present field is valid and gets applied, or nothing changes.
   RemoteConfigOutcome applyRemoteConfig(JsonDocument &doc);
+
+  //! Builds the JSON payload for config/state: the 7 remotely-configurable fields with
+  //! native JSON types (not text), and no token.
+  String buildConfigStatePayload();
 
 #ifdef PIO_UNIT_TESTING
   void persistConfigForTest(){persistConfig();}

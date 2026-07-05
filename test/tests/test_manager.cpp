@@ -229,3 +229,31 @@ void test_applyRemoteConfigEmptyDeviceName() {
     TEST_ASSERT_FALSE(outcome.success);
     TEST_ASSERT_EQUAL_STRING("invalid_field:device_name", outcome.reason.c_str());
 }
+
+void test_buildConfigStatePayloadExcludesTokenAndUsesNativeTypes() {
+    Manager manager = makeConfiguredManager();
+
+    String payload = manager.buildConfigStatePayload();
+
+    DynamicJsonDocument doc(384);
+    DeserializationError err = deserializeJson(doc, payload);
+    TEST_ASSERT_FALSE(err);
+
+    TEST_ASSERT_FALSE(doc.containsKey("token"));
+    TEST_ASSERT_FALSE(doc.containsKey("config_token"));
+
+    TEST_ASSERT_EQUAL_STRING("device_under_test", doc["device_name"].as<const char*>());
+    TEST_ASSERT_TRUE(doc["use_sleep_mode"].is<bool>());
+    TEST_ASSERT_FALSE(doc["use_sleep_mode"].as<bool>());
+    TEST_ASSERT_TRUE(doc["sleep_minutes"].is<int>());
+    TEST_ASSERT_EQUAL(5, doc["sleep_minutes"].as<int>());
+    TEST_ASSERT_TRUE(doc["use_analog_sensor"].is<bool>());
+    TEST_ASSERT_TRUE(doc["use_analog_sensor"].as<bool>());
+    TEST_ASSERT_EQUAL_STRING("moisture", doc["sensor_class"].as<const char*>());
+    TEST_ASSERT_TRUE(doc["use_arduino_map_function"].is<bool>());
+    TEST_ASSERT_TRUE(doc["use_arduino_map_function"].as<bool>());
+    TEST_ASSERT_EQUAL(0, doc["analog_min_value"].as<int>());
+    TEST_ASSERT_EQUAL(1024, doc["analog_max_value"].as<int>());
+
+    TEST_ASSERT_EQUAL(8, doc.size());
+}

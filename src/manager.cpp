@@ -250,6 +250,22 @@ RemoteConfigOutcome Manager::applyRemoteConfig(JsonDocument &doc){
   return outcome;
 }
 
+String Manager::buildConfigStatePayload(){
+  DynamicJsonDocument json(384);
+  json["device_name"] = device_name;
+  json["use_sleep_mode"] = use_sleep_mode;
+  json["sleep_minutes"] = sleep_minutes;
+  json["use_analog_sensor"] = use_analog_sensor;
+  json["sensor_class"] = sensor_class;
+  json["use_arduino_map_function"] = use_arduino_map_function;
+  json["analog_min_value"] = analog_min_value;
+  json["analog_max_value"] = analog_max_value;
+
+  String payload;
+  serializeJson(json, payload);
+  return payload;
+}
+
 void Manager::setup_wifi(){
   WiFiManagerParameter custom_show_hide_function= "<script>function changeVisibility(element) {var x = document.getElementById(element);if (x.style.display === \"none\") {    x.style.display = \"block\";  } else {    x.style.display = \"none\";}}</script>";
   WiFiManagerParameter custom_network_group("<div class='four'><h1>Network settings</h1></div>");

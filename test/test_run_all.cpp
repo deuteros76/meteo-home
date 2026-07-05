@@ -36,6 +36,7 @@ void setup(void) {
     RUN_TEST(test_applyRemoteConfigInvalidSleepMinutes);
     RUN_TEST(test_applyRemoteConfigInvalidAnalogRange);
     RUN_TEST(test_applyRemoteConfigEmptyDeviceName);
+    RUN_TEST(test_buildConfigStatePayloadExcludesTokenAndUsesNativeTypes);
 
     RUN_TEST(test_buildConfigResultAppliedPayload);
     RUN_TEST(test_buildConfigResultErrorPayload);
