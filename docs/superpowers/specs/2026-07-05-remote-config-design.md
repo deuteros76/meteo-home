@@ -155,16 +155,25 @@ vacío retenido, para no reprocesar el mismo comando en la siguiente reconexión
 
 ## Testing
 
-- `native` (ArduinoFake): tests unitarios para `Manager::applyRemoteConfig()` cubriendo token
+**Nota sobre el entorno `native`:** durante la planificación se comprobó que
+`pio test -e native` ya falla hoy, antes de este feature: `test/test_run_all.cpp` incluye
+incondicionalmente `mhdht.hpp` → `meteosensor.hpp` → `PubSubClient.h`, y `PubSubClient.h`
+requiere `IPAddress.h`/`Client.h` de un core Arduino real que `ArduinoFake` no provee.
+Reparar esto exigiría añadir mocks de red a `ArduinoFake`, una tarea de infraestructura
+mayor y no relacionada con esta funcionalidad. Por eso, los tests de este feature se escriben
+como tests de hardware en `d1_mini_lite` (mismo patrón que ya se usa para los sensores),
+y la reparación del entorno `native` queda fuera de alcance de este plan.
+
+- `d1_mini_lite`: tests para `Manager::applyRemoteConfig()` cubriendo token
   correcto/incorrecto/ausente, cada validación de campo, actualización parcial (solo algunos
   campos presentes), y que `persistConfig()` serializa correctamente todos los miembros
   (incluido `config_token`).
-- `native`: tests para `MeteoBoard::handleConfigCommand()` (mockeando `PubSubClient`)
-  verificando que se publica el resultado correcto en `config/result` y que se limpia el
-  retained de `config/set` en cada caso (éxito y error).
-- La generación del token vía `secureRandom()` no se testea en `native` por depender de RNG
-  hardware; se verifica manualmente en `d1_mini_lite` (token visible en el portal en un
-  dispositivo nuevo, y por Serial en una actualización de firmware sobre un dispositivo ya
+- `d1_mini_lite`: tests para `MeteoBoard::handleConfigCommand()` verificando que se publica
+  el resultado correcto en `config/result` y que se limpia el retained de `config/set` en
+  cada caso (éxito y error).
+- La generación del token vía `secureRandom()` no se testea de forma automatizada (depende
+  de RNG hardware); se verifica manualmente en `d1_mini_lite` (token visible en el portal en
+  un dispositivo nuevo, y por Serial en una actualización de firmware sobre un dispositivo ya
   configurado).
 
 ## Documentación
