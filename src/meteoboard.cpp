@@ -88,6 +88,7 @@ bool MeteoBoard::connectToMQTT(){
       client->publish(availabilityTopic.c_str(), "online", true);
       // Subscribe to Home Assistant birth topic to resend discovery on HASS restart
       client->subscribe("homeassistant/status");
+      client->subscribe(manager->configSetTopic().c_str());
     } else {
       Serial.println("[Board] Failed to connect to mqtt");
       returnValue = false;
@@ -109,12 +110,16 @@ void MeteoBoard::mqttCallback(char* topic, byte* payload, unsigned int length) {
   }
   Serial.println("[Board] MQTT message received on " + String(topic) + ": " + message);
 
-  // When Home Assistant sends its birth message, resend discovery
+  if (instance == nullptr) {
+    return;
+  }
+
   if (String(topic) == "homeassistant/status" && message == "online") {
     Serial.println("[Board] Home Assistant is online, resending discovery messages");
-    if (instance != nullptr) {
-      instance->autodiscover();
-    }
+    instance->autodiscover();
+  } else if (String(topic) == instance->manager->configSetTopic() && message.length() > 0) {
+    // message.length() == 0 is our own retained-clear publish; ignore it to avoid a loop.
+    instance->handleConfigCommand(message);
   }
 }
 
@@ -147,4 +152,30 @@ String MeteoBoard::buildConfigResultPayload(const RemoteConfigOutcome &outcome){
 
   serializeJson(doc, buffer);
   return buffer;
+}
+
+void MeteoBoard::handleConfigCommand(String payload){
+  DynamicJsonDocument doc(512);
+  DeserializationError err = deserializeJson(doc, payload);
+
+  RemoteConfigOutcome outcome;
+  if (err) {
+    outcome.success = false;
+    outcome.reason = "invalid_payload";
+  } else {
+    outcome = manager->applyRemoteConfig(doc);
+  }
+
+  String resultPayload = buildConfigResultPayload(outcome);
+  connectToMQTT();
+  client->publish(manager->configResultTopic().c_str(), resultPayload.c_str());
+
+  // Clear the retained command so it is not reprocessed on the next reconnect.
+  client->publish(manager->configSetTopic().c_str(), "", true);
+
+  if (outcome.success) {
+    Serial.println("[Board] Remote config applied, restarting...");
+    delay(200); // let the publishes above flush before the restart
+    ESP.restart();
+  }
 }
