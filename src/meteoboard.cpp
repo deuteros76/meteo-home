@@ -155,6 +155,13 @@ String MeteoBoard::buildConfigResultPayload(const RemoteConfigOutcome &outcome){
 }
 
 void MeteoBoard::handleConfigCommand(String payload){
+  // Capture both topics before applyRemoteConfig() runs: it can mutate
+  // device_name as a side effect, and both topics are derived from it. If we
+  // read them afterward, we'd publish to the new device's topics instead of
+  // the ones the command actually arrived on.
+  String setTopic = manager->configSetTopic();
+  String resultTopic = manager->configResultTopic();
+
   DynamicJsonDocument doc(512);
   DeserializationError err = deserializeJson(doc, payload);
 
@@ -168,10 +175,11 @@ void MeteoBoard::handleConfigCommand(String payload){
 
   String resultPayload = buildConfigResultPayload(outcome);
   connectToMQTT();
-  client->publish(manager->configResultTopic().c_str(), resultPayload.c_str());
 
-  // Clear the retained command so it is not reprocessed on the next reconnect.
-  client->publish(manager->configSetTopic().c_str(), "", true);
+  // Clear the retained command first to shrink the window where a reconnect
+  // inside connectToMQTT() above could redeliver the still-retained command.
+  client->publish(setTopic.c_str(), "", true);
+  client->publish(resultTopic.c_str(), resultPayload.c_str());
 
   if (outcome.success) {
     Serial.println("[Board] Remote config applied, restarting...");
