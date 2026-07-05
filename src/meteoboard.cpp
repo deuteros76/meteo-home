@@ -196,6 +196,12 @@ void MeteoBoard::handleConfigCommand(String payload){
   client->publish(resultTopic.c_str(), resultPayload.c_str());
 
   if (outcome.success) {
+    // Resend discovery so retained sensor configs (e.g. expire_after, derived from
+    // sleepMinutes()) reflect the just-applied values. ESP.restart() below is a software
+    // reset, which preserves the RTC-memory flag that normally limits autodiscover() to a
+    // cold boot only — without this call, a remote sleep_minutes change would leave a
+    // stale expire_after retained on the broker until the next power cycle.
+    autodiscover();
     Serial.println("[Board] Remote config applied, restarting...");
     delay(200); // let the publishes above flush before the restart
     ESP.restart();
