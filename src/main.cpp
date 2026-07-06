@@ -104,6 +104,13 @@ void setup() {
   Serial.begin(9600);
   Serial.println("[Main] Confifuring device...");
 
+  // PubSubClient's default MQTT_MAX_PACKET_SIZE (256 bytes, topic+payload+header combined)
+  // is too small for a full config/set command (token + all 8 fields, as sent by
+  // tools/remote-config.html): worst case device_name(40)+sensor_class(20) needs ~350
+  // bytes. Oversized incoming PUBLISH packets are silently dropped by PubSubClient
+  // (callback never fires, no error), so this must be raised before any MQTT connection.
+  client.setBufferSize(512);
+
   // WiFi setup
   manager.setup_config_data();
   manager.setup_wifi();
