@@ -103,6 +103,16 @@ bool MeteoBoard::connectToMQTT(){
       } else {
         Serial.println("[Board] Error publishing config/state");
       }
+
+      // Drain any backlog now (the two SUBACKs above, plus a possible retained
+      // config/set delivery) before this connection's brief awake window ends.
+      // PubSubClient::loop() processes at most one incoming packet per call, and in
+      // deep-sleep mode there's no guarantee sensor reads provide enough loop() calls
+      // to receive a retained message that arrives shortly after subscribing.
+      for (int i = 0; i < 10 && client->connected(); i++) {
+        client->loop();
+        delay(50);
+      }
     } else {
       Serial.println("[Board] Failed to connect to mqtt");
       returnValue = false;
