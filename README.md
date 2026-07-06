@@ -125,44 +125,44 @@ The improved captive portal now features:
 - Real-time value preview using range sliders
 - Enhanced visual styling and layout
 
-## Reconfiguración remota
+## Remote reconfiguration
 
-Una vez configurado, un dispositivo MeteoHome puede reconfigurarse sin acceso físico
-publicando un comando MQTT. Solo se pueden cambiar parámetros de dispositivo/sensores (no
-red ni credenciales MQTT, que siguen requiriendo borrar `config.json` y repetir el portal).
+Once configured, a MeteoHome device can be reconfigured without physical access by
+publishing an MQTT command. Only device/sensor parameters can be changed (not network or
+MQTT credentials, which still require deleting `config.json` and going through the portal
+again).
 
-Cada dispositivo tiene un token secreto de 32 caracteres (`config_token`), generado
-automáticamente. En un dispositivo nuevo se muestra en la página del portal cautivo, junto
-al nombre del dispositivo. En un dispositivo actualizado desde una versión de firmware
-anterior a esta funcionalidad, el token se genera en el primer arranque tras la
-actualización y se imprime una única vez por el puerto serie (9600 baudios) — revísalo
-antes de que se pierda, o borra `config.json` para volver a pasar por el portal y verlo ahí.
+Each device has a secret 32-character token (`config_token`), generated automatically. On a
+new device it is shown on the captive portal page, next to the device name. On a device
+updated from a firmware version prior to this feature, the token is generated on the first
+boot after the update and printed once over Serial (9600 baud) — check it before it's lost,
+or delete `config.json` to go through the portal again and see it there.
 
-Para reconfigurar, publica un JSON con `retain=true` en `meteohome/<device>/config/set`,
-incluyendo el token y solo los campos que quieras cambiar:
+To reconfigure, publish a JSON with `retain=true` to `meteohome/<device>/config/set`,
+including the token and only the fields you want to change:
 
 ```shell
 mosquitto_pub -h <broker> -t 'meteohome/attic/config/set' -r \
   -m '{"token":"<config_token>","sleep_minutes":10,"device_name":"attic"}'
 ```
 
-Campos aceptados: `device_name`, `use_sleep_mode`, `sleep_minutes` (1-60),
-`use_analog_sensor`, `sensor_class`, `use_arduino_map_function`, `analog_min_value` y
-`analog_max_value` (0-1024, con `analog_min_value < analog_max_value`).
+Accepted fields: `device_name`, `use_sleep_mode`, `sleep_minutes` (1-60),
+`use_analog_sensor`, `sensor_class`, `use_arduino_map_function`, `analog_min_value` and
+`analog_max_value` (0-1024, with `analog_min_value < analog_max_value`).
 
-El dispositivo responde en `meteohome/<device>/config/result` (no retenido):
+The device responds on `meteohome/<device>/config/result` (not retained):
 
-- `{"status":"applied","fields":[...]}` — cambio aplicado; el dispositivo se reinicia.
-- `{"status":"error","reason":"invalid_token"}` — token ausente o incorrecto.
-- `{"status":"error","reason":"invalid_payload"}` — JSON malformado.
-- `{"status":"error","reason":"invalid_field:<nombre>"}` — un campo fuera de rango o de
-  tipo incorrecto; no se aplica ningún cambio (validación transaccional).
+- `{"status":"applied","fields":[...]}` — change applied; the device restarts.
+- `{"status":"error","reason":"invalid_token"}` — token missing or incorrect.
+- `{"status":"error","reason":"invalid_payload"}` — malformed JSON.
+- `{"status":"error","reason":"invalid_field:<name>"}` — a field is out of range or of the
+  wrong type; no change is applied (transactional validation).
 
-Tras procesar el comando (con éxito o error), el dispositivo limpia el retained de
-`config/set` para no reprocesarlo en la siguiente reconexión.
+After processing the command (whether successful or not), the device clears the retained
+message on `config/set` so it isn't reprocessed on the next reconnection.
 
-Además, en cada conexión al broker el dispositivo publica su configuración actual (sin el
-token) como retenido en `meteohome/<device>/config/state`:
+In addition, on every connection to the broker the device publishes its current
+configuration (without the token) as retained on `meteohome/<device>/config/state`:
 
 ```json
 {
@@ -177,42 +177,41 @@ token) como retenido en `meteohome/<device>/config/state`:
 }
 ```
 
-Este tópico permite construir un formulario (por ejemplo, en Home Assistant) que se
-autorrellena con los valores reales del dispositivo antes de enviar un cambio.
+This topic makes it possible to build a form (for example, in Home Assistant) that
+auto-fills with the device's real values before sending a change.
 
-### Página de reconfiguración remota
+### Remote reconfiguration page
 
-En `tools/remote-config.html` hay una página autocontenida (HTML + JS, sin backend ni
-dependencias externas) que lee el estado de un dispositivo y aplica cambios sin componer
-JSON a mano. Se abre directamente como archivo local en el navegador (doble clic o
-`file://`).
+`tools/remote-config.html` is a self-contained page (HTML + JS, no backend or external
+dependencies) that reads a device's state and applies changes without hand-crafting JSON.
+Open it directly as a local file in your browser (double-click or `file://`).
 
-**Requisito previo (una sola vez, en tu broker):** habilitar un listener WebSocket. En
-Mosquitto, añade a la configuración:
+**Prerequisite (one-time, on your broker):** enable a WebSocket listener. In Mosquitto, add
+to the configuration:
 
 ```
 listener 9001
 protocol websockets
 ```
 
-y reinicia el servicio. Sin esto, la página no podrá conectar.
+and restart the service. Without this, the page won't be able to connect.
 
-**Uso:**
-1. Abre `tools/remote-config.html` en el navegador.
-2. En "Conexión al broker", introduce el host y el puerto WebSocket de tu broker (el `9001`
-   del ejemplo anterior), y el usuario/contraseña MQTT si tu broker los requiere. Pulsa
-   "Conectar".
-3. En "Dispositivo", introduce el `device_name` del dispositivo y su token, y pulsa "Leer
-   estado actual" — el formulario se rellenará con los valores reales del dispositivo.
-4. Edita los campos que quieras cambiar y pulsa "Aplicar cambios". El dispositivo aplicará
-   el cambio (o devolverá un error) y el resultado aparecerá en la sección "Resultado".
+**Usage:**
+1. Open `tools/remote-config.html` in your browser.
+2. Under "Broker connection", enter your broker's host and WebSocket port (the `9001` from
+   the example above), and the MQTT username/password if your broker requires them. Click
+   "Connect".
+3. Under "Device", enter the device's `device_name` and its token, and click "Read current
+   state" — the form will fill in with the device's real values.
+4. Edit whichever fields you want to change and click "Apply changes". The device will
+   apply the change (or return an error) and the result will appear in the "Result"
+   section.
 
-Los datos de conexión y el token de cada dispositivo se guardan en el `localStorage` del
-navegador donde abras la página, para no tener que reintroducirlos cada vez — igual nivel de
-confianza que ya asumías guardando esas mismas credenciales en otro sitio (p. ej. Home
-Assistant). Si expones el listener WebSocket del broker más allá de tu red local, hazlo bajo
-tu propio criterio de seguridad; esta página no añade ninguna protección adicional sobre el
-token ya existente.
+Connection details and each device's token are saved in the browser's `localStorage` where
+you open the page, so you don't have to re-enter them every time — the same level of trust
+you already assume by storing those same credentials elsewhere (e.g. Home Assistant). If you
+expose the broker's WebSocket listener beyond your local network, do so at your own security
+discretion; this page adds no extra protection on top of the existing token.
 
 ## Using MeteoHome with Home Assistant
 A MeteoHome device publishes the data it collects to a MQTT broker. The topics used follow the specifications made by Home Assistant project and it is possible to use this software to store and use MeteoHome produced data. When a MeteoHome board is connected to a power source, it sends Home Assisant autodiscovery messages making it available through the MQTT integration.
